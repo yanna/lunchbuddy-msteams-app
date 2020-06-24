@@ -97,7 +97,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to **To meet new people, just hang tight. I&apos;ll send you an invite soon.**.
+        ///   Looks up a localized string similar to **To meet new people, just hang tight. I&apos;ll send you an invite when a new month starts.**.
         /// </summary>
         internal static string InstallMessageKnownInstallerPart3 {
             get {
@@ -124,7 +124,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to **To meet new people, just hang tight. I&apos;ll send you an invite soon.**.
+        ///   Looks up a localized string similar to **To meet new people, just hang tight. I&apos;ll send you an invite when a new month starts.**.
         /// </summary>
         internal static string InstallMessageUnknownInstallerPart3 {
             get {
