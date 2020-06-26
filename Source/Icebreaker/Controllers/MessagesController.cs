@@ -12,7 +12,6 @@ namespace Icebreaker
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Configuration;
     using System.Web.Http;
     using System.Web.UI.WebControls;
     using Icebreaker.Helpers;
@@ -89,20 +88,22 @@ namespace Icebreaker
                 }
                 else if (msg == MessageIds.MakePairs)
                 {
-                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out MakePairsRequest result))
+                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out MakePairsRequest request))
                     {
-                        var team = await this.bot.GetInstalledTeam(result.TeamId);
-                        await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, result.TeamName);
+                        var team = await this.bot.GetInstalledTeam(request.TeamId);
+                        await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
                     }
                     else
                     {
                         await this.HandleMakePairsNoTeam(connectorClient, activity, senderAadId);
                     }
                 }
-                else if (hasTeamContext && msg == MessageIds.NotifyPairs)
+                else if (msg == MessageIds.NotifyPairs)
                 {
-                    var teamId = teamChannelData.Team.Id;
-                    await this.HandleNotifyPairs(connectorClient, activity, senderAadId, teamId);
+                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out MakePairsResult result))
+                    {
+                        await this.HandleNotifyPairs(connectorClient, activity, senderAadId, result.TeamId);
+                    }
                 }
                 else
                 {
@@ -259,7 +260,8 @@ namespace Icebreaker
             var idPairs = pairs.Select(pair => new Tuple<string, string>(pair.Item1.Id, pair.Item2.Id)).ToList();
             var makePairsResult = new MakePairsResult()
             {
-                PairChannelAccountIds = idPairs
+                PairChannelAccountIds = idPairs,
+                TeamId = team.Id
             };
 
             Activity reply = activity.CreateReply();
@@ -441,6 +443,8 @@ namespace Icebreaker
             {
                 get; set;
             }
+
+            public string TeamId { get; set; }
         }
 
         private struct MakePairsRequest

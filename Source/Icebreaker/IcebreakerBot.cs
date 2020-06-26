@@ -64,6 +64,8 @@ namespace Icebreaker
                     var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
                     var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
 
+                    this.telemetryClient.TrackTrace($"Team {team.Id} has {optedInUsers.Count} opted in users.");
+
                     pairs = this.MakePairs(optedInUsers).Take(this.maxPairUpsPerTeam).ToList();
                 }
             }
@@ -115,6 +117,17 @@ namespace Icebreaker
             this.telemetryClient.TrackTrace($"Made {pairsNotifiedCount} pairups, {usersNotifiedCount} notifications sent");
 
             return pairsNotifiedCount;
+        }
+
+        /// <summary>
+        /// Return all teams where the specified user installed the bot
+        /// </summary>
+        /// <param name="userId">user id</param>
+        /// <returns>a list of teams</returns>
+        public async Task<IList<TeamInstallInfo>> GetTeamsInstalledByUser(string userId)
+        {
+            var teams = await this.dataProvider.GetInstalledTeamsAsync();
+            return teams.Where(team => team.InstallerUserId == userId).ToList();
         }
 
         /// <summary>
@@ -256,16 +269,18 @@ namespace Icebreaker
         /// <param name="serviceUrl">The service url</param>
         /// <param name="teamId">The team id</param>
         /// <param name="tenantId">The tenant id</param>
-        /// <param name="botInstaller">Person that has added the bot to the team</param>
+        /// <param name="botInstallerUserName">Name of the person that added the bot to the team</param>
+        /// <param name="botInstallerUserId">User id of the person that has added the bot to the team</param>
         /// <returns>Tracking task</returns>
-        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstaller)
+        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string botInstallerUserId)
         {
             var teamInstallInfo = new TeamInstallInfo
             {
                 ServiceUrl = serviceUrl,
                 TeamId = teamId,
                 TenantId = tenantId,
-                InstallerName = botInstaller
+                InstallerName = botInstallerUserName,
+                InstallerUserId = botInstallerUserId
             };
             return this.dataProvider.UpdateTeamInstallStatusAsync(teamInstallInfo, true);
         }
@@ -317,7 +332,7 @@ namespace Icebreaker
         /// <param name="connectorClient">The connector client</param>
         /// <param name="teamId">The team id</param>
         /// <returns>The name of the team</returns>
-        private async Task<string> GetTeamNameAsync(ConnectorClient connectorClient, string teamId)
+        public async Task<string> GetTeamNameAsync(ConnectorClient connectorClient, string teamId)
         {
             var teamsConnectorClient = connectorClient.GetTeamsConnectorClient();
             var teamDetailsResult = await teamsConnectorClient.Teams.FetchTeamDetailsAsync(teamId);
