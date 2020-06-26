@@ -60,7 +60,7 @@ namespace Icebreaker.Helpers
         public string InstallerName { get; set; }
 
         /// <summary>
-        /// Gets or sets the user id of the person that can perform admin actions.
+        /// Gets or sets the user AAD id of the person that can perform admin actions.
         /// These include manual generation of pair matches, notifying pairs of said matches, changing the notify mode etc.
         /// </summary>
         [JsonProperty("adminUserId")]

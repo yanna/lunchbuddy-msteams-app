@@ -18,9 +18,9 @@ namespace Icebreaker
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
+    using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Properties;
 
     /// <summary>
@@ -375,13 +375,13 @@ namespace Icebreaker
                                 // Try to determine the name of the person that installed the app, which is usually the sender of the message (From.Id)
                                 // Note that in some cases we cannot resolve it to a team member, because the app was installed to the team programmatically via Graph
                                 var teamMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
+
                                 var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id);
+                                var personName = personThatAddedBot?.Name;
+                                var personAadId = personThatAddedBot?.AsTeamsChannelAccount().ObjectId;
 
-                                JToken personAadId = string.Empty;
-                                personThatAddedBot?.Properties.TryGetValue("objectId", out personAadId);
-
-                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personThatAddedBot?.Name, personAadId.ToString());
-                                await this.bot.WelcomeTeam(connectorClient, teamId, personThatAddedBot?.Name);
+                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, personAadId);
+                                await this.bot.WelcomeTeam(connectorClient, teamId, personName);
                             }
                             else
                             {

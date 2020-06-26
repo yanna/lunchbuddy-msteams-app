@@ -16,7 +16,7 @@ namespace Icebreaker.Helpers
     public class UserInfo : Document
     {
         /// <summary>
-        /// Gets or sets the user's id in Teams (29:xxx).
+        /// Gets or sets the user's AAD id
         /// This is also the <see cref="Resource.Id"/>.
         /// </summary>
         [JsonIgnore]

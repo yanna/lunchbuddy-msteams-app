@@ -122,12 +122,12 @@ namespace Icebreaker
         /// <summary>
         /// Return all teams where the specified user can perform admin actions
         /// </summary>
-        /// <param name="userId">user id</param>
+        /// <param name="userAadId">user id</param>
         /// <returns>a list of teams</returns>
-        public async Task<IList<TeamInstallInfo>> GetTeamsAllowingAdminActionsByUser(string userId)
+        public async Task<IList<TeamInstallInfo>> GetTeamsAllowingAdminActionsByUser(string userAadId)
         {
             var teams = await this.dataProvider.GetInstalledTeamsAsync();
-            return teams.Where(team => team.AdminUserId == userId).ToList();
+            return teams.Where(team => team.AdminUserId == userAadId).ToList();
         }
 
         /// <summary>
@@ -270,9 +270,9 @@ namespace Icebreaker
         /// <param name="teamId">The team id</param>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="botInstallerUserName">Name of the person that added the bot to the team</param>
-        /// <param name="botInstallerUserId">User id of the person that has added the bot to the team</param>
+        /// <param name="botInstallerUserAadId">User AAD id of the person that has added the bot to the team</param>
         /// <returns>Tracking task</returns>
-        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string botInstallerUserId)
+        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string botInstallerUserAadId)
         {
             var teamInstallInfo = new TeamInstallInfo
             {
@@ -280,7 +280,7 @@ namespace Icebreaker
                 TeamId = teamId,
                 TenantId = tenantId,
                 InstallerName = botInstallerUserName,
-                AdminUserId = botInstallerUserId,
+                AdminUserId = botInstallerUserAadId,
                 NotifyPairsMode = TeamInstallInfo.NotifyMode.Automatic
             };
             return this.dataProvider.UpdateTeamInstallStatusAsync(teamInstallInfo, true);
@@ -307,24 +307,24 @@ namespace Icebreaker
         /// Opt out the user from further pairups
         /// </summary>
         /// <param name="tenantId">The tenant id</param>
-        /// <param name="userId">The user id</param>
+        /// <param name="userAadId">The user AAD id</param>
         /// <param name="serviceUrl">The service url</param>
         /// <returns>Tracking task</returns>
-        public Task OptOutUser(string tenantId, string userId, string serviceUrl)
+        public Task OptOutUser(string tenantId, string userAadId, string serviceUrl)
         {
-            return this.dataProvider.SetUserInfoAsync(tenantId, userId, false, serviceUrl);
+            return this.dataProvider.SetUserInfoAsync(tenantId, userAadId, false, serviceUrl);
         }
 
         /// <summary>
         /// Opt in the user to pairups
         /// </summary>
         /// <param name="tenantId">The tenant id</param>
-        /// <param name="userId">The user id</param>
+        /// <param name="userAadId">The user AAD id</param>
         /// <param name="serviceUrl">The service url</param>
         /// <returns>Tracking task</returns>
-        public Task OptInUser(string tenantId, string userId, string serviceUrl)
+        public Task OptInUser(string tenantId, string userAadId, string serviceUrl)
         {
-            return this.dataProvider.SetUserInfoAsync(tenantId, userId, true, serviceUrl);
+            return this.dataProvider.SetUserInfoAsync(tenantId, userAadId, true, serviceUrl);
         }
 
         /// <summary>
