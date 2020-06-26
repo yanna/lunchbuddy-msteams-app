@@ -17,6 +17,7 @@ namespace Icebreaker
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams.Models;
+    using Newtonsoft.Json;
     using Properties;
 
     /// <summary>
@@ -71,26 +72,41 @@ namespace Icebreaker
                 var senderAadId = activity.From.Properties["aadObjectId"].ToString();
                 var teamChannelData = activity.GetChannelData<TeamsChannelData>();
                 var tenantId = teamChannelData.Tenant.Id;
+                var hasTeamContext = teamChannelData.Team != null;
+                var msg = activity.Text.ToLowerInvariant();
 
-                if (string.Equals(activity.Text, "optout", StringComparison.InvariantCultureIgnoreCase))
+                if (msg == MessageIds.OptOut)
                 {
                     await this.HandleOptOut(connectorClient, activity, senderAadId, tenantId);
                 }
-                else if (string.Equals(activity.Text, "optin", StringComparison.InvariantCultureIgnoreCase))
+                else if (msg == MessageIds.OptIn)
                 {
                     await this.HandleOptIn(connectorClient, activity, senderAadId, tenantId);
                 }
-                else if (activity.Text.ToLower().Contains("makepairs") && teamChannelData.Team != null)
+                else if (hasTeamContext && msg.Contains(MessageIds.MakePairs))
+                {
+                    // TODO: do this in private chat instead of channel
+                    var teamId = teamChannelData.Team.Id;
+                    await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, teamId);
+                }
+                else if (hasTeamContext && msg == MessageIds.NotifyPairs)
                 {
                     var teamId = teamChannelData.Team.Id;
-                    await this.HandleMakePairs(connectorClient, activity, senderAadId, teamId);
+                    await this.HandleNotifyPairs(connectorClient, activity, senderAadId, teamId);
                 }
                 else
                 {
-                    // Unknown input
-                    this.telemetryClient.TrackTrace($"Cannot process the following: {activity.Text}");
-                    var replyActivity = activity.CreateReply();
-                    await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity);
+                    if (hasTeamContext)
+                    {
+                        // Unknown input
+                        this.telemetryClient.TrackTrace($"Cannot process the following: {activity.Text}");
+                        var replyActivity = activity.CreateReply();
+                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity);
+                    }
+                    else
+                    {
+                        // TODO provide pause/unpause, edit profile etc
+                    }
                 }
             }
             catch (Exception ex)
@@ -106,32 +122,32 @@ namespace Icebreaker
             this.telemetryClient.TrackTrace($"User {senderAadId} opted in");
 
             var properties = new Dictionary<string, string>
-                    {
-                        { "UserAadId", senderAadId },
-                        { "OptInStatus", "true" },
-                    };
+            {
+                { "UserAadId", senderAadId },
+                { "OptInStatus", "true" },
+            };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
             await this.bot.OptInUser(tenantId, senderAadId, activity.ServiceUrl);
 
             var optInReply = activity.CreateReply();
             optInReply.Attachments = new List<Attachment>
+            {
+                new HeroCard()
+                {
+                    Text = Resources.OptInConfirmation,
+                    Buttons = new List<CardAction>()
                     {
-                        new HeroCard()
+                        new CardAction()
                         {
-                            Text = Resources.OptInConfirmation,
-                            Buttons = new List<CardAction>()
-                            {
-                                new CardAction()
-                                {
-                                    Title = Resources.PausePairingsButtonText,
-                                    DisplayText = Resources.PausePairingsButtonText,
-                                    Type = ActionTypes.MessageBack,
-                                    Text = "optout"
-                                }
-                            }
-                        }.ToAttachment(),
-                    };
+                            Title = Resources.PausePairingsButtonText,
+                            DisplayText = Resources.PausePairingsButtonText,
+                            Type = ActionTypes.MessageBack,
+                            Text = MessageIds.OptOut
+                        }
+                    }
+                }.ToAttachment(),
+            };
 
             await connectorClient.Conversations.ReplyToActivityAsync(optInReply);
         }
@@ -142,37 +158,37 @@ namespace Icebreaker
             this.telemetryClient.TrackTrace($"User {senderAadId} opted out");
 
             var properties = new Dictionary<string, string>
-                    {
-                        { "UserAadId", senderAadId },
-                        { "OptInStatus", "false" },
-                    };
+            {
+                { "UserAadId", senderAadId },
+                { "OptInStatus", "false" },
+            };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
             await this.bot.OptOutUser(tenantId, senderAadId, activity.ServiceUrl);
 
             var optOutReply = activity.CreateReply();
             optOutReply.Attachments = new List<Attachment>
+            {
+                new HeroCard()
+                {
+                    Text = Resources.OptOutConfirmation,
+                    Buttons = new List<CardAction>()
                     {
-                        new HeroCard()
+                        new CardAction()
                         {
-                            Text = Resources.OptOutConfirmation,
-                            Buttons = new List<CardAction>()
-                            {
-                                new CardAction()
-                                {
-                                    Title = Resources.ResumePairingsButtonText,
-                                    DisplayText = Resources.ResumePairingsButtonText,
-                                    Type = ActionTypes.MessageBack,
-                                    Text = "optin"
-                                }
-                            }
-                        }.ToAttachment(),
-                    };
+                            Title = Resources.ResumePairingsButtonText,
+                            DisplayText = Resources.ResumePairingsButtonText,
+                            Type = ActionTypes.MessageBack,
+                            Text = MessageIds.OptIn
+                        }
+                    }
+                }.ToAttachment(),
+            };
 
             await connectorClient.Conversations.ReplyToActivityAsync(optOutReply);
         }
 
-        private async Task HandleMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId)
+        private async Task HandleMakePairsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId)
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs");
 
@@ -180,34 +196,73 @@ namespace Icebreaker
 
             var pairs = await this.bot.MakePairsForTeam(team);
 
-            var pairsStrs = pairs.Select(pair => $"{pair.Item1.Name} and {pair.Item2.Name}").ToList();
+            var pairsStrs = pairs.Select((pair, i) => $"{i + 1}. {pair.Item1.Name} - {pair.Item2.Name}").ToList();
             var allPairsStr = string.Join("<p/>", pairsStrs);
 
-            // TODO: resource strings
+            var idPairs = pairs.Select(pair => new Tuple<string, string>(pair.Item1.Id, pair.Item2.Id)).ToList();
+            var makePairsResult = new MakePairsResult()
+            {
+                PairChannelAccountIds = idPairs
+            };
+
             Activity reply = activity.CreateReply();
             reply.Attachments = new List<Attachment>
             {
                 new HeroCard()
                 {
-                    Title = "New Pairings",
+                    Title = Resources.NewPairingsTitle,
                     Text = allPairsStr,
                     Buttons = new List<CardAction>()
                     {
                         new CardAction
                         {
-                            Title = "Send Pairings",
+                            Title = Resources.SendPairingsButtonText,
+                            DisplayText = Resources.SendPairingsButtonText,
                             Type = ActionTypes.MessageBack,
-                            Text = "notifypairs"
+                            Text = MessageIds.NotifyPairs,
+                            Value = JsonConvert.SerializeObject(makePairsResult)
                         },
                         new CardAction
                         {
-                            Title = "Regenerate",
+                            Title = Resources.RegeneratePairingsButtonText,
+                            DisplayText = Resources.RegeneratePairingsButtonText,
                             Type = ActionTypes.MessageBack,
-                            Text = "makepairs"
+                            Text = MessageIds.MakePairs
                         }
                     }
                 }.ToAttachment()
             };
+            await connectorClient.Conversations.ReplyToActivityAsync(reply);
+        }
+
+        private async Task HandleNotifyPairs(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId)
+        {
+            this.telemetryClient.TrackTrace($"User {senderAadId} triggered notify pairs");
+
+            string replyMessage = string.Empty;
+
+            try
+            {
+                var makePairsResult = JsonConvert.DeserializeObject<MakePairsResult>(activity.Value.ToString());
+
+                var members = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
+                var membersByChannelAccountId = members.ToDictionary(key => key.Id, value => value);
+
+                var pairs = makePairsResult.PairChannelAccountIds.Select(pair => new Tuple<ChannelAccount, ChannelAccount>(
+                    membersByChannelAccountId[pair.Item1], membersByChannelAccountId[pair.Item2])).ToList();
+
+                var team = await this.bot.GetInstalledTeam(teamId);
+                var numPairsNotified = await this.bot.NotifyAllPairs(team, pairs);
+                replyMessage = string.Format(Resources.ManualNotifiedUsersMessage, numPairsNotified);
+            }
+            catch (Exception ex)
+            {
+                replyMessage = Resources.ManualNotifiedUsersErrorMessage;
+                this.telemetryClient.TrackTrace($"Error while notifying pairs: {ex.Message}", SeverityLevel.Warning);
+                this.telemetryClient.TrackException(ex);
+            }
+
+            Activity reply = activity.CreateReply(replyMessage);
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }
 
@@ -317,6 +372,22 @@ namespace Icebreaker
                 { "Platform", clientInfoEntity?.Properties["platform"]?.ToString() }
             };
             this.telemetryClient.TrackEvent("UserActivity", properties);
+        }
+
+        private struct MakePairsResult
+        {
+            public List<Tuple<string, string>> PairChannelAccountIds
+            {
+                get; set;
+            }
+        }
+
+        private static class MessageIds
+        {
+            public const string OptIn = "optin";
+            public const string OptOut = "optout";
+            public const string MakePairs = "makepairs";
+            public const string NotifyPairs = "notifypairs";
         }
     }
 }

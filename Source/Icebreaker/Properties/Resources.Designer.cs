@@ -133,6 +133,24 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not notify the users. Please try again or regenerate new pairings..
+        /// </summary>
+        internal static string ManualNotifiedUsersErrorMessage {
+            get {
+                return ResourceManager.GetString("ManualNotifiedUsersErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notified {0} pair(s)..
+        /// </summary>
+        internal static string ManualNotifiedUsersMessage {
+            get {
+                return ResourceManager.GetString("ManualNotifiedUsersMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hi there again, I&apos;m {0} in {1}. A bot that pairs you with a new coworker to meet each month. This month your match is {2}..
         /// </summary>
         internal static string MatchUpCardContentPart1 {
@@ -187,6 +205,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New Pairings.
+        /// </summary>
+        internal static string NewPairingsTitle {
+            get {
+                return ResourceManager.GetString("NewPairingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Welcome back! You&apos;ve been missed. I&apos;ve restarted your matches. Have fun!.
         /// </summary>
         internal static string OptInConfirmation {
@@ -223,6 +250,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Regenerate.
+        /// </summary>
+        internal static string RegeneratePairingsButtonText {
+            get {
+                return ResourceManager.GetString("RegeneratePairingsButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resume matches.
         /// </summary>
         internal static string ResumePairingsButtonText {
@@ -237,6 +273,15 @@ namespace Icebreaker.Properties {
         internal static string SalutationTitleText {
             get {
                 return ResourceManager.GetString("SalutationTitleText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Send Pairings.
+        /// </summary>
+        internal static string SendPairingsButtonText {
+            get {
+                return ResourceManager.GetString("SendPairingsButtonText", resourceCulture);
             }
         }
         

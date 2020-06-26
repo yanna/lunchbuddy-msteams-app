@@ -149,6 +149,14 @@
     <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
     <comment>Part 3 of the install message when the name of the installer is not known</comment>
   </data>
+  <data name="ManualNotifiedUsersErrorMessage" xml:space="preserve">
+    <value>Could not notify the users. Please try again or regenerate new pairings.</value>
+    <comment>Error message if the pairs could not be notified manually</comment>
+  </data>
+  <data name="ManualNotifiedUsersMessage" xml:space="preserve">
+    <value>Notified {0} pair(s).</value>
+    <comment>Message after the pairs have been notified manually</comment>
+  </data>
   <data name="MatchUpCardContentPart1" xml:space="preserve">
     <value>Hi there again, I'm {0} in {1}. A bot that pairs you with a new coworker to meet each month. This month your match is {2}.</value>
     <comment>First part of the match up card main content</comment>
@@ -173,6 +181,10 @@
     <value>{0} / {1} Meet up</value>
     <comment>The title for the Meetup - {0} is the name of the first person that user has been matched with and {1} is the name of the user</comment>
   </data>
+  <data name="NewPairingsTitle" xml:space="preserve">
+    <value>New Pairings</value>
+    <comment>The title text for the new pairings card</comment>
+  </data>
   <data name="OptInConfirmation" xml:space="preserve">
     <value>Welcome back! You've been missed. I've restarted your matches. Have fun!</value>
     <comment>The confirmation reply that is sent when the user resumes the matches</comment>
@@ -189,6 +201,10 @@
     <value>Propose meetup</value>
     <comment>Button text to propose the meetup with the match of the user</comment>
   </data>
+  <data name="RegeneratePairingsButtonText" xml:space="preserve">
+    <value>Regenerate</value>
+    <comment>Button text to regenerate pairings</comment>
+  </data>
   <data name="ResumePairingsButtonText" xml:space="preserve">
     <value>Resume matches</value>
     <comment>Button text to resume pairings</comment>
@@ -196,6 +212,10 @@
   <data name="SalutationTitleText" xml:space="preserve">
     <value>Hi there!</value>
     <comment>This is the text for the salutation in the adaptive cards when the bot is installed to a team and also when new users are added to the team</comment>
+  </data>
+  <data name="SendPairingsButtonText" xml:space="preserve">
+    <value>Send Pairings</value>
+    <comment>Button text to send pairings</comment>
   </data>
   <data name="TakeATourButtonText" xml:space="preserve">
     <value>Take a tour</value>
