@@ -178,7 +178,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If you&apos;ve got the inclination, set something up..
+        ///   Looks up a localized string similar to Feel free to set something up :).
         /// </summary>
         internal static string MatchUpCardContentPart2 {
             get {
@@ -187,7 +187,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You&apos;ve been matched with {0}..
+        ///   Looks up a localized string similar to You&apos;ve been matched with **{0}**..
         /// </summary>
         internal static string MatchUpCardMatchedText {
             get {
@@ -214,7 +214,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} / {1} Meet up.
+        ///   Looks up a localized string similar to {0} / {1} LunchBuddy.
         /// </summary>
         internal static string MeetupTitle {
             get {

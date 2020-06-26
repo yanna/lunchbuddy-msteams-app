@@ -308,8 +308,10 @@ namespace Icebreaker
                 var members = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
                 var membersByChannelAccountId = members.ToDictionary(key => key.Id, value => value);
 
+                // Evaluate all values so we can fail early if someone no longer exists
                 var pairs = makePairsResult.PairChannelAccountIds.Select(pair => new Tuple<ChannelAccount, ChannelAccount>(
-                    membersByChannelAccountId[pair.Item1], membersByChannelAccountId[pair.Item2])).ToList();
+                    membersByChannelAccountId[pair.Item1],
+                    membersByChannelAccountId[pair.Item2])).ToList();
 
                 var team = await this.bot.GetInstalledTeam(teamId);
                 var numPairsNotified = await this.bot.NotifyAllPairs(team, pairs);

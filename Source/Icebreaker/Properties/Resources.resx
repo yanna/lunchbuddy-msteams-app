@@ -170,11 +170,11 @@
     <comment>First part of the match up card main content</comment>
   </data>
   <data name="MatchUpCardContentPart2" xml:space="preserve">
-    <value>If you've got the inclination, set something up.</value>
+    <value>Feel free to set something up :)</value>
     <comment>Second part of the match up card main content</comment>
   </data>
   <data name="MatchUpCardMatchedText" xml:space="preserve">
-    <value>You've been matched with {0}.</value>
+    <value>You've been matched with **{0}**.</value>
     <comment>The text saying who the user has been matched up with</comment>
   </data>
   <data name="MatchUpCardTitleContent" xml:space="preserve">
@@ -186,7 +186,7 @@
     <comment>Content of the Meetup for the propose meeting</comment>
   </data>
   <data name="MeetupTitle" xml:space="preserve">
-    <value>{0} / {1} Meet up</value>
+    <value>{0} / {1} LunchBuddy</value>
     <comment>The title for the Meetup - {0} is the name of the first person that user has been matched with and {1} is the name of the user</comment>
   </data>
   <data name="NewPairingsTitle" xml:space="preserve">
