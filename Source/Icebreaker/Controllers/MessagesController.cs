@@ -12,12 +12,16 @@ namespace Icebreaker
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using System.Web.Configuration;
     using System.Web.Http;
+    using System.Web.UI.WebControls;
+    using Icebreaker.Helpers;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Properties;
 
     /// <summary>
@@ -83,11 +87,17 @@ namespace Icebreaker
                 {
                     await this.HandleOptIn(connectorClient, activity, senderAadId, tenantId);
                 }
-                else if (hasTeamContext && msg.Contains(MessageIds.MakePairs))
+                else if (msg == MessageIds.MakePairs)
                 {
-                    // TODO: do this in private chat instead of channel
-                    var teamId = teamChannelData.Team.Id;
-                    await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, teamId);
+                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out MakePairsRequest result))
+                    {
+                        var team = await this.bot.GetInstalledTeam(result.TeamId);
+                        await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, result.TeamName);
+                    }
+                    else
+                    {
+                        await this.HandleMakePairsNoTeam(connectorClient, activity, senderAadId);
+                    }
                 }
                 else if (hasTeamContext && msg == MessageIds.NotifyPairs)
                 {
@@ -188,11 +198,58 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(optOutReply);
         }
 
-        private async Task HandleMakePairsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId)
+        private async Task HandleMakePairsNoTeam(ConnectorClient connectorClient, Activity activity, string senderAadId)
+        {
+            this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs with no team specified");
+
+            var teamsInstalledByUser = await this.bot.GetTeamsInstalledByUser(senderAadId);
+
+            if (teamsInstalledByUser.Count == 0)
+            {
+                var noTeamReply = activity.CreateReply(Resources.MakePairsNoTeamMsg);
+                await connectorClient.Conversations.ReplyToActivityAsync(noTeamReply);
+            }
+            else if (teamsInstalledByUser.Count == 1)
+            {
+                var team = teamsInstalledByUser.First();
+                var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
+                await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, teamName);
+            }
+            else
+            {
+                var teamActions = new List<CardAction>();
+
+                foreach (var team in teamsInstalledByUser)
+                {
+                    var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
+                    var teamCardAction = new CardAction()
+                    {
+                        Title = teamName,
+                        DisplayText = teamName,
+                        Type = ActionTypes.MessageBack,
+                        Text = MessageIds.MakePairs,
+                        Value = JsonConvert.SerializeObject(new MakePairsRequest { TeamId = team.Id, TeamName = teamName })
+                    };
+                    teamActions.Add(teamCardAction);
+                }
+
+                var pickTeamReply = activity.CreateReply();
+                pickTeamReply.Attachments = new List<Attachment>
+                {
+                    new HeroCard()
+                    {
+                        Text = Resources.MakePairsWhichTeamText,
+                        Buttons = teamActions
+                    }.ToAttachment(),
+                };
+
+                await connectorClient.Conversations.ReplyToActivityAsync(pickTeamReply);
+            }
+        }
+
+        private async Task HandleMakePairsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs");
-
-            var team = await this.bot.GetInstalledTeam(teamId);
 
             var pairs = await this.bot.MakePairsForTeam(team);
 
@@ -210,7 +267,7 @@ namespace Icebreaker
             {
                 new HeroCard()
                 {
-                    Title = Resources.NewPairingsTitle,
+                    Title = string.Format(Resources.NewPairingsTitle, teamName),
                     Text = allPairsStr,
                     Buttons = new List<CardAction>()
                     {
@@ -227,7 +284,8 @@ namespace Icebreaker
                             Title = Resources.RegeneratePairingsButtonText,
                             DisplayText = Resources.RegeneratePairingsButtonText,
                             Type = ActionTypes.MessageBack,
-                            Text = MessageIds.MakePairs
+                            Text = MessageIds.MakePairs,
+                            Value = JsonConvert.SerializeObject(new MakePairsRequest { TeamId = team.Id, TeamName = teamName })
                         }
                     }
                 }.ToAttachment()
@@ -307,10 +365,13 @@ namespace Icebreaker
                                 // Try to determine the name of the person that installed the app, which is usually the sender of the message (From.Id)
                                 // Note that in some cases we cannot resolve it to a team member, because the app was installed to the team programmatically via Graph
                                 var teamMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
-                                var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id)?.Name;
+                                var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id);
 
-                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personThatAddedBot);
-                                await this.bot.WelcomeTeam(connectorClient, teamId, personThatAddedBot);
+                                JToken personAadId = string.Empty;
+                                personThatAddedBot?.Properties.TryGetValue("objectId", out personAadId);
+
+                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personThatAddedBot?.Name, personAadId.ToString());
+                                await this.bot.WelcomeTeam(connectorClient, teamId, personThatAddedBot?.Name);
                             }
                             else
                             {
@@ -380,6 +441,13 @@ namespace Icebreaker
             {
                 get; set;
             }
+        }
+
+        private struct MakePairsRequest
+        {
+            public string TeamId { get; set; }
+
+            public string TeamName { get; set; }
         }
 
         private static class MessageIds

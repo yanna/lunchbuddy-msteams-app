@@ -133,6 +133,24 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate pairings is only for users who installed the bot to a team..
+        /// </summary>
+        internal static string MakePairsNoTeamMsg {
+            get {
+                return ResourceManager.GetString("MakePairsNoTeamMsg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Which team do you wish to generate pairs for?.
+        /// </summary>
+        internal static string MakePairsWhichTeamText {
+            get {
+                return ResourceManager.GetString("MakePairsWhichTeamText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not notify the users. Please try again or regenerate new pairings..
         /// </summary>
         internal static string ManualNotifiedUsersErrorMessage {
@@ -205,7 +223,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to New Pairings.
+        ///   Looks up a localized string similar to New Pairings for {0}.
         /// </summary>
         internal static string NewPairingsTitle {
             get {

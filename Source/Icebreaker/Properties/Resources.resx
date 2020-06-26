@@ -149,6 +149,14 @@
     <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
     <comment>Part 3 of the install message when the name of the installer is not known</comment>
   </data>
+  <data name="MakePairsNoTeamMsg" xml:space="preserve">
+    <value>Generate pairings is only for users who installed the bot to a team.</value>
+    <comment>Message for user who tries to invoke making pairs but didn't install the bot to any team.</comment>
+  </data>
+  <data name="MakePairsWhichTeamText" xml:space="preserve">
+    <value>Which team do you wish to generate pairs for?</value>
+    <comment>Title for card that asks which team the pairs should be generated for</comment>
+  </data>
   <data name="ManualNotifiedUsersErrorMessage" xml:space="preserve">
     <value>Could not notify the users. Please try again or regenerate new pairings.</value>
     <comment>Error message if the pairs could not be notified manually</comment>
@@ -182,7 +190,7 @@
     <comment>The title for the Meetup - {0} is the name of the first person that user has been matched with and {1} is the name of the user</comment>
   </data>
   <data name="NewPairingsTitle" xml:space="preserve">
-    <value>New Pairings</value>
+    <value>New Pairings for {0}</value>
     <comment>The title text for the new pairings card</comment>
   </data>
   <data name="OptInConfirmation" xml:space="preserve">
