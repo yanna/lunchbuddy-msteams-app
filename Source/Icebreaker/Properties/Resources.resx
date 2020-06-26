@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AdminActionGeneratePairs" xml:space="preserve">
+    <value>generate pairs</value>
+    <comment>Admin action option for filling into the which teams </comment>
+  </data>
+  <data name="AdminActionNoTeamMsg" xml:space="preserve">
+    <value>The {0} action is only for users who have admin privileges.</value>
+    <comment>Message for user who tries to invoke an admin action but are not admins</comment>
+  </data>
+  <data name="AdminActionWhichTeamText" xml:space="preserve">
+    <value>Which team do you wish to {0} for?</value>
+    <comment>Title for card that asks which team the admin action should be generated for</comment>
+  </data>
   <data name="ChatWithMatchButtonText" xml:space="preserve">
     <value>Chat with {0}</value>
     <comment>Button text to initiate a chat with the person the user has been matched up with</comment>
@@ -148,14 +160,6 @@
   <data name="InstallMessageUnknownInstallerPart3" xml:space="preserve">
     <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
     <comment>Part 3 of the install message when the name of the installer is not known</comment>
-  </data>
-  <data name="MakePairsNoTeamMsg" xml:space="preserve">
-    <value>Generate pairings is only for users who installed the bot to a team.</value>
-    <comment>Message for user who tries to invoke making pairs but didn't install the bot to any team.</comment>
-  </data>
-  <data name="MakePairsWhichTeamText" xml:space="preserve">
-    <value>Which team do you wish to generate pairs for?</value>
-    <comment>Title for card that asks which team the pairs should be generated for</comment>
   </data>
   <data name="ManualNotifiedUsersErrorMessage" xml:space="preserve">
     <value>Could not notify the users. Please try again or regenerate new pairings.</value>

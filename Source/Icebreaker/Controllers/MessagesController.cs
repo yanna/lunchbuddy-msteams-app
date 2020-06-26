@@ -88,15 +88,7 @@ namespace Icebreaker
                 }
                 else if (msg == MessageIds.MakePairs)
                 {
-                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out MakePairsRequest request))
-                    {
-                        var team = await this.bot.GetInstalledTeam(request.TeamId);
-                        await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
-                    }
-                    else
-                    {
-                        await this.HandleMakePairsNoTeam(connectorClient, activity, senderAadId);
-                    }
+                    await this.HandleMakePairs(connectorClient, activity, senderAadId);
                 }
                 else if (msg == MessageIds.NotifyPairs)
                 {
@@ -124,6 +116,19 @@ namespace Icebreaker
             {
                 this.telemetryClient.TrackTrace($"Error while handling message activity: {ex.Message}", SeverityLevel.Warning);
                 this.telemetryClient.TrackException(ex);
+            }
+        }
+
+        private async Task HandleMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId)
+        {
+            if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
+            {
+                var team = await this.bot.GetInstalledTeam(request.TeamId);
+                await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+            }
+            else
+            {
+                await this.HandleMakePairsNoTeam(connectorClient, activity, senderAadId);
             }
         }
 
@@ -203,16 +208,17 @@ namespace Icebreaker
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs with no team specified");
 
-            var teamsInstalledByUser = await this.bot.GetTeamsInstalledByUser(senderAadId);
+            var teamsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderAadId);
 
-            if (teamsInstalledByUser.Count == 0)
+            if (teamsAllowingAdminActionsByUser.Count == 0)
             {
-                var noTeamReply = activity.CreateReply(Resources.MakePairsNoTeamMsg);
+                var noTeamMsg = string.Format(Resources.AdminActionNoTeamMsg, Resources.AdminActionGeneratePairs);
+                var noTeamReply = activity.CreateReply(noTeamMsg);
                 await connectorClient.Conversations.ReplyToActivityAsync(noTeamReply);
             }
-            else if (teamsInstalledByUser.Count == 1)
+            else if (teamsAllowingAdminActionsByUser.Count == 1)
             {
-                var team = teamsInstalledByUser.First();
+                var team = teamsAllowingAdminActionsByUser.First();
                 var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
                 await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, teamName);
             }
@@ -220,7 +226,7 @@ namespace Icebreaker
             {
                 var teamActions = new List<CardAction>();
 
-                foreach (var team in teamsInstalledByUser)
+                foreach (var team in teamsAllowingAdminActionsByUser)
                 {
                     var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
                     var teamCardAction = new CardAction()
@@ -229,7 +235,7 @@ namespace Icebreaker
                         DisplayText = teamName,
                         Type = ActionTypes.MessageBack,
                         Text = MessageIds.MakePairs,
-                        Value = JsonConvert.SerializeObject(new MakePairsRequest { TeamId = team.Id, TeamName = teamName })
+                        Value = JsonConvert.SerializeObject(new TeamContext { TeamId = team.Id, TeamName = teamName })
                     };
                     teamActions.Add(teamCardAction);
                 }
@@ -239,7 +245,7 @@ namespace Icebreaker
                 {
                     new HeroCard()
                     {
-                        Text = Resources.MakePairsWhichTeamText,
+                        Text = string.Format(Resources.AdminActionWhichTeamText, Resources.AdminActionGeneratePairs),
                         Buttons = teamActions
                     }.ToAttachment(),
                 };
@@ -287,7 +293,7 @@ namespace Icebreaker
                             DisplayText = Resources.RegeneratePairingsButtonText,
                             Type = ActionTypes.MessageBack,
                             Text = MessageIds.MakePairs,
-                            Value = JsonConvert.SerializeObject(new MakePairsRequest { TeamId = team.Id, TeamName = teamName })
+                            Value = JsonConvert.SerializeObject(new TeamContext { TeamId = team.Id, TeamName = teamName })
                         }
                     }
                 }.ToAttachment()
@@ -449,7 +455,7 @@ namespace Icebreaker
             public string TeamId { get; set; }
         }
 
-        private struct MakePairsRequest
+        private struct TeamContext
         {
             public string TeamId { get; set; }
 

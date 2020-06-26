@@ -15,6 +15,22 @@ namespace Icebreaker.Helpers
     public class TeamInstallInfo : Document
     {
         /// <summary>
+        /// Mode of how the matches will be notified
+        /// </summary>
+        public enum NotifyMode
+        {
+            /// <summary>
+            /// bot will create matches and send all pairs the match immediately
+            /// </summary>
+            Automatic,
+
+            /// <summary>
+            /// bot will create matches and send pairing to ApprovalUserId for approval
+            /// </summary>
+            NeedApproval
+        }
+
+        /// <summary>
         /// Gets or sets the team id.
         /// This is also the <see cref="Resource.Id"/>.
         /// </summary>
@@ -44,15 +60,23 @@ namespace Icebreaker.Helpers
         public string InstallerName { get; set; }
 
         /// <summary>
-        /// Gets or sets the user id of the person that installed the bot to the team
+        /// Gets or sets the user id of the person that can perform admin actions.
+        /// These include manual generation of pair matches, notifying pairs of said matches, changing the notify mode etc.
         /// </summary>
-        [JsonProperty("installerUserId")]
-        public string InstallerUserId { get; set; }
+        [JsonProperty("adminUserId")]
+        public string AdminUserId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the mode of how matches will be notified
+        /// </summary>
+        [JsonProperty("notifyMode")]
+        public NotifyMode NotifyPairsMode { get; set; } = TeamInstallInfo.NotifyMode.Automatic;
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"Team - Id = {this.TeamId}, TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}, InstallerName = {this.InstallerName}, InstallerUserId = {this.InstallerUserId}";
+            return $"Team - Id = {this.TeamId},TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}, " +
+                $"InstallerName = {this.InstallerName}, AdminUserId = {this.AdminUserId}";
         }
     }
 }

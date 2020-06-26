@@ -61,6 +61,33 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to generate pairs.
+        /// </summary>
+        internal static string AdminActionGeneratePairs {
+            get {
+                return ResourceManager.GetString("AdminActionGeneratePairs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0} action is only for users who have admin privileges..
+        /// </summary>
+        internal static string AdminActionNoTeamMsg {
+            get {
+                return ResourceManager.GetString("AdminActionNoTeamMsg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Which team do you wish to {0} for?.
+        /// </summary>
+        internal static string AdminActionWhichTeamText {
+            get {
+                return ResourceManager.GetString("AdminActionWhichTeamText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Chat with {0}.
         /// </summary>
         internal static string ChatWithMatchButtonText {
@@ -129,24 +156,6 @@ namespace Icebreaker.Properties {
         internal static string InstallMessageUnknownInstallerPart3 {
             get {
                 return ResourceManager.GetString("InstallMessageUnknownInstallerPart3", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate pairings is only for users who installed the bot to a team..
-        /// </summary>
-        internal static string MakePairsNoTeamMsg {
-            get {
-                return ResourceManager.GetString("MakePairsNoTeamMsg", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Which team do you wish to generate pairs for?.
-        /// </summary>
-        internal static string MakePairsWhichTeamText {
-            get {
-                return ResourceManager.GetString("MakePairsWhichTeamText", resourceCulture);
             }
         }
         

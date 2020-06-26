@@ -120,14 +120,14 @@ namespace Icebreaker
         }
 
         /// <summary>
-        /// Return all teams where the specified user installed the bot
+        /// Return all teams where the specified user can perform admin actions
         /// </summary>
         /// <param name="userId">user id</param>
         /// <returns>a list of teams</returns>
-        public async Task<IList<TeamInstallInfo>> GetTeamsInstalledByUser(string userId)
+        public async Task<IList<TeamInstallInfo>> GetTeamsAllowingAdminActionsByUser(string userId)
         {
             var teams = await this.dataProvider.GetInstalledTeamsAsync();
-            return teams.Where(team => team.InstallerUserId == userId).ToList();
+            return teams.Where(team => team.AdminUserId == userId).ToList();
         }
 
         /// <summary>
@@ -280,7 +280,8 @@ namespace Icebreaker
                 TeamId = teamId,
                 TenantId = tenantId,
                 InstallerName = botInstallerUserName,
-                InstallerUserId = botInstallerUserId
+                AdminUserId = botInstallerUserId,
+                NotifyPairsMode = TeamInstallInfo.NotifyMode.Automatic
             };
             return this.dataProvider.UpdateTeamInstallStatusAsync(teamInstallInfo, true);
         }
