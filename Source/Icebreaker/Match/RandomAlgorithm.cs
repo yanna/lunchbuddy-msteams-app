@@ -13,35 +13,51 @@ namespace Icebreaker.Match
     /// <summary>
     /// Randomly match the users based on no other data.
     /// </summary>
-    public class RandomAlgorithm
+    public class RandomAlgorithm : IMatchAlgorithm
     {
+        private readonly Random random;
+
         /// <summary>
-        /// Run the algorithm
+        /// Initializes a new instance of the <see cref="RandomAlgorithm"/> class.
+        /// </summary>
+        /// <param name="random">random generator</param>
+        public RandomAlgorithm(Random random)
+        {
+            this.random = random;
+        }
+
+        /// <summary>
+        /// Create pairs from the set of users.
         /// </summary>
         /// <param name="users">users to make pairs</param>
         /// <returns>a list of pairs</returns>
-        public static List<Tuple<ChannelAccount, ChannelAccount>> CreatePairs(List<ChannelAccount> users)
+        public MatchResult CreateMatches(List<ChannelAccount> users)
         {
-            Randomize(users);
+            this.Shuffle(users);
 
             var pairs = new List<Tuple<ChannelAccount, ChannelAccount>>();
-            for (int i = 0; i < users.Count - 1; i += 2)
+            int i = 0;
+            for (; i < users.Count - 1; i += 2)
             {
                 pairs.Add(new Tuple<ChannelAccount, ChannelAccount>(users[i], users[i + 1]));
             }
 
-            return pairs;
+            var oddPerson = i == users.Count ? null : users[i];
+            return new MatchResult(pairs, oddPerson);
         }
 
-        private static void Randomize<T>(IList<T> items)
+        /// <summary>
+        /// Randomly shuffle a list of items
+        /// </summary>
+        /// <typeparam name="T">type of item</typeparam>
+        /// <param name="items">shuffled items</param>
+        public void Shuffle<T>(IList<T> items)
         {
-            Random rand = new Random(Guid.NewGuid().GetHashCode());
-
             // For each spot in the array, pick
             // a random item to swap into that spot.
             for (int i = 0; i < items.Count - 1; i++)
             {
-                int j = rand.Next(i, items.Count);
+                int j = this.random.Next(i, items.Count);
                 T temp = items[i];
                 items[i] = items[j];
                 items[j] = temp;

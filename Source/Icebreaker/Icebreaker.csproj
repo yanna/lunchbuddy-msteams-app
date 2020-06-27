@@ -205,6 +205,12 @@
     <Compile Include="Helpers\UserInfo.cs" />
     <Compile Include="IcebreakerBot.cs" />
     <Compile Include="IcebreakerModule.cs" />
+    <Compile Include="Match\ChannelAccountExtensions.cs" />
+    <Compile Include="Match\IMatchAlgorithm.cs" />
+    <Compile Include="Match\MatchResult.cs" />
+    <Compile Include="Match\PastMatch.cs" />
+    <Compile Include="Match\PersonData.cs" />
+    <Compile Include="Match\PersonPreferences.cs" />
     <Compile Include="Match\RandomAlgorithm.cs" />
     <Compile Include="Match\Person.cs" />
     <Compile Include="Match\StableMarriageAlgorithm.cs" />

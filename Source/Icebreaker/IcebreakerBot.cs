@@ -469,7 +469,7 @@ namespace Icebreaker
                 .ToList();
         }
 
-        private List<Tuple<ChannelAccount, ChannelAccount>> MakePairs(List<ChannelAccount> users)
+        private IList<Tuple<ChannelAccount, ChannelAccount>> MakePairs(List<ChannelAccount> users)
         {
             if (users.Count > 1)
             {
@@ -480,9 +480,10 @@ namespace Icebreaker
                 this.telemetryClient.TrackTrace($"Pairs could not be made because there is only 1 user in the team");
             }
 
-            var pairs = RandomAlgorithm.CreatePairs(users);
+            Random random = new Random(Guid.NewGuid().GetHashCode());
+            var result = new RandomAlgorithm(random).CreateMatches(users);
 
-            return pairs;
+            return result.Pairs;
         }
     }
 }
