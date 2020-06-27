@@ -205,6 +205,7 @@
     <Compile Include="Helpers\UserInfo.cs" />
     <Compile Include="IcebreakerBot.cs" />
     <Compile Include="IcebreakerModule.cs" />
+    <Compile Include="Match\RandomAlgorithm.cs" />
     <Compile Include="Match\Person.cs" />
     <Compile Include="Match\StableMarriageAlgorithm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

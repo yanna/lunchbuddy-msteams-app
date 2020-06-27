@@ -12,6 +12,7 @@ namespace Icebreaker
     using System.Threading.Tasks;
     using Helpers;
     using Helpers.AdaptiveCards;
+    using Icebreaker.Match;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Azure;
@@ -479,30 +480,9 @@ namespace Icebreaker
                 this.telemetryClient.TrackTrace($"Pairs could not be made because there is only 1 user in the team");
             }
 
-            this.Randomize(users);
-
-            var pairs = new List<Tuple<ChannelAccount, ChannelAccount>>();
-            for (int i = 0; i < users.Count - 1; i += 2)
-            {
-                pairs.Add(new Tuple<ChannelAccount, ChannelAccount>(users[i], users[i + 1]));
-            }
+            var pairs = RandomAlgorithm.CreatePairs(users);
 
             return pairs;
-        }
-
-        private void Randomize<T>(IList<T> items)
-        {
-            Random rand = new Random(Guid.NewGuid().GetHashCode());
-
-            // For each spot in the array, pick
-            // a random item to swap into that spot.
-            for (int i = 0; i < items.Count - 1; i++)
-            {
-                int j = rand.Next(i, items.Count);
-                T temp = items[i];
-                items[i] = items[j];
-                items[j] = temp;
-            }
         }
     }
 }
