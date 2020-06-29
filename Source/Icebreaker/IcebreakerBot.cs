@@ -460,6 +460,8 @@ namespace Icebreaker
             var members = await connectorClient.Conversations.GetConversationMembersAsync(teamInfo.TeamId);
             this.telemetryClient.TrackTrace($"Found {members.Count} in team {teamInfo.TeamId}");
 
+            // UserInfo only exists if the user has entered some info in the first place (eg optout or profile details)
+            // Optin is presumed if no UserInfo is found.
             var tasks = members.Select(m => this.dataProvider.GetUserInfoAsync(m.AsTeamsChannelAccount().ObjectId));
             var results = await Task.WhenAll(tasks);
 

@@ -26,7 +26,7 @@ namespace Icebreaker.Match
         /// <param name="pastMatches">past matches</param>
         /// <param name="discipline">data/engineering/design/pm</param>
         /// <param name="gender">gender</param>
-        /// <param name="seniority">intern/senior/principal/leadership/other</param>
+        /// <param name="seniority">e.g intern</param>
         /// <param name="teams">sub team names</param>
         public PersonData(List<PastMatch> pastMatches, string discipline, string gender, string seniority, List<string> teams)
         {
@@ -38,9 +38,9 @@ namespace Icebreaker.Match
         }
 
         /// <summary>
-        /// Gets the list of past matches
+        /// Gets or sets the list of past matches
         /// </summary>
-        public List<PastMatch> PastMatches { get; private set; } = new List<PastMatch>();
+        public List<PastMatch> PastMatches { get; set; } = new List<PastMatch>();
 
         /// <summary>
         /// Gets or sets the Area of discipline
@@ -53,7 +53,7 @@ namespace Icebreaker.Match
         public string Gender { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the seniority of the person [intern, senior, principal, leadership, other]
+        /// Gets or sets the seniority of the person eg intern
         /// </summary>
         public string Seniority { get; set; } = string.Empty;
 

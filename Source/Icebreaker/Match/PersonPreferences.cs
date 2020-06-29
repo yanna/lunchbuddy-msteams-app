@@ -101,7 +101,7 @@ namespace Icebreaker.Match
             // Favour different seniority.
             // * Don't want the interns to be together to give them
             // exposure to the team during their 4 weeks here
-            // * Don't want leadership to be together as they probably
+            // * Don't want principals to be together as they probably
             // see each other a lot already
             if (!string.Equals(
                 srcPersonData.Seniority,

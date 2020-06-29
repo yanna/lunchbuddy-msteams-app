@@ -2,9 +2,9 @@
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Teams.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace LunchBuddyTest
 {
@@ -33,7 +33,7 @@ namespace LunchBuddyTest
             var prefs = new PersonPreferences("0", this.group, this.userIdToPerson, emptyPeopleData).Get();
 
             var actualNames = prefs.Select(person => person.Data.Name).ToList();
-            var expectedNames = new List<string>{ "1Catwoman", "2Spiderman", "3Batman" };
+            var expectedNames = new List<string> { "1Catwoman", "2Spiderman", "3Batman" };
 
             CollectionAssert.AreEqual(expectedNames, actualNames);
         }
@@ -50,7 +50,7 @@ namespace LunchBuddyTest
             var prefs = new PersonPreferences("0", this.group, this.userIdToPerson, sameTeamPeopleData).Get();
 
             var actualNames = prefs.Select(person => person.Data.Name).ToList();
-            var expectedNames = new List<string>{ "1Catwoman", "2Spiderman", "3Batman" };
+            var expectedNames = new List<string> { "1Catwoman", "2Spiderman", "3Batman" };
 
             CollectionAssert.AreEqual(expectedNames, actualNames);
         }
@@ -68,6 +68,44 @@ namespace LunchBuddyTest
 
             var actualNames = prefs.Select(person => person.Data.Name).ToList();
             var expectedNames = new List<string> { "3Batman", "1Catwoman", "2Spiderman" };
+
+            CollectionAssert.AreEqual(expectedNames, actualNames);
+        }
+
+
+        [TestMethod]
+        public void TestPastMatches()
+        {
+            var sameTeamPeopleData = new Dictionary<string, PersonData>
+            {
+                { "0", new PersonData
+                    {
+                        Teams = new List<string>{ "dc" },
+                        PastMatches = new List<PastMatch>{
+                            new PastMatch("1", DateTime.Today.AddDays(-2)), 
+                            new PastMatch("3", DateTime.Today.AddDays(-1)), 
+                            new PastMatch("1", DateTime.Today) }
+                    }
+                },
+                { "3", new PersonData
+                    {
+                        Teams = new List<string>{ "dc", "gotham" },
+                    }
+                },
+                { "1", new PersonData
+                    {
+                        Teams = new List<string>{ "dc", "gotham" },
+                        Seniority = "principal"
+                    }
+                }
+            };
+
+            var prefs = new PersonPreferences("0", this.group, this.userIdToPerson, sameTeamPeopleData).Get();
+
+            var actualNames = prefs.Select(person => person.Data.Name).ToList();
+
+            // No match first, then oldest match
+            var expectedNames = new List<string> { "2Spiderman", "3Batman", "1Catwoman" };
 
             CollectionAssert.AreEqual(expectedNames, actualNames);
         }
