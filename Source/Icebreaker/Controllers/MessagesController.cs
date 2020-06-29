@@ -96,7 +96,7 @@ namespace Icebreaker
                     {
                         await this.HandleNotifyPairs(connectorClient, activity, senderAadId, result.TeamId);
                     }
-                }
+                } // TODO: handle messages to change the notify mode
                 else
                 {
                     if (hasTeamContext)
@@ -258,10 +258,14 @@ namespace Icebreaker
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs");
 
-            var pairs = await this.bot.MakePairsForTeam(team);
-
+            var matchResult = await this.bot.MakePairsForTeam(team);
+            var pairs = matchResult.Pairs;
             var pairsStrs = pairs.Select((pair, i) => $"{i + 1}. {pair.Item1.Name} - {pair.Item2.Name}").ToList();
             var allPairsStr = string.Join("<p/>", pairsStrs);
+            if (matchResult.OddPerson != null)
+            {
+                allPairsStr += $"<p/>Odd person: {matchResult.OddPerson.Name}";
+            }
 
             var idPairs = pairs.Select(pair => new Tuple<string, string>(pair.Item1.Id, pair.Item2.Id)).ToList();
             var makePairsResult = new MakePairsResult()

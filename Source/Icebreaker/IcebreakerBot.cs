@@ -52,11 +52,11 @@ namespace Icebreaker
         /// </summary>
         /// <param name="team">team info</param>
         /// <returns>Randomized pairs</returns>
-        public async Task<List<Tuple<ChannelAccount, ChannelAccount>>> MakePairsForTeam(TeamInstallInfo team)
+        public async Task<MatchResult> MakePairsForTeam(TeamInstallInfo team)
         {
             this.telemetryClient.TrackTrace($"Pairing members of team {team.Id}");
 
-            var pairs = new List<Tuple<ChannelAccount, ChannelAccount>>();
+            var matchResult = new MatchResult();
 
             try
             {
@@ -67,7 +67,8 @@ namespace Icebreaker
 
                     this.telemetryClient.TrackTrace($"Team {team.Id} has {optedInUsers.Count} opted in users.");
 
-                    pairs = this.MakePairs(optedInUsers).Take(this.maxPairUpsPerTeam).ToList();
+                    matchResult = this.MakePairs(optedInUsers);
+                    matchResult.Pairs.Take(this.maxPairUpsPerTeam).ToList();
                 }
             }
             catch (Exception ex)
@@ -76,7 +77,7 @@ namespace Icebreaker
                 this.telemetryClient.TrackException(ex);
             }
 
-            return pairs;
+            return matchResult;
         }
 
         /// <summary>
@@ -85,7 +86,7 @@ namespace Icebreaker
         /// <param name="team">team info</param>
         /// <param name="pairs">member pairs</param>
         /// <returns>Count of pairs notified</returns>
-        public async Task<int> NotifyAllPairs(TeamInstallInfo team, List<Tuple<ChannelAccount, ChannelAccount>> pairs)
+        public async Task<int> NotifyAllPairs(TeamInstallInfo team, IList<Tuple<ChannelAccount, ChannelAccount>> pairs)
         {
             this.telemetryClient.TrackTrace($"Notify pairs for team {team.Id}");
 
@@ -158,8 +159,8 @@ namespace Icebreaker
 
                 foreach (var team in teams)
                 {
-                    var pairs = await this.MakePairsForTeam(team);
-                    pairsNotifiedCount += await this.NotifyAllPairs(team, pairs);
+                    var matchResult = await this.MakePairsForTeam(team);
+                    pairsNotifiedCount += await this.NotifyAllPairs(team, matchResult.Pairs);
                 }
             }
             catch (Exception ex)
@@ -471,7 +472,7 @@ namespace Icebreaker
                 .ToList();
         }
 
-        private IList<Tuple<ChannelAccount, ChannelAccount>> MakePairs(List<ChannelAccount> users)
+        private MatchResult MakePairs(List<ChannelAccount> users)
         {
             if (users.Count > 1)
             {
@@ -485,7 +486,7 @@ namespace Icebreaker
             Random random = new Random(Guid.NewGuid().GetHashCode());
             var result = new RandomAlgorithm(random).CreateMatches(users);
 
-            return result.Pairs;
+            return result;
         }
     }
 }
