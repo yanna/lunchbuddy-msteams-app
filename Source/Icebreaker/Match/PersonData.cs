@@ -43,23 +43,23 @@ namespace Icebreaker.Match
         public List<PastMatch> PastMatches { get; private set; } = new List<PastMatch>();
 
         /// <summary>
-        /// Gets the Area of discipline
+        /// Gets or sets the Area of discipline
         /// </summary>
-        public string Discipline { get; private set; } = string.Empty;
+        public string Discipline { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets the Gender
+        /// Gets or sets the Gender
         /// </summary>
-        public string Gender { get; private set; } = string.Empty;
+        public string Gender { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets the seniority of the person [intern, senior, principal, leadership, other]
+        /// Gets or sets the seniority of the person [intern, senior, principal, leadership, other]
         /// </summary>
-        public string Seniority { get; private set; } = string.Empty;
+        public string Seniority { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets the team names the person belongs to.
+        /// Gets or sets the team names the person belongs to.
         /// </summary>
-        public List<string> Teams { get; private set; } = new List<string>();
+        public List<string> Teams { get; set; } = new List<string>();
     }
 }
