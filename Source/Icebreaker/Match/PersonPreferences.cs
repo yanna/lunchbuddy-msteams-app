@@ -64,9 +64,7 @@ namespace Icebreaker.Match
         private PersonData GetPersonData(string userId)
         {
             PersonData personData;
-            this.peopleData.TryGetValue(userId, out personData);
-
-            return personData;
+            return this.peopleData.TryGetValue(userId, out personData) ? personData : new PersonData();
         }
 
         /// <summary>
