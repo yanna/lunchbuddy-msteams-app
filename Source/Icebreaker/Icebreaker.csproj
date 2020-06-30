@@ -203,12 +203,14 @@
     <Compile Include="Helpers\IcebreakerBotDataProvider.cs" />
     <Compile Include="Helpers\TeamInstallInfo.cs" />
     <Compile Include="Helpers\UserInfo.cs" />
+    <Compile Include="Helpers\UserMatch.cs" />
     <Compile Include="IcebreakerBot.cs" />
     <Compile Include="IcebreakerModule.cs" />
-    <Compile Include="Match\ChannelAccountExtensions.cs" />
+    <Compile Include="Helpers\ChannelAccountExtensions.cs" />
     <Compile Include="Match\IMatchAlgorithm.cs" />
     <Compile Include="Match\MatchResult.cs" />
     <Compile Include="Match\PastMatch.cs" />
+    <Compile Include="Helpers\PeopleDataCreator.cs" />
     <Compile Include="Match\PersonData.cs" />
     <Compile Include="Match\PersonPreferences.cs" />
     <Compile Include="Match\RandomAlgorithm.cs" />

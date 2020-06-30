@@ -4,7 +4,7 @@
 // </copyright>
 //----------------------------------------------------------------------------------------------
 
-namespace Icebreaker.Match
+namespace Icebreaker.Helpers
 {
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
@@ -19,9 +19,9 @@ namespace Icebreaker.Match
         /// </summary>
         /// <param name="this">this</param>
         /// <returns>the id</returns>
-        public static string GetUserId(this Person<ChannelAccount> @this)
+        public static string GetUserId(this ChannelAccount @this)
         {
-            return @this.Data.AsTeamsChannelAccount().ObjectId;
+            return @this.AsTeamsChannelAccount().ObjectId;
         }
     }
 }

@@ -382,7 +382,7 @@ namespace Icebreaker
 
                                 var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id);
                                 var personName = personThatAddedBot?.Name;
-                                var personAadId = personThatAddedBot?.AsTeamsChannelAccount().ObjectId;
+                                var personAadId = personThatAddedBot?.GetUserId();
 
                                 await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, personAadId);
 

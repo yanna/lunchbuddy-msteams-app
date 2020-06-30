@@ -139,22 +139,11 @@ namespace Icebreaker.Helpers
         /// <summary>
         /// Set the user info for the given user
         /// </summary>
-        /// <param name="tenantId">Tenant id</param>
-        /// <param name="userAadId">User AAD id</param>
-        /// <param name="optedIn">User opt-in status</param>
-        /// <param name="serviceUrl">User service URL</param>
+        /// <param name="userInfo">User info</param>
         /// <returns>Tracking task</returns>
-        public async Task SetUserInfoAsync(string tenantId, string userAadId, bool optedIn, string serviceUrl)
+        public async Task SetUserInfoAsync(UserInfo userInfo)
         {
             await this.EnsureInitializedAsync();
-
-            var userInfo = new UserInfo
-            {
-                TenantId = tenantId,
-                UserId = userAadId,
-                OptedIn = optedIn,
-                ServiceUrl = serviceUrl
-            };
             await this.documentClient.UpsertDocumentAsync(this.usersCollection.SelfLink, userInfo);
         }
 

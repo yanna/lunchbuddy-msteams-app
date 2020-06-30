@@ -9,6 +9,7 @@ namespace Icebreaker.Match
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Icebreaker.Helpers;
     using Microsoft.Bot.Connector;
 
     /// <summary>
@@ -30,7 +31,7 @@ namespace Icebreaker.Match
         /// Initializes a new instance of the <see cref="StableMarriageAlgorithm"/> class.
         /// </summary>
         /// <param name="random">random generator</param>
-        /// <param name="peopleData">people data</param>
+        /// <param name="peopleData">userId to PersonData objects</param>
         public StableMarriageAlgorithm(Random random, IDictionary<string, PersonData> peopleData)
         {
             this.random = random;
@@ -96,23 +97,6 @@ namespace Icebreaker.Match
         public MatchResult CreateMatches(List<ChannelAccount> channelAccounts)
         {
             var randomAlgorithm = new RandomAlgorithm(this.random);
-
-            var channelAccountCount = channelAccounts.Count;
-            if (channelAccountCount == 0)
-            {
-                return new MatchResult();
-            }
-
-            if (channelAccountCount == 1)
-            {
-                return new MatchResult(new List<Tuple<ChannelAccount, ChannelAccount>>(), channelAccounts.First());
-            }
-
-            if (channelAccountCount < 4)
-            {
-                return randomAlgorithm.CreateMatches(channelAccounts);
-            }
-
             var people = channelAccounts.Select(account => new Person<ChannelAccount>(account)).ToList();
             randomAlgorithm.Shuffle<Person<ChannelAccount>>(people);
 
@@ -128,12 +112,12 @@ namespace Icebreaker.Match
             var oddPerson = people.Count % 2 == 0 ? null : people.Last().Data;
 
             var userIdToPerson = people.ToDictionary(
-                person => person.GetUserId(),
+                person => person.Data.GetUserId(),
                 person => person);
 
             // 2. Get preferences for each group
-            group1.ForEach(person => person.Preferences = new PersonPreferences(person.GetUserId(), group2, userIdToPerson, this.peopleData).Get());
-            group2.ForEach(person => person.Preferences = new PersonPreferences(person.GetUserId(), group1, userIdToPerson, this.peopleData).Get());
+            group1.ForEach(person => person.Preferences = new PersonPreferences(person.Data.GetUserId(), group2, userIdToPerson, this.peopleData).Get());
+            group2.ForEach(person => person.Preferences = new PersonPreferences(person.Data.GetUserId(), group1, userIdToPerson, this.peopleData).Get());
 
             // 3. Run stable marriage
             DoMarriage<ChannelAccount>(group1);

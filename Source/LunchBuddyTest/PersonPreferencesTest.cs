@@ -1,4 +1,5 @@
-﻿using Icebreaker.Match;
+﻿using Icebreaker.Helpers;
+using Icebreaker.Match;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Teams.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,7 +24,7 @@ namespace LunchBuddyTest
             var batman = new Person<ChannelAccount>(new TeamsChannelAccount { Name = "3Batman", ObjectId = "3" });
 
             this.group = new List<Person<ChannelAccount>>() { catwoman, spiderman, batman };
-            this.userIdToPerson = group.ToDictionary(p => p.GetUserId(), p => p);
+            this.userIdToPerson = group.ToDictionary(p => p.Data.GetUserId(), p => p);
         }
 
         [TestMethod]

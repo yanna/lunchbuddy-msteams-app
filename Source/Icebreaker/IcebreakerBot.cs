@@ -67,7 +67,7 @@ namespace Icebreaker
 
                     this.telemetryClient.TrackTrace($"Team {team.Id} has {optedInUsers.Count} opted in users.");
 
-                    matchResult = this.MakePairs(optedInUsers);
+                    matchResult = await this.MakePairs(optedInUsers);
                     matchResult.Pairs.Take(this.maxPairUpsPerTeam).ToList();
                 }
             }
@@ -312,9 +312,11 @@ namespace Icebreaker
         /// <param name="userAadId">The user AAD id</param>
         /// <param name="serviceUrl">The service url</param>
         /// <returns>Tracking task</returns>
-        public Task OptOutUser(string tenantId, string userAadId, string serviceUrl)
+        public async Task OptOutUser(string tenantId, string userAadId, string serviceUrl)
         {
-            return this.dataProvider.SetUserInfoAsync(tenantId, userAadId, false, serviceUrl);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
+            userInfo.OptedIn = false;
+            await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
         /// <summary>
@@ -324,9 +326,11 @@ namespace Icebreaker
         /// <param name="userAadId">The user AAD id</param>
         /// <param name="serviceUrl">The service url</param>
         /// <returns>Tracking task</returns>
-        public Task OptInUser(string tenantId, string userAadId, string serviceUrl)
+        public async Task OptInUser(string tenantId, string userAadId, string serviceUrl)
         {
-            return this.dataProvider.SetUserInfoAsync(tenantId, userAadId, true, serviceUrl);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
+            userInfo.OptedIn = true;
+            await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
         /// <summary>
@@ -340,6 +344,12 @@ namespace Icebreaker
             var teamsConnectorClient = connectorClient.GetTeamsConnectorClient();
             var teamDetailsResult = await teamsConnectorClient.Teams.FetchTeamDetailsAsync(teamId);
             return teamDetailsResult.Name;
+        }
+
+        private async Task<UserInfo> GetOrCreateUnpersistedUserInfo(string tenantId, string userAadId, string serviceUrl)
+        {
+            var userInfo = await this.dataProvider.GetUserInfoAsync(userAadId);
+            return userInfo ?? new UserInfo { TenantId = tenantId, UserId = userAadId, ServiceUrl = serviceUrl };
         }
 
         /// <summary>
@@ -463,7 +473,7 @@ namespace Icebreaker
 
             // UserInfo only exists if the user has entered some info in the first place (eg optout or profile details)
             // Optin is presumed if no UserInfo is found.
-            var tasks = members.Select(m => this.dataProvider.GetUserInfoAsync(m.AsTeamsChannelAccount().ObjectId));
+            var tasks = members.Select(m => this.dataProvider.GetUserInfoAsync(m.GetUserId()));
             var results = await Task.WhenAll(tasks);
 
             return members
@@ -472,7 +482,7 @@ namespace Icebreaker
                 .ToList();
         }
 
-        private MatchResult MakePairs(List<ChannelAccount> users)
+        private async Task<MatchResult> MakePairs(List<ChannelAccount> users)
         {
             if (users.Count > 1)
             {
@@ -483,10 +493,31 @@ namespace Icebreaker
                 this.telemetryClient.TrackTrace($"Pairs could not be made because there is only 1 user in the team");
             }
 
-            Random random = new Random(Guid.NewGuid().GetHashCode());
-            var result = new RandomAlgorithm(random).CreateMatches(users);
+            var userCount = users.Count;
+            if (userCount == 0)
+            {
+                return new MatchResult();
+            }
 
-            return result;
+            if (userCount == 1)
+            {
+                return new MatchResult(new List<Tuple<ChannelAccount, ChannelAccount>>(), users.First());
+            }
+
+            Random random = new Random(Guid.NewGuid().GetHashCode());
+
+            var useStableMarriageAlgorithmUserCount = 4;
+
+            if (userCount < useStableMarriageAlgorithmUserCount)
+            {
+                var randomAlgorithm = new RandomAlgorithm(random);
+                return randomAlgorithm.CreateMatches(users);
+            }
+            else
+            {
+                var peopleData = await new PeopleDataCreator(this.dataProvider, users).Get();
+                return new StableMarriageAlgorithm(random, peopleData).CreateMatches(users);
+            }
         }
     }
 }

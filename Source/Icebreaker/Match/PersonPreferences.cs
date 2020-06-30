@@ -9,6 +9,7 @@ namespace Icebreaker.Match
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Icebreaker.Helpers;
     using Microsoft.Bot.Connector;
 
     /// <summary>
@@ -50,7 +51,7 @@ namespace Icebreaker.Match
 
             var personScores = this.group.Select(group2Person =>
             {
-                var group2PersonId = group2Person.GetUserId();
+                var group2PersonId = group2Person.Data.GetUserId();
                 return new PersonScore
                 {
                     Score = this.GetScore(this.userId, group2PersonId),
