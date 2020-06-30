@@ -385,7 +385,10 @@ namespace Icebreaker
                                 var personAadId = personThatAddedBot?.AsTeamsChannelAccount().ObjectId;
 
                                 await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, personAadId);
-                                await this.bot.WelcomeTeam(connectorClient, teamId, personName);
+
+                                // Turn this off for now because constantly installing/uninstalling to try new version of the app.
+                                // TODO: not big deal to not have it. Perhaps turn it off permanently.
+                                // await this.bot.WelcomeTeam(connectorClient, teamId, personName);
                             }
                             else
                             {
