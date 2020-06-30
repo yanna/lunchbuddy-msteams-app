@@ -13,6 +13,7 @@ namespace Icebreaker
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using System.Web.Services.Description;
     using System.Web.UI.WebControls;
     using Icebreaker.Helpers;
     using Microsoft.ApplicationInsights;
@@ -76,6 +77,16 @@ namespace Icebreaker
                 var teamChannelData = activity.GetChannelData<TeamsChannelData>();
                 var tenantId = teamChannelData.Tenant.Id;
                 var hasTeamContext = teamChannelData.Team != null;
+
+                if (activity.Text == null)
+                {
+                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out UserProfile userProfile))
+                    {
+                        await this.HandleSaveProfile(connectorClient, activity, tenantId, senderAadId, userProfile);
+                    }
+                    return;
+                }
+
                 var msg = activity.Text.ToLowerInvariant();
 
                 if (msg == MessageIds.OptOut)
@@ -96,6 +107,10 @@ namespace Icebreaker
                     {
                         await this.HandleNotifyPairs(connectorClient, activity, senderAadId, result.TeamId);
                     }
+                }
+                else if (msg == MessageIds.EditProfile && !hasTeamContext)
+                {
+                    await this.HandleEditProfile(connectorClient, activity, tenantId, senderAadId);
                 } // TODO: handle messages to change the notify mode
                 else
                 {
@@ -338,6 +353,26 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }
 
+        private async Task HandleEditProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId)
+        {
+            var replyActivity = activity.CreateReply();
+            await this.bot.EditUserProfile(connectorClient, replyActivity, tenantId, senderAadId);
+        }
+
+        private async Task HandleSaveProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId, UserProfile userProfile)
+        {
+            var teams = userProfile.Teams.Split(',').Select(team => team.Trim().ToLowerInvariant()).ToList();
+            await this.bot.SaveUserProfile(
+                connectorClient,
+                activity,
+                tenantId,
+                senderAadId,
+                userProfile.Discipline,
+                userProfile.Gender,
+                userProfile.Seniority,
+                teams);
+        }
+
         private async Task HandleSystemActivity(ConnectorClient connectorClient, Activity message)
         {
             this.telemetryClient.TrackTrace("Processing system message");
@@ -469,12 +504,24 @@ namespace Icebreaker
             public string TeamName { get; set; }
         }
 
+        private class UserProfile
+        {
+            public string Discipline { get; set; } = string.Empty;
+
+            public string Seniority { get; set; } = string.Empty;
+
+            public string Gender { get; set; } = string.Empty;
+
+            public string Teams { get; set; } = string.Empty;
+        }
+
         private static class MessageIds
         {
             public const string OptIn = "optin";
             public const string OptOut = "optout";
             public const string MakePairs = "makepairs";
             public const string NotifyPairs = "notifypairs";
+            public const string EditProfile = "editprofile";
         }
     }
 }

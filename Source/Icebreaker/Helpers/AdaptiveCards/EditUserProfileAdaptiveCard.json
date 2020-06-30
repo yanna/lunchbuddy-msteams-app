@@ -1,0 +1,144 @@
+﻿{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "%title%",
+            "weight": "Bolder",
+            "size": "ExtraLarge"
+        },
+        {
+            "type": "TextBlock",
+            "text": "%body%",
+            "isSubtle": true,
+            "wrap": true
+        },
+        {
+            "type": "TextBlock",
+            "text": "What is your discipline?",
+            "weight": "Bolder"
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "choices": [
+                {
+                    "title": "Data",
+                    "value": "data"
+                },
+                {
+                    "title": "Design",
+                    "value": "design"
+                },
+                {
+                    "title": "Engineering",
+                    "value": "engineering"
+                },
+                {
+                    "title": "PM",
+                    "value": "pm"
+                },
+                {
+                    "title": "Vision",
+                    "value": "vision"
+                },
+                {
+                    "title": "Other",
+                    "value": "other"
+                }
+            ],
+            "placeholder": "Placeholder text",
+            "id": "Discipline",
+            "value": "%defaultDiscipline%"
+        },
+        {
+            "type": "TextBlock",
+            "text": "What are the sub teams you've been on? (separate multiple ones with a comma)",
+            "wrap": true,
+            "weight": "Bolder"
+        },
+        {
+            "type": "TextBlock",
+            "text": "Team Names: mediaapp, mediadiscovery, mediapicker, mtpleasant, photos, pptvideo, rnd",
+            "wrap": true
+        },
+        {
+            "type": "Input.Text",
+            "id": "Teams",
+            "value": "%defaultTeams%"
+        },
+        {
+            "type": "TextBlock",
+            "text": "What is your seniority?",
+            "weight": "Bolder"
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "choices": [
+                {
+                    "title": "Intern",
+                    "value": "intern"
+                },
+                {
+                    "title": "Level 1",
+                    "value": "level1"
+                },
+                {
+                    "title": "Level 2",
+                    "value": "level2"
+                },
+                {
+                    "title": "Senior",
+                    "value": "senior"
+                },
+                {
+                    "title": "Principal",
+                    "value": "principal"
+                },
+                {
+                    "title": "Partner",
+                    "value": "partner"
+                },
+                {
+                    "title": "Other",
+                    "value": "other"
+                }
+            ],
+            "id": "Seniority",
+            "value": "%defaultSeniority%"
+        },
+        {
+            "type": "TextBlock",
+            "text": "What is your gender?",
+            "weight": "Bolder"
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "choices": [
+                {
+                    "title": "Female",
+                    "value": "f"
+                },
+                {
+                    "title": "Male",
+                    "value": "m"
+                },
+                {
+                    "title": "Other",
+                    "value": "o"
+                }
+            ],
+            "placeholder": "Placeholder text",
+            "style": "expanded",
+            "value": "%defaultGender%",
+            "id": "Gender"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "Submit"
+        }
+    ]
+}

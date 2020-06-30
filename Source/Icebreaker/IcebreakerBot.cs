@@ -265,6 +265,51 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
+        public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId)
+        {
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, replyActivity.ServiceUrl);
+            var card = EditUserProfileAdaptiveCard.GetCard(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams);
+            replyActivity.Attachments = new List<Attachment>()
+            {
+                new Attachment()
+                {
+                    ContentType = "application/vnd.microsoft.card.adaptive",
+                    Content = JsonConvert.DeserializeObject(card)
+                }
+            };
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        public async Task SaveUserProfile(
+            ConnectorClient connectorClient,
+            Activity activity,
+            string tenantId,
+            string userAadId,
+            string discipline,
+            string gender,
+            string seniority,
+            List<string> teams)
+        {
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, activity.ServiceUrl);
+            userInfo.Discipline = discipline;
+            userInfo.Gender = gender;
+            userInfo.Seniority = seniority;
+            userInfo.Teams = teams;
+
+            await this.dataProvider.SetUserInfoAsync(userInfo);
+
+            // After you do the card submission, the card resets to the old values even though the new values are saved.
+            // So we can do this a couple of ways:
+            // 1) manually update the message to update the card to the new values but this requires storing the original activity id
+            // 2) let it happen and reply with a readonly card representing the new state.
+            // Picking option 2.
+            // TODO: create read only card
+
+            var replyActivity = activity.CreateReply();
+            activity.Text = "Saved user profile.";
+            await connectorClient.Conversations.ReplyToActivityAsync(activity);
+        }
+
         /// <summary>
         /// Save information about the team to which the bot was added.
         /// </summary>
