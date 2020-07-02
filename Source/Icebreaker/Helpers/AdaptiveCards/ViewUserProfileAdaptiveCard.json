@@ -1,0 +1,66 @@
+﻿{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "%title%",
+            "weight": "Bolder",
+            "size": "ExtraLarge"
+        },
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Discipline:",
+                            "weight": "Bolder"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Teams:",
+                            "weight": "Bolder"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Seniority:",
+                            "weight": "Bolder"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Gender:",
+                            "weight": "Bolder"
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "%discipline%"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "%teams%"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "%seniority%"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "%gender%"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

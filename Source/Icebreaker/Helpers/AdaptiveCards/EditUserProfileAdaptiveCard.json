@@ -118,15 +118,15 @@
             "choices": [
                 {
                     "title": "Female",
-                    "value": "f"
+                    "value": "female"
                 },
                 {
                     "title": "Male",
-                    "value": "m"
+                    "value": "male"
                 },
                 {
                     "title": "Other",
-                    "value": "o"
+                    "value": "other"
                 }
             ],
             "placeholder": "Placeholder text",

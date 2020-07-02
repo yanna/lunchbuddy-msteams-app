@@ -256,11 +256,7 @@ namespace Icebreaker
             var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCard();
             replyActivity.Attachments = new List<Attachment>()
             {
-                new Attachment()
-                {
-                    ContentType = "application/vnd.microsoft.card.adaptive",
-                    Content = JsonConvert.DeserializeObject(unrecognizedInputAdaptiveCard)
-                }
+                this.CreateAdaptiveCardAttachment(unrecognizedInputAdaptiveCard)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
@@ -279,11 +275,7 @@ namespace Icebreaker
             var card = EditUserProfileAdaptiveCard.GetCard(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams);
             replyActivity.Attachments = new List<Attachment>()
             {
-                new Attachment()
-                {
-                    ContentType = "application/vnd.microsoft.card.adaptive",
-                    Content = JsonConvert.DeserializeObject(card)
-                }
+                this.CreateAdaptiveCardAttachment(card)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
@@ -295,10 +287,10 @@ namespace Icebreaker
         /// <param name="activity">Activity of the user data submission</param>
         /// <param name="tenantId">Tenant id of the user</param>
         /// <param name="userAadId">AAD id of the user</param>
-        /// <param name="discipline">Discipline of the user. Can be empty string.</param>
-        /// <param name="gender">Gender of the user. Can be empty string.</param>
-        /// <param name="seniority">Seniority of the user. Can be empty string.</param>
-        /// <param name="teams">Teams of the user. Can be empty list.</param>
+        /// <param name="discipline">Discipline of the user to store in the database. Can be empty string.</param>
+        /// <param name="gender">Gender of the user to store in the database. Can be empty string.</param>
+        /// <param name="seniority">Seniority of the user to store in the database. Can be empty string.</param>
+        /// <param name="teams">Teams of the user to store in the database. Can be empty list.</param>
         /// <returns>Empty task</returns>
         public async Task SaveUserProfile(
             ConnectorClient connectorClient,
@@ -325,10 +317,16 @@ namespace Icebreaker
             //    because it's not the submit activity but the activity that triggered the submit activity.
             // 2) let it happen and reply with a readonly card representing the new state.
             // Picking option 2 because I want to avoid storing extra state.
-            // TODO: create read only card. For now just reply with a simple message.
             var replyActivity = activity.CreateReply();
-            activity.Text = "Saved user profile.";
-            await connectorClient.Conversations.ReplyToActivityAsync(activity);
+            replyActivity.Attachments = new List<Attachment>
+            {
+                this.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCard(
+                    this.GetUITextForProfileData(discipline),
+                    this.GetUITextForProfileData(gender),
+                    this.GetUITextForProfileData(seniority),
+                    teams))
+            };
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
         /// <summary>
@@ -412,6 +410,17 @@ namespace Icebreaker
             return teamDetailsResult.Name;
         }
 
+        /// <summary>
+        /// Get the UI text of the value stored in the database.
+        /// </summary>
+        /// <param name="dbValue">Usually lowercase without spaces version of the UI value</param>
+        /// <returns>UI text</returns>
+        private string GetUITextForProfileData(string dbValue)
+        {
+            // TODO: Should probably do a proper mapping but just uppercase for now.
+            return string.IsNullOrEmpty(dbValue) ? dbValue : dbValue[0].ToString().ToUpperInvariant() + dbValue.Substring(1);
+        }
+
         private async Task<UserInfo> GetOrCreateUnpersistedUserInfo(string tenantId, string userAadId, string serviceUrl)
         {
             var userInfo = await this.dataProvider.GetUserInfoAsync(userAadId);
@@ -446,6 +455,15 @@ namespace Icebreaker
             return notifyResults.Count(wasNotified => wasNotified);
         }
 
+        private Attachment CreateAdaptiveCardAttachment(string cardJSON)
+        {
+            return new Attachment()
+            {
+                ContentType = "application/vnd.microsoft.card.adaptive",
+                Content = JsonConvert.DeserializeObject(cardJSON),
+            };
+        }
+
         private async Task<bool> NotifyUser(ConnectorClient connectorClient, string cardToSend, ChannelAccount user, string tenantId)
         {
             this.telemetryClient.TrackTrace($"Sending notification to user {user.Id}");
@@ -467,11 +485,7 @@ namespace Icebreaker
                     },
                     Attachments = new List<Attachment>()
                     {
-                        new Attachment()
-                        {
-                            ContentType = "application/vnd.microsoft.card.adaptive",
-                            Content = JsonConvert.DeserializeObject(cardToSend),
-                        }
+                        this.CreateAdaptiveCardAttachment(cardToSend)
                     }
                 };
 
@@ -514,11 +528,7 @@ namespace Icebreaker
                     },
                     Attachments = new List<Attachment>()
                     {
-                        new Attachment()
-                        {
-                            ContentType = "application/vnd.microsoft.card.adaptive",
-                            Content = JsonConvert.DeserializeObject(cardToSend)
-                        }
+                        this.CreateAdaptiveCardAttachment(cardToSend)
                     }
                 };
 

@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------------------------------------------------
-// <copyright file="EditUserProfileAdaptiveCard.cs" company="Microsoft">
+// <copyright file="ViewUserProfileAdaptiveCard.cs" company="Microsoft">
 // Copyright (c) Microsoft. All rights reserved.
 // </copyright>
 //----------------------------------------------------------------------------------------------
@@ -13,18 +13,18 @@ namespace Icebreaker.Helpers.AdaptiveCards
     /// <summary>
     /// Builder class for the welcome new member card
     /// </summary>
-    public static class EditUserProfileAdaptiveCard
+    public static class ViewUserProfileAdaptiveCard
     {
         private static readonly string CardTemplate;
 
-        static EditUserProfileAdaptiveCard()
+        static ViewUserProfileAdaptiveCard()
         {
-            var cardJsonFilePath = HostingEnvironment.MapPath("~/Helpers/AdaptiveCards/EditUserProfileAdaptiveCard.json");
+            var cardJsonFilePath = HostingEnvironment.MapPath("~/Helpers/AdaptiveCards/ViewUserProfileAdaptiveCard.json");
             CardTemplate = File.ReadAllText(cardJsonFilePath);
         }
 
         /// <summary>
-        /// Creates the editable user profile card
+        /// Creates the read only user profile card
         /// </summary>
         /// <param name="discipline">User discipline</param>
         /// <param name="gender">User gender</param>
@@ -33,22 +33,24 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <returns>user profile card</returns>
         public static string GetCard(string discipline, string gender, string seniority, List<string> teams)
         {
-            // TODO: Derive team names from current ones in the database
-            var teamNamesHint = "Team Names: mediaapp, mediadiscovery, mediapicker, mtpleasant, photos, pptvideo, rnd";
-
-            // TODO: Lots of strings to put in the resources including those in the json file
             var variablesToValues = new Dictionary<string, string>()
             {
-                { "title", "Please tell me about yourself" },
-                { "body", "This helps me provide you with better matches." },
-                { "defaultDiscipline", discipline },
-                { "defaultGender", gender },
-                { "defaultSeniority", seniority },
-                { "defaultTeams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams) },
-                { "teamNamesHint", teamNamesHint }
+                { "title", "Saved Profile" },
+                { "discipline", GetUIText(discipline) },
+                { "teams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams) },
+                { "seniority", GetUIText(seniority) },
+                { "gender", GetUIText(gender) },
             };
 
             return AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
         }
+
+        /// <summary>
+        /// Convert the stored value to a user presentable value.
+        /// Mention if the value is empty.
+        /// </summary>
+        /// <param name="value">value to display</param>
+        /// <returns>Value for the user</returns>
+        private static string GetUIText(string value) => string.IsNullOrEmpty(value) ? "<empty>" : value;
     }
 }

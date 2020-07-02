@@ -177,6 +177,7 @@
     <Content Include="Content\welcome-card-image.png" />
     <Content Include="default.htm" />
     <Content Include="Global.asax" />
+    <Content Include="Helpers\AdaptiveCards\ViewUserProfileAdaptiveCard.json" />
     <None Include="Helpers\AdaptiveCards\EditUserProfileAdaptiveCard.json" />
     <Content Include="Helpers\AdaptiveCards\UnrecognizedInputAdaptiveCard.json" />
     <Content Include="libman.json" />
@@ -199,6 +200,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\AdaptiveCards\AdaptiveCardHelper.cs" />
+    <Compile Include="Helpers\AdaptiveCards\ViewUserProfileAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\UnrecognizedInputAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditUserProfileAdaptiveCard.cs" />
@@ -254,6 +257,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

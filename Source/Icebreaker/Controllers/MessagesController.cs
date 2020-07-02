@@ -13,13 +13,12 @@ namespace Icebreaker
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using System.Web.Services.Description;
     using System.Web.UI.WebControls;
     using Icebreaker.Helpers;
+    using Icebreaker.Helpers.AdaptiveCards;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
-    using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
     using Newtonsoft.Json;
     using Properties;
@@ -362,7 +361,10 @@ namespace Icebreaker
 
         private async Task HandleSaveProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId, UserProfile userProfile)
         {
-            var teams = userProfile.Teams.Split(',').Select(team => team.Trim().ToLowerInvariant()).ToList();
+            // Who knows whether users will enter the separator and a space, split without the space and trim.
+            string[] teamsSeparator = { AdaptiveCardHelper.TeamsSeparatorWithSpace.Trim() };
+            var splitTeams = userProfile.Teams.Split(teamsSeparator, StringSplitOptions.RemoveEmptyEntries);
+            var teams = splitTeams.Select(team => team.Trim().ToLowerInvariant()).ToList();
             await this.bot.SaveUserProfile(
                 connectorClient,
                 activity,
