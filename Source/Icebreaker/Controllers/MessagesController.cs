@@ -434,6 +434,8 @@ namespace Icebreaker
 
                                 var installedTeam = await this.bot.GetInstalledTeam(teamsChannelData.Team.Id);
                                 await this.bot.WelcomeUser(connectorClient, member.Id, tenantId, teamsChannelData.Team.Id, installedTeam.InstallerName);
+
+                                // TODO: if you optout, leave the team, then come back in, we should auto optin again.
                             }
                         }
                     }
