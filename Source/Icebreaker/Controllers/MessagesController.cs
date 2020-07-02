@@ -84,6 +84,7 @@ namespace Icebreaker
                     {
                         await this.HandleSaveProfile(connectorClient, activity, tenantId, senderAadId, userProfile);
                     }
+
                     return;
                 }
 
@@ -504,6 +505,15 @@ namespace Icebreaker
             public string TeamName { get; set; }
         }
 
+        private static class MessageIds
+        {
+            public const string OptIn = "optin";
+            public const string OptOut = "optout";
+            public const string MakePairs = "makepairs";
+            public const string NotifyPairs = "notifypairs";
+            public const string EditProfile = "editprofile";
+        }
+
         private class UserProfile
         {
             public string Discipline { get; set; } = string.Empty;
@@ -513,15 +523,6 @@ namespace Icebreaker
             public string Gender { get; set; } = string.Empty;
 
             public string Teams { get; set; } = string.Empty;
-        }
-
-        private static class MessageIds
-        {
-            public const string OptIn = "optin";
-            public const string OptOut = "optout";
-            public const string MakePairs = "makepairs";
-            public const string NotifyPairs = "notifypairs";
-            public const string EditProfile = "editprofile";
         }
     }
 }

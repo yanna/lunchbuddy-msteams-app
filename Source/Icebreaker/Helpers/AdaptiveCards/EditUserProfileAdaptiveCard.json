@@ -60,7 +60,7 @@
         },
         {
             "type": "TextBlock",
-            "text": "Team Names: mediaapp, mediadiscovery, mediapicker, mtpleasant, photos, pptvideo, rnd",
+            "text": "%teamNamesHint%",
             "wrap": true
         },
         {

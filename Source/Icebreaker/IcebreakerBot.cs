@@ -265,6 +265,14 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
+        /// <summary>
+        /// Sends a message to edit the user profile
+        /// </summary>
+        /// <param name="connectorClient">The connector client</param>
+        /// <param name="replyActivity">Activity for replying</param>
+        /// <param name="tenantId">Tenant id of the user</param>
+        /// <param name="userAadId">User AAD id</param>
+        /// <returns>Empty task</returns>
         public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, replyActivity.ServiceUrl);
@@ -280,6 +288,18 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
+        /// <summary>
+        /// Saves the user profile to the database
+        /// </summary>
+        /// <param name="connectorClient">The connector client</param>
+        /// <param name="activity">Activity of the user data submission</param>
+        /// <param name="tenantId">Tenant id of the user</param>
+        /// <param name="userAadId">AAD id of the user</param>
+        /// <param name="discipline">Discipline of the user. Can be empty string.</param>
+        /// <param name="gender">Gender of the user. Can be empty string.</param>
+        /// <param name="seniority">Seniority of the user. Can be empty string.</param>
+        /// <param name="teams">Teams of the user. Can be empty list.</param>
+        /// <returns>Empty task</returns>
         public async Task SaveUserProfile(
             ConnectorClient connectorClient,
             Activity activity,
@@ -299,12 +319,13 @@ namespace Icebreaker
             await this.dataProvider.SetUserInfoAsync(userInfo);
 
             // After you do the card submission, the card resets to the old values even though the new values are saved.
+            // This is just the default behaviour of Adaptive Cards.
             // So we can do this a couple of ways:
             // 1) manually update the message to update the card to the new values but this requires storing the original activity id
+            //    because it's not the submit activity but the activity that triggered the submit activity.
             // 2) let it happen and reply with a readonly card representing the new state.
-            // Picking option 2.
-            // TODO: create read only card
-
+            // Picking option 2 because I want to avoid storing extra state.
+            // TODO: create read only card. For now just reply with a simple message.
             var replyActivity = activity.CreateReply();
             activity.Text = "Saved user profile.";
             await connectorClient.Conversations.ReplyToActivityAsync(activity);

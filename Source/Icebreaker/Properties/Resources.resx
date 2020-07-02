@@ -133,6 +133,10 @@
     <value>Chat with {0}</value>
     <comment>Button text to initiate a chat with the person the user has been matched up with</comment>
   </data>
+  <data name="EditProfileButtonText" xml:space="preserve">
+    <value>Edit Profile </value>
+    <comment>Edit profile button text</comment>
+  </data>
   <data name="ErrorOccured" xml:space="preserve">
     <value>There was an error while processing request. Retry?</value>
     <comment>A generic message that is sent when there is an error occurring</comment>

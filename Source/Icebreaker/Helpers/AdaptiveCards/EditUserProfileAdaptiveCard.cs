@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------------------------------------------------
-// <copyright file=""EditUserProfileAdaptiveCard.cs" company="Microsoft">
+// <copyright file="EditUserProfileAdaptiveCard.cs" company="Microsoft">
 // Copyright (c) Microsoft. All rights reserved.
 // </copyright>
 //----------------------------------------------------------------------------------------------
@@ -33,6 +33,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <returns>user profile card</returns>
         public static string GetCard(string discipline, string gender, string seniority, List<string> teams)
         {
+            // TODO: Derive team names from current ones in the database
+            var teamNamesHint = "Team Names: mediaapp, mediadiscovery, mediapicker, mtpleasant, photos, pptvideo, rnd";
+
+            // TODO: Lots of strings to put in the resources including those in the json file
             var variablesToValues = new Dictionary<string, string>()
             {
                 { "title", "Please tell me about yourself" },
@@ -40,7 +44,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "defaultDiscipline", discipline },
                 { "defaultGender", gender },
                 { "defaultSeniority", seniority },
-                { "defaultTeams", string.Join(",", teams) }
+                { "defaultTeams", string.Join(",", teams) },
+                { "teamNamesHint", teamNamesHint }
             };
 
             var cardBody = CardTemplate;

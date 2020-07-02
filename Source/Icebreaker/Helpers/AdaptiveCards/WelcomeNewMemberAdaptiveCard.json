@@ -42,24 +42,35 @@
       ]
     }
   ],
-  "actions": [
-    {
-      "type": "Action.OpenUrl",
-      "title": "%tourButtonText%",
-      "url": "%tourUrl%"
-    },
-    {
-      "type": "Action.Submit",
-      "title": "%pauseMatchesText%",
-      "data": {
-        "msteams": {
-          "type": "messageBack",
-          "displayText": "%pauseMatchesText%",
-          "text": "optout"
+    "actions": [
+        {
+            "type": "Action.OpenUrl",
+            "title": "%tourButtonText%",
+            "url": "%tourUrl%"
+        },
+        {
+            "type": "Action.Submit",
+            "title": "%editProfileText%",
+            "data": {
+                "msteams": {
+                    "type": "messageBack",
+                    "displayText": "%editProfileText%",
+                    "text": "editprofile"
+                }
+            }
+        },
+        {
+            "type": "Action.Submit",
+            "title": "%pauseMatchesText%",
+            "data": {
+                "msteams": {
+                    "type": "messageBack",
+                    "displayText": "%pauseMatchesText%",
+                    "text": "optout"
+                }
+            }
         }
-      }
-    }
-  ],
+    ],
   "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "version": "1.0"
 }

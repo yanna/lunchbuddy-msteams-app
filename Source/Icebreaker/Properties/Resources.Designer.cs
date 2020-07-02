@@ -97,6 +97,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Profile .
+        /// </summary>
+        internal static string EditProfileButtonText {
+            get {
+                return ResourceManager.GetString("EditProfileButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an error while processing request. Retry?.
         /// </summary>
         internal static string ErrorOccured {
