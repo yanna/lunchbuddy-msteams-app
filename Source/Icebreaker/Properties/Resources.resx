@@ -205,9 +205,17 @@
     <value>Welcome back! You've been missed. I've restarted your matches. Have fun!</value>
     <comment>The confirmation reply that is sent when the user resumes the matches</comment>
   </data>
+  <data name="OptInUserFailText" xml:space="preserve">
+    <value>Sorry, I had trouble opting you back in. Please make sure you are connected to the internet. </value>
+    <comment>Show this text when the user opt in failed</comment>
+  </data>
   <data name="OptOutConfirmation" xml:space="preserve">
     <value>All set. I've paused your matches. You can turn them back on whenever you like.</value>
     <comment>The confirmation reply that is sent when the user pauses all matches</comment>
+  </data>
+  <data name="OptOutUserFailText" xml:space="preserve">
+    <value>Sorry, I had trouble opting you out. Please make sure you are connected to the internet. </value>
+    <comment>Show this text when the user opt out failed</comment>
   </data>
   <data name="PausePairingsButtonText" xml:space="preserve">
     <value>Pause all matches</value>
@@ -228,6 +236,10 @@
   <data name="SalutationTitleText" xml:space="preserve">
     <value>Hi there!</value>
     <comment>This is the text for the salutation in the adaptive cards when the bot is installed to a team and also when new users are added to the team</comment>
+  </data>
+  <data name="SaveProfileFailText" xml:space="preserve">
+    <value>Sorry, I could not save the user profile. Please make sure you are connected to the internet.</value>
+    <comment>Show this text when the user profile could not be saved</comment>
   </data>
   <data name="SendPairingsButtonText" xml:space="preserve">
     <value>Send Pairings</value>

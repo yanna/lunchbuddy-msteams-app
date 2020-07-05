@@ -30,37 +30,37 @@ namespace Icebreaker.Helpers
         /// Gets or sets the tenant id
         /// </summary>
         [JsonProperty("tenantId")]
-        public string TenantId { get; set; }
+        public string TenantId { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the service URL
         /// </summary>
         [JsonProperty("serviceUrl")]
-        public string ServiceUrl { get; set; }
+        public string ServiceUrl { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets a value indicating whether the user is opted in to pairups.
         /// </summary>
         [JsonProperty("optedIn")]
-        public bool OptedIn { get; set; }
+        public bool OptedIn { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the user's discipline [data,design,engineering,pm] + custom
+        /// Gets or sets the user's discipline [data,design,engineering,pm,other]
         /// </summary>
         [JsonProperty("discipline")]
-        public string Discipline { get; set; }
+        public string Discipline { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the user's discipline [female, male] + custom
+        /// Gets or sets the user's discipline [female,male,other]
         /// </summary>
         [JsonProperty("gender")]
-        public string Gender { get; set; }
+        public string Gender { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the user's seniority [intern,level1,level2,senior,principal,partner] + custom
+        /// Gets or sets the user's seniority [intern,level1,level2,senior,principal,partner,other]
         /// </summary>
         [JsonProperty("seniority")]
-        public string Seniority { get; set; }
+        public string Seniority { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the internal teams the user has belonged to.

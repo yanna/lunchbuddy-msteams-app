@@ -159,26 +159,33 @@ namespace Icebreaker
             };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
-            await this.bot.OptInUser(tenantId, senderAadId, activity.ServiceUrl);
+            var isSuccessful = await this.bot.OptInUser(tenantId, senderAadId, activity.ServiceUrl);
 
             var optInReply = activity.CreateReply();
-            optInReply.Attachments = new List<Attachment>
+            if (isSuccessful)
             {
-                new HeroCard()
+                optInReply.Attachments = new List<Attachment>
                 {
-                    Text = Resources.OptInConfirmation,
-                    Buttons = new List<CardAction>()
+                    new HeroCard()
                     {
-                        new CardAction()
+                        Text = Resources.OptInConfirmation,
+                        Buttons = new List<CardAction>()
                         {
-                            Title = Resources.PausePairingsButtonText,
-                            DisplayText = Resources.PausePairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.OptOut
+                            new CardAction()
+                            {
+                                Title = Resources.PausePairingsButtonText,
+                                DisplayText = Resources.PausePairingsButtonText,
+                                Type = ActionTypes.MessageBack,
+                                Text = MessageIds.OptOut
+                            }
                         }
-                    }
-                }.ToAttachment(),
-            };
+                    }.ToAttachment(),
+                };
+            }
+            else
+            {
+                optInReply.Text = Resources.OptInUserFailText;
+            }
 
             await connectorClient.Conversations.ReplyToActivityAsync(optInReply);
         }
@@ -195,26 +202,34 @@ namespace Icebreaker
             };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
-            await this.bot.OptOutUser(tenantId, senderAadId, activity.ServiceUrl);
+            var isSuccessful = await this.bot.OptOutUser(tenantId, senderAadId, activity.ServiceUrl);
 
             var optOutReply = activity.CreateReply();
-            optOutReply.Attachments = new List<Attachment>
+
+            if (isSuccessful)
             {
-                new HeroCard()
+                optOutReply.Attachments = new List<Attachment>
                 {
-                    Text = Resources.OptOutConfirmation,
-                    Buttons = new List<CardAction>()
+                    new HeroCard()
                     {
-                        new CardAction()
+                        Text = Resources.OptOutConfirmation,
+                        Buttons = new List<CardAction>()
                         {
-                            Title = Resources.ResumePairingsButtonText,
-                            DisplayText = Resources.ResumePairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.OptIn
+                            new CardAction()
+                            {
+                                Title = Resources.ResumePairingsButtonText,
+                                DisplayText = Resources.ResumePairingsButtonText,
+                                Type = ActionTypes.MessageBack,
+                                Text = MessageIds.OptIn
+                            }
                         }
-                    }
-                }.ToAttachment(),
-            };
+                    }.ToAttachment(),
+                };
+            }
+            else
+            {
+                optOutReply.Text = Resources.OptOutUserFailText;
+            }
 
             await connectorClient.Conversations.ReplyToActivityAsync(optOutReply);
         }

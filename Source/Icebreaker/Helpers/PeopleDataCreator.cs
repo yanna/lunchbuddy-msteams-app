@@ -48,6 +48,6 @@ namespace Icebreaker.Helpers
             return peopleData;
         }
 
-        private List<PastMatch> ToPastMatches(List<UserMatch> userMatches) => userMatches.Select(m => new PastMatch(m.UserId, m.MatchedAt)).ToList();
+        private List<PastMatch> ToPastMatches(List<UserMatch> userMatches) => userMatches.Select(m => new PastMatch(m.UserId, m.MatchDateUtc)).ToList();
     }
 }

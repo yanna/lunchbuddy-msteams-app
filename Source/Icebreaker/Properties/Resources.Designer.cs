@@ -259,11 +259,29 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sorry, I had trouble opting you back in. Please make sure you are connected to the internet. .
+        /// </summary>
+        internal static string OptInUserFailText {
+            get {
+                return ResourceManager.GetString("OptInUserFailText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All set. I&apos;ve paused your matches. You can turn them back on whenever you like..
         /// </summary>
         internal static string OptOutConfirmation {
             get {
                 return ResourceManager.GetString("OptOutConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sorry, I had trouble opting you out. Please make sure you are connected to the internet. .
+        /// </summary>
+        internal static string OptOutUserFailText {
+            get {
+                return ResourceManager.GetString("OptOutUserFailText", resourceCulture);
             }
         }
         
@@ -309,6 +327,15 @@ namespace Icebreaker.Properties {
         internal static string SalutationTitleText {
             get {
                 return ResourceManager.GetString("SalutationTitleText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sorry, I could not save the user profile. Please make sure you are connected to the internet..
+        /// </summary>
+        internal static string SaveProfileFailText {
+            get {
+                return ResourceManager.GetString("SaveProfileFailText", resourceCulture);
             }
         }
         

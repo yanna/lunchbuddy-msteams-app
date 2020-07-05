@@ -19,12 +19,12 @@ namespace Icebreaker.Helpers
         /// Gets or sets the user AAD id
         /// </summary>
         [JsonProperty("userId")]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the date the match occurred
+        /// Gets or sets the date the match occurred in UTC
         /// </summary>
-        [JsonProperty("matchedAt")]
-        public DateTime MatchedAt { get; set; }
+        [JsonProperty("matchDateUtc")]
+        public DateTime MatchDateUtc { get; set; }
     }
 }

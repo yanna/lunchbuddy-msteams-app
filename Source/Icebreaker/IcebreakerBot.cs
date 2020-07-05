@@ -13,6 +13,7 @@ namespace Icebreaker
     using Helpers;
     using Helpers.AdaptiveCards;
     using Icebreaker.Match;
+    using Icebreaker.Properties;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Azure;
@@ -103,9 +104,10 @@ namespace Icebreaker
                     var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
                     var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
 
+                    var matchDate = DateTime.UtcNow;
                     foreach (var pair in pairs)
                     {
-                        usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, teamName, pair);
+                        usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, team.ServiceUrl, teamName, pair, matchDate);
                         pairsNotifiedCount++;
                     }
                 }
@@ -308,7 +310,7 @@ namespace Icebreaker
             userInfo.Seniority = seniority;
             userInfo.Teams = teams;
 
-            await this.dataProvider.SetUserInfoAsync(userInfo);
+            var isSuccess = await this.dataProvider.SetUserInfoAsync(userInfo);
 
             // After you do the card submission, the card resets to the old values even though the new values are saved.
             // This is just the default behaviour of Adaptive Cards.
@@ -318,14 +320,22 @@ namespace Icebreaker
             // 2) let it happen and reply with a readonly card representing the new state.
             // Picking option 2 because I want to avoid storing extra state.
             var replyActivity = activity.CreateReply();
-            replyActivity.Attachments = new List<Attachment>
+            if (isSuccess)
             {
-                this.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCard(
-                    this.GetUITextForProfileData(discipline),
-                    this.GetUITextForProfileData(gender),
-                    this.GetUITextForProfileData(seniority),
-                    teams))
-            };
+                replyActivity.Attachments = new List<Attachment>
+                {
+                    this.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCard(
+                        this.GetUITextForProfileData(discipline),
+                        this.GetUITextForProfileData(gender),
+                        this.GetUITextForProfileData(seniority),
+                        teams))
+                };
+            }
+            else
+            {
+                replyActivity.Text = Resources.SaveProfileFailText;
+            }
+
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
@@ -375,12 +385,12 @@ namespace Icebreaker
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
         /// <param name="serviceUrl">The service url</param>
-        /// <returns>Tracking task</returns>
-        public async Task OptOutUser(string tenantId, string userAadId, string serviceUrl)
+        /// <returns>Whether the opt out was successful</returns>
+        public async Task<bool> OptOutUser(string tenantId, string userAadId, string serviceUrl)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
             userInfo.OptedIn = false;
-            await this.dataProvider.SetUserInfoAsync(userInfo);
+            return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
         /// <summary>
@@ -389,12 +399,12 @@ namespace Icebreaker
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
         /// <param name="serviceUrl">The service url</param>
-        /// <returns>Tracking task</returns>
-        public async Task OptInUser(string tenantId, string userAadId, string serviceUrl)
+        /// <returns>Whether the opt in was successful</returns>
+        public async Task<bool> OptInUser(string tenantId, string userAadId, string serviceUrl)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
             userInfo.OptedIn = true;
-            await this.dataProvider.SetUserInfoAsync(userInfo);
+            return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
         /// <summary>
@@ -432,15 +442,17 @@ namespace Icebreaker
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
         /// <param name="tenantId">The tenant id</param>
+        /// <param name="serviceUrl">Service url</param>
         /// <param name="teamName">The team name</param>
         /// <param name="pair">The pairup</param>
+        /// <param name="matchDate">The date the match occurred</param>
         /// <returns>Number of users notified successfully</returns>
-        private async Task<int> NotifyPair(ConnectorClient connectorClient, string tenantId, string teamName, Tuple<ChannelAccount, ChannelAccount> pair)
+        private async Task<int> NotifyPair(ConnectorClient connectorClient, string tenantId, string serviceUrl, string teamName, Tuple<ChannelAccount, ChannelAccount> pair, DateTime matchDate)
         {
-            this.telemetryClient.TrackTrace($"Sending pairup notification to {pair.Item1.Id} and {pair.Item2.Id}");
-
             var teamsPerson1 = pair.Item1.AsTeamsChannelAccount();
             var teamsPerson2 = pair.Item2.AsTeamsChannelAccount();
+
+            this.telemetryClient.TrackTrace($"Sending pairup notification to {teamsPerson1.GetUserId()} and {teamsPerson2.GetUserId()}");
 
             // Fill in person2's info in the card for person1
             var cardForPerson1 = PairUpNotificationAdaptiveCard.GetCard(teamName, teamsPerson1, teamsPerson2, this.botDisplayName);
@@ -452,7 +464,16 @@ namespace Icebreaker
             var notifyResults = await Task.WhenAll(
                 this.NotifyUser(connectorClient, cardForPerson1, teamsPerson1, tenantId),
                 this.NotifyUser(connectorClient, cardForPerson2, teamsPerson2, tenantId));
-            return notifyResults.Count(wasNotified => wasNotified);
+            var successfulNotifyCount = notifyResults.Count(wasNotified => wasNotified);
+            if (successfulNotifyCount > 0)
+            {
+                // As long as one person gets the notification we'll consider it a match for both.
+                await Task.WhenAll(
+                    this.SavePastMatch(tenantId, teamsPerson1.GetUserId(), teamsPerson2.GetUserId(), serviceUrl, matchDate),
+                    this.SavePastMatch(tenantId, teamsPerson2.GetUserId(), teamsPerson1.GetUserId(), serviceUrl, matchDate));
+            }
+
+            return successfulNotifyCount;
         }
 
         private Attachment CreateAdaptiveCardAttachment(string cardJSON)
@@ -466,7 +487,8 @@ namespace Icebreaker
 
         private async Task<bool> NotifyUser(ConnectorClient connectorClient, string cardToSend, ChannelAccount user, string tenantId)
         {
-            this.telemetryClient.TrackTrace($"Sending notification to user {user.Id}");
+            var userId = user.GetUserId();
+            this.telemetryClient.TrackTrace($"Sending notification to user {userId}");
 
             try
             {
@@ -491,7 +513,6 @@ namespace Icebreaker
 
                 if (!this.isTesting)
                 {
-                    // shoot the activity over
                     await connectorClient.Conversations.SendToConversationAsync(activity);
                 }
 
@@ -503,6 +524,13 @@ namespace Icebreaker
                 this.telemetryClient.TrackException(ex);
                 return false;
             }
+        }
+
+        private async Task<bool> SavePastMatch(string tenantId, string userAadId, string matchedUserAadId, string serviceUrl, DateTime matchDate)
+        {
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
+            userInfo.Matches.Insert(0, new UserMatch { UserId = matchedUserAadId, MatchDateUtc = matchDate });
+            return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
         /// <summary>

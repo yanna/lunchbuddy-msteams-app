@@ -140,11 +140,20 @@ namespace Icebreaker.Helpers
         /// Set the user info for the given user
         /// </summary>
         /// <param name="userInfo">User info</param>
-        /// <returns>Tracking task</returns>
-        public async Task SetUserInfoAsync(UserInfo userInfo)
+        /// <returns>Whether the update was successful</returns>
+        public async Task<bool> SetUserInfoAsync(UserInfo userInfo)
         {
-            await this.EnsureInitializedAsync();
-            await this.documentClient.UpsertDocumentAsync(this.usersCollection.SelfLink, userInfo);
+            try
+            {
+                await this.EnsureInitializedAsync();
+                await this.documentClient.UpsertDocumentAsync(this.usersCollection.SelfLink, userInfo);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                this.telemetryClient.TrackException(ex.InnerException);
+                return false;
+            }
         }
 
         /// <summary>
