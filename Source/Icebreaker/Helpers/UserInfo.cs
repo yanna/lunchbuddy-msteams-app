@@ -33,12 +33,6 @@ namespace Icebreaker.Helpers
         public string TenantId { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the service URL
-        /// </summary>
-        [JsonProperty("serviceUrl")]
-        public string ServiceUrl { get; set; } = string.Empty;
-
-        /// <summary>
         /// Gets or sets a value indicating whether the user is opted in to pairups.
         /// </summary>
         [JsonProperty("optedIn")]
@@ -70,7 +64,7 @@ namespace Icebreaker.Helpers
         public List<string> Teams { get; set; } = new List<string>();
 
         /// <summary>
-        /// Gets or sets a list of past matches
+        /// Gets or sets a list of past matches. The first one is the most recent.
         /// </summary>
         [JsonProperty("pastMatches")]
         public List<UserMatch> Matches { get; set; } = new List<UserMatch>();

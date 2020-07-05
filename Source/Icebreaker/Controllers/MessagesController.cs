@@ -159,7 +159,7 @@ namespace Icebreaker
             };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
-            var isSuccessful = await this.bot.OptInUser(tenantId, senderAadId, activity.ServiceUrl);
+            var isSuccessful = await this.bot.OptInUser(tenantId, senderAadId);
 
             var optInReply = activity.CreateReply();
             if (isSuccessful)
@@ -202,7 +202,7 @@ namespace Icebreaker
             };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
-            var isSuccessful = await this.bot.OptOutUser(tenantId, senderAadId, activity.ServiceUrl);
+            var isSuccessful = await this.bot.OptOutUser(tenantId, senderAadId);
 
             var optOutReply = activity.CreateReply();
 

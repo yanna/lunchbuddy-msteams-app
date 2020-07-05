@@ -107,7 +107,7 @@ namespace Icebreaker
                     var matchDate = DateTime.UtcNow;
                     foreach (var pair in pairs)
                     {
-                        usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, team.ServiceUrl, teamName, pair, matchDate);
+                        usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, teamName, pair, matchDate);
                         pairsNotifiedCount++;
                     }
                 }
@@ -273,7 +273,7 @@ namespace Icebreaker
         /// <returns>Empty task</returns>
         public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId)
         {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, replyActivity.ServiceUrl);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             var card = EditUserProfileAdaptiveCard.GetCard(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams);
             replyActivity.Attachments = new List<Attachment>()
             {
@@ -304,7 +304,7 @@ namespace Icebreaker
             string seniority,
             List<string> teams)
         {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, activity.ServiceUrl);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             userInfo.Discipline = discipline;
             userInfo.Gender = gender;
             userInfo.Seniority = seniority;
@@ -384,11 +384,10 @@ namespace Icebreaker
         /// </summary>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
-        /// <param name="serviceUrl">The service url</param>
         /// <returns>Whether the opt out was successful</returns>
-        public async Task<bool> OptOutUser(string tenantId, string userAadId, string serviceUrl)
+        public async Task<bool> OptOutUser(string tenantId, string userAadId)
         {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             userInfo.OptedIn = false;
             return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
@@ -398,11 +397,10 @@ namespace Icebreaker
         /// </summary>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
-        /// <param name="serviceUrl">The service url</param>
         /// <returns>Whether the opt in was successful</returns>
-        public async Task<bool> OptInUser(string tenantId, string userAadId, string serviceUrl)
+        public async Task<bool> OptInUser(string tenantId, string userAadId)
         {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             userInfo.OptedIn = true;
             return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
@@ -431,10 +429,10 @@ namespace Icebreaker
             return string.IsNullOrEmpty(dbValue) ? dbValue : dbValue[0].ToString().ToUpperInvariant() + dbValue.Substring(1);
         }
 
-        private async Task<UserInfo> GetOrCreateUnpersistedUserInfo(string tenantId, string userAadId, string serviceUrl)
+        private async Task<UserInfo> GetOrCreateUnpersistedUserInfo(string tenantId, string userAadId)
         {
             var userInfo = await this.dataProvider.GetUserInfoAsync(userAadId);
-            return userInfo ?? new UserInfo { TenantId = tenantId, UserId = userAadId, ServiceUrl = serviceUrl };
+            return userInfo ?? new UserInfo { TenantId = tenantId, UserId = userAadId };
         }
 
         /// <summary>
@@ -442,12 +440,11 @@ namespace Icebreaker
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
         /// <param name="tenantId">The tenant id</param>
-        /// <param name="serviceUrl">Service url</param>
         /// <param name="teamName">The team name</param>
         /// <param name="pair">The pairup</param>
         /// <param name="matchDate">The date the match occurred</param>
         /// <returns>Number of users notified successfully</returns>
-        private async Task<int> NotifyPair(ConnectorClient connectorClient, string tenantId, string serviceUrl, string teamName, Tuple<ChannelAccount, ChannelAccount> pair, DateTime matchDate)
+        private async Task<int> NotifyPair(ConnectorClient connectorClient, string tenantId, string teamName, Tuple<ChannelAccount, ChannelAccount> pair, DateTime matchDate)
         {
             var teamsPerson1 = pair.Item1.AsTeamsChannelAccount();
             var teamsPerson2 = pair.Item2.AsTeamsChannelAccount();
@@ -469,8 +466,8 @@ namespace Icebreaker
             {
                 // As long as one person gets the notification we'll consider it a match for both.
                 await Task.WhenAll(
-                    this.SavePastMatch(tenantId, teamsPerson1.GetUserId(), teamsPerson2.GetUserId(), serviceUrl, matchDate),
-                    this.SavePastMatch(tenantId, teamsPerson2.GetUserId(), teamsPerson1.GetUserId(), serviceUrl, matchDate));
+                    this.SavePastMatch(tenantId, teamsPerson1.GetUserId(), teamsPerson2.GetUserId(), matchDate),
+                    this.SavePastMatch(tenantId, teamsPerson2.GetUserId(), teamsPerson1.GetUserId(), matchDate));
             }
 
             return successfulNotifyCount;
@@ -526,9 +523,9 @@ namespace Icebreaker
             }
         }
 
-        private async Task<bool> SavePastMatch(string tenantId, string userAadId, string matchedUserAadId, string serviceUrl, DateTime matchDate)
+        private async Task<bool> SavePastMatch(string tenantId, string userAadId, string matchedUserAadId, DateTime matchDate)
         {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId, serviceUrl);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             userInfo.Matches.Insert(0, new UserMatch { UserId = matchedUserAadId, MatchDateUtc = matchDate });
             return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
