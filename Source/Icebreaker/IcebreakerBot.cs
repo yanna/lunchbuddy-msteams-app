@@ -63,7 +63,6 @@ namespace Icebreaker
             {
                 using (var connectorClient = new ConnectorClient(new Uri(team.ServiceUrl)))
                 {
-                    var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
                     var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
 
                     this.telemetryClient.TrackTrace($"Team {team.Id} has {optedInUsers.Count} opted in users.");
@@ -102,8 +101,7 @@ namespace Icebreaker
                 using (var connectorClient = new ConnectorClient(new Uri(team.ServiceUrl)))
                 {
                     var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
-                    var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
-
+ 
                     var matchDate = DateTime.UtcNow;
                     foreach (var pair in pairs)
                     {
