@@ -220,6 +220,14 @@ namespace Icebreaker
 
             if (userThatJustJoined != null)
             {
+                // If you optout, leave the team, then join the team again, we should optin the user automatically.
+                var userInfo = await this.dataProvider.GetUserInfoAsync(userThatJustJoined.GetUserId());
+                if (userInfo != null && !userInfo.OptedIn)
+                {
+                    userInfo.OptedIn = true;
+                    await this.dataProvider.SetUserInfoAsync(userInfo);
+                }
+
                 var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, userThatJustJoined.Name, this.botDisplayName, botInstaller);
                 await this.NotifyUser(connectorClient, welcomeMessageCard, userThatJustJoined, tenantId);
             }
