@@ -195,8 +195,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AdminMessagesHandler.cs" />
+    <Compile Include="Controllers\MakePairsResult.cs" />
+    <Compile Include="Controllers\MessageIds.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Controllers\ProcessNowController.cs" />
+    <Compile Include="Controllers\TeamContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

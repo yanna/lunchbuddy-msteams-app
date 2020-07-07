@@ -10,25 +10,21 @@ namespace Icebreaker.Helpers
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Represents information about a team to which the Icebreaker app was installed
+    /// Represents information about a team to which the LunchBuddy app was installed
     /// </summary>
     public class TeamInstallInfo : Document
     {
         /// <summary>
-        /// Mode of how the matches will be notified
+        /// Bot will create matches and send all pairs the match immediately
         /// </summary>
-        public enum NotifyMode
-        {
-            /// <summary>
-            /// bot will create matches and send all pairs the match immediately
-            /// </summary>
-            Automatic,
+        [JsonIgnore]
+        public const string NotifyModeNoApproval = "noapproval";
 
-            /// <summary>
-            /// bot will create matches and send pairing to ApprovalUserId for approval
-            /// </summary>
-            NeedApproval
-        }
+        /// <summary>
+        /// Bot will create matches and send pairing to ApprovalUserId for approval
+        /// </summary>
+        [JsonIgnore]
+        public const string NotifyModeNeedApproval = "needapproval";
 
         /// <summary>
         /// Gets or sets the team id.
@@ -70,13 +66,13 @@ namespace Icebreaker.Helpers
         /// Gets or sets the mode of how matches will be notified
         /// </summary>
         [JsonProperty("notifyMode")]
-        public NotifyMode NotifyPairsMode { get; set; } = TeamInstallInfo.NotifyMode.Automatic;
+        public string NotifyMode { get; set; } = NotifyModeNoApproval;
 
         /// <inheritdoc/>
         public override string ToString()
         {
             return $"Team - Id = {this.TeamId},TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}, " +
-                $"InstallerName = {this.InstallerName}, AdminUserId = {this.AdminUserId}";
+                $"InstallerName = {this.InstallerName}, AdminUserId = {this.AdminUserId}, NotifyMode = {this.NotifyMode}";
         }
     }
 }

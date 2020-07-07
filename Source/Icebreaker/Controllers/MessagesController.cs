@@ -14,13 +14,13 @@ namespace Icebreaker
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.UI.WebControls;
+    using Icebreaker.Controllers;
     using Icebreaker.Helpers;
     using Icebreaker.Helpers.AdaptiveCards;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams.Models;
-    using Newtonsoft.Json;
     using Properties;
 
     /// <summary>
@@ -31,6 +31,7 @@ namespace Icebreaker
     {
         private readonly IcebreakerBot bot;
         private readonly TelemetryClient telemetryClient;
+        private AdminMessagesHandler adminMessagesHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessagesController"/> class.
@@ -41,6 +42,7 @@ namespace Icebreaker
         {
             this.bot = bot;
             this.telemetryClient = telemetryClient;
+            this.adminMessagesHandler = new AdminMessagesHandler(bot, telemetryClient);
         }
 
         /// <summary>
@@ -79,6 +81,7 @@ namespace Icebreaker
 
                 if (activity.Text == null)
                 {
+                    // Submit action from an adaptive card results in no text and hopefully some value.
                     if (activity.Value != null && activity.Value.ToString().TryParseJson(out UserProfile userProfile))
                     {
                         await this.HandleSaveProfile(connectorClient, activity, tenantId, senderAadId, userProfile);
@@ -97,21 +100,14 @@ namespace Icebreaker
                 {
                     await this.HandleOptIn(connectorClient, activity, senderAadId, tenantId);
                 }
-                else if (msg == MessageIds.MakePairs)
-                {
-                    await this.HandleMakePairs(connectorClient, activity, senderAadId);
-                }
-                else if (msg == MessageIds.NotifyPairs)
-                {
-                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out MakePairsResult result))
-                    {
-                        await this.HandleNotifyPairs(connectorClient, activity, senderAadId, result.TeamId);
-                    }
-                }
                 else if (msg == MessageIds.EditProfile && !hasTeamContext)
                 {
                     await this.HandleEditProfile(connectorClient, activity, tenantId, senderAadId);
-                } // TODO: handle messages to change the notify mode
+                }
+                else if (this.adminMessagesHandler.CanHandleMessage(msg))
+                {
+                    await this.adminMessagesHandler.HandleMessage(msg, connectorClient, activity, senderAadId);
+                }
                 else
                 {
                     if (hasTeamContext)
@@ -131,19 +127,6 @@ namespace Icebreaker
             {
                 this.telemetryClient.TrackTrace($"Error while handling message activity: {ex.Message}", SeverityLevel.Warning);
                 this.telemetryClient.TrackException(ex);
-            }
-        }
-
-        private async Task HandleMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId)
-        {
-            if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
-            {
-                var team = await this.bot.GetInstalledTeam(request.TeamId);
-                await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
-            }
-            else
-            {
-                await this.HandleMakePairsNoTeam(connectorClient, activity, senderAadId);
             }
         }
 
@@ -232,140 +215,6 @@ namespace Icebreaker
             }
 
             await connectorClient.Conversations.ReplyToActivityAsync(optOutReply);
-        }
-
-        private async Task HandleMakePairsNoTeam(ConnectorClient connectorClient, Activity activity, string senderAadId)
-        {
-            this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs with no team specified");
-
-            var teamsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderAadId);
-
-            if (teamsAllowingAdminActionsByUser.Count == 0)
-            {
-                var noTeamMsg = string.Format(Resources.AdminActionNoTeamMsg, Resources.AdminActionGeneratePairs);
-                var noTeamReply = activity.CreateReply(noTeamMsg);
-                await connectorClient.Conversations.ReplyToActivityAsync(noTeamReply);
-            }
-            else if (teamsAllowingAdminActionsByUser.Count == 1)
-            {
-                var team = teamsAllowingAdminActionsByUser.First();
-                var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
-                await this.HandleMakePairsForTeam(connectorClient, activity, senderAadId, team, teamName);
-            }
-            else
-            {
-                var teamActions = new List<CardAction>();
-
-                foreach (var team in teamsAllowingAdminActionsByUser)
-                {
-                    var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
-                    var teamCardAction = new CardAction()
-                    {
-                        Title = teamName,
-                        DisplayText = teamName,
-                        Type = ActionTypes.MessageBack,
-                        Text = MessageIds.MakePairs,
-                        Value = JsonConvert.SerializeObject(new TeamContext { TeamId = team.Id, TeamName = teamName })
-                    };
-                    teamActions.Add(teamCardAction);
-                }
-
-                var pickTeamReply = activity.CreateReply();
-                pickTeamReply.Attachments = new List<Attachment>
-                {
-                    new HeroCard()
-                    {
-                        Text = string.Format(Resources.AdminActionWhichTeamText, Resources.AdminActionGeneratePairs),
-                        Buttons = teamActions
-                    }.ToAttachment(),
-                };
-
-                await connectorClient.Conversations.ReplyToActivityAsync(pickTeamReply);
-            }
-        }
-
-        private async Task HandleMakePairsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
-        {
-            this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs");
-
-            var matchResult = await this.bot.MakePairsForTeam(team);
-            var pairs = matchResult.Pairs;
-            var pairsStrs = pairs.Select((pair, i) => $"{i + 1}. {pair.Item1.Name} - {pair.Item2.Name}").ToList();
-            var allPairsStr = string.Join("<p/>", pairsStrs);
-            if (matchResult.OddPerson != null)
-            {
-                allPairsStr += $"<p/>Odd person: {matchResult.OddPerson.Name}";
-            }
-
-            var idPairs = pairs.Select(pair => new Tuple<string, string>(pair.Item1.Id, pair.Item2.Id)).ToList();
-            var makePairsResult = new MakePairsResult()
-            {
-                PairChannelAccountIds = idPairs,
-                TeamId = team.Id
-            };
-
-            Activity reply = activity.CreateReply();
-            reply.Attachments = new List<Attachment>
-            {
-                new HeroCard()
-                {
-                    Title = string.Format(Resources.NewPairingsTitle, teamName),
-                    Text = allPairsStr,
-                    Buttons = new List<CardAction>()
-                    {
-                        new CardAction
-                        {
-                            Title = Resources.SendPairingsButtonText,
-                            DisplayText = Resources.SendPairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.NotifyPairs,
-                            Value = JsonConvert.SerializeObject(makePairsResult)
-                        },
-                        new CardAction
-                        {
-                            Title = Resources.RegeneratePairingsButtonText,
-                            DisplayText = Resources.RegeneratePairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.MakePairs,
-                            Value = JsonConvert.SerializeObject(new TeamContext { TeamId = team.Id, TeamName = teamName })
-                        }
-                    }
-                }.ToAttachment()
-            };
-            await connectorClient.Conversations.ReplyToActivityAsync(reply);
-        }
-
-        private async Task HandleNotifyPairs(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId)
-        {
-            this.telemetryClient.TrackTrace($"User {senderAadId} triggered notify pairs");
-
-            string replyMessage = string.Empty;
-
-            try
-            {
-                var makePairsResult = JsonConvert.DeserializeObject<MakePairsResult>(activity.Value.ToString());
-
-                var members = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
-                var membersByChannelAccountId = members.ToDictionary(key => key.Id, value => value);
-
-                // Evaluate all values so we can fail early if someone no longer exists
-                var pairs = makePairsResult.PairChannelAccountIds.Select(pair => new Tuple<ChannelAccount, ChannelAccount>(
-                    membersByChannelAccountId[pair.Item1],
-                    membersByChannelAccountId[pair.Item2])).ToList();
-
-                var team = await this.bot.GetInstalledTeam(teamId);
-                var numPairsNotified = await this.bot.NotifyAllPairs(team, pairs);
-                replyMessage = string.Format(Resources.ManualNotifiedUsersMessage, numPairsNotified);
-            }
-            catch (Exception ex)
-            {
-                replyMessage = Resources.ManualNotifiedUsersErrorMessage;
-                this.telemetryClient.TrackTrace($"Error while notifying pairs: {ex.Message}", SeverityLevel.Warning);
-                this.telemetryClient.TrackException(ex);
-            }
-
-            Activity reply = activity.CreateReply(replyMessage);
-            await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }
 
         private async Task HandleEditProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId)
@@ -503,32 +352,6 @@ namespace Icebreaker
                 { "Platform", clientInfoEntity?.Properties["platform"]?.ToString() }
             };
             this.telemetryClient.TrackEvent("UserActivity", properties);
-        }
-
-        private struct MakePairsResult
-        {
-            public List<Tuple<string, string>> PairChannelAccountIds
-            {
-                get; set;
-            }
-
-            public string TeamId { get; set; }
-        }
-
-        private struct TeamContext
-        {
-            public string TeamId { get; set; }
-
-            public string TeamName { get; set; }
-        }
-
-        private static class MessageIds
-        {
-            public const string OptIn = "optin";
-            public const string OptOut = "optout";
-            public const string MakePairs = "makepairs";
-            public const string NotifyPairs = "notifypairs";
-            public const string EditProfile = "editprofile";
         }
 
         private class UserProfile

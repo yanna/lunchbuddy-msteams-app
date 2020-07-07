@@ -79,6 +79,24 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to change notify mode to require admin approval.
+        /// </summary>
+        internal static string AdminActionNotifyNeedApproval {
+            get {
+                return ResourceManager.GetString("AdminActionNotifyNeedApproval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to change notify mode to no approval.
+        /// </summary>
+        internal static string AdminActionNotifyNoApproval {
+            get {
+                return ResourceManager.GetString("AdminActionNotifyNoApproval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Which team do you wish to {0} for?.
         /// </summary>
         internal static string AdminActionWhichTeamText {
@@ -246,6 +264,33 @@ namespace Icebreaker.Properties {
         internal static string NewPairingsTitle {
             get {
                 return ResourceManager.GetString("NewPairingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sorry I had a problem updating the notify mode..
+        /// </summary>
+        internal static string NotifyModeFail {
+            get {
+                return ResourceManager.GetString("NotifyModeFail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches will be sent to the admin for approval before the users are notified of their pairing..
+        /// </summary>
+        internal static string NotifyModeNeedApprovalSuccess {
+            get {
+                return ResourceManager.GetString("NotifyModeNeedApprovalSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches will be sent to the pairs without asking for admin approval..
+        /// </summary>
+        internal static string NotifyModeNoApprovalSuccess {
+            get {
+                return ResourceManager.GetString("NotifyModeNoApprovalSuccess", resourceCulture);
             }
         }
         

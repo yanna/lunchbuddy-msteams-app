@@ -46,20 +46,31 @@ namespace Icebreaker.Helpers
         /// </summary>
         /// <param name="team">The team installation info</param>
         /// <param name="installed">Value that indicates if bot is installed</param>
-        /// <returns>Tracking task</returns>
-        public async Task UpdateTeamInstallStatusAsync(TeamInstallInfo team, bool installed)
+        /// <returns>Whether update succeeded</returns>
+        public async Task<bool> UpdateTeamInstallStatusAsync(TeamInstallInfo team, bool installed)
         {
             await this.EnsureInitializedAsync();
 
-            if (installed)
+            try
             {
-                var response = await this.documentClient.UpsertDocumentAsync(this.teamsCollection.SelfLink, team);
+                if (installed)
+                {
+                    var result = await this.documentClient.UpsertDocumentAsync(this.teamsCollection.SelfLink, team);
+                }
+                else
+                {
+                    var documentUri = UriFactory.CreateDocumentUri(this.database.Id, this.teamsCollection.Id, team.Id);
+                    await this.documentClient.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(team.Id) });
+                }
+
+                return true;
             }
-            else
+            catch (Exception ex)
             {
-                var documentUri = UriFactory.CreateDocumentUri(this.database.Id, this.teamsCollection.Id, team.Id);
-                var response = await this.documentClient.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(team.Id) });
+                this.telemetryClient.TrackException(ex.InnerException);
             }
+
+            return false;
         }
 
         /// <summary>
@@ -146,7 +157,7 @@ namespace Icebreaker.Helpers
             try
             {
                 await this.EnsureInitializedAsync();
-                await this.documentClient.UpsertDocumentAsync(this.usersCollection.SelfLink, userInfo);
+                var doc = await this.documentClient.UpsertDocumentAsync(this.usersCollection.SelfLink, userInfo);
                 return true;
             }
             catch (Exception ex)

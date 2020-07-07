@@ -101,7 +101,7 @@ namespace Icebreaker
                 using (var connectorClient = new ConnectorClient(new Uri(team.ServiceUrl)))
                 {
                     var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
- 
+
                     var matchDate = DateTime.UtcNow;
                     foreach (var pair in pairs)
                     {
@@ -363,7 +363,7 @@ namespace Icebreaker
                 TenantId = tenantId,
                 InstallerName = botInstallerUserName,
                 AdminUserId = botInstallerUserAadId,
-                NotifyPairsMode = TeamInstallInfo.NotifyMode.Automatic
+                NotifyMode = TeamInstallInfo.NotifyModeNoApproval
             };
             return this.dataProvider.UpdateTeamInstallStatusAsync(teamInstallInfo, true);
         }
@@ -422,6 +422,26 @@ namespace Icebreaker
             var teamsConnectorClient = connectorClient.GetTeamsConnectorClient();
             var teamDetailsResult = await teamsConnectorClient.Teams.FetchTeamDetailsAsync(teamId);
             return teamDetailsResult.Name;
+        }
+
+        /// <summary>
+        /// Change whether the pairing will need admin approval before it is sent.
+        /// </summary>
+        /// <param name="needApproval">whether approval is needed</param>
+        /// <param name="team">team document</param>
+        /// <returns>success or failure</returns>
+        public async Task<bool> ChangeTeamNotifyPairsMode(bool needApproval, TeamInstallInfo team)
+        {
+            var newApprovalMode = needApproval ? TeamInstallInfo.NotifyModeNeedApproval : TeamInstallInfo.NotifyModeNoApproval;
+            if (team.NotifyMode == newApprovalMode)
+            {
+                return true;
+            }
+
+            var teamToUpdate = team.CloneJson<TeamInstallInfo>();
+            teamToUpdate.NotifyMode = newApprovalMode;
+
+            return await this.dataProvider.UpdateTeamInstallStatusAsync(teamToUpdate, installed: true);
         }
 
         /// <summary>

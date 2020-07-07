@@ -125,6 +125,14 @@
     <value>The {0} action is only for users who have admin privileges.</value>
     <comment>Message for user who tries to invoke an admin action but are not admins</comment>
   </data>
+  <data name="AdminActionNotifyNeedApproval" xml:space="preserve">
+    <value>change notify mode to require admin approval</value>
+    <comment>Admin action option</comment>
+  </data>
+  <data name="AdminActionNotifyNoApproval" xml:space="preserve">
+    <value>change notify mode to no approval</value>
+    <comment>Admin action option</comment>
+  </data>
   <data name="AdminActionWhichTeamText" xml:space="preserve">
     <value>Which team do you wish to {0} for?</value>
     <comment>Title for card that asks which team the admin action should be generated for</comment>
@@ -200,6 +208,18 @@
   <data name="NewPairingsTitle" xml:space="preserve">
     <value>New Pairings for {0}</value>
     <comment>The title text for the new pairings card</comment>
+  </data>
+  <data name="NotifyModeFail" xml:space="preserve">
+    <value>Sorry I had a problem updating the notify mode.</value>
+    <comment>The text to show when need approval setting failed</comment>
+  </data>
+  <data name="NotifyModeNeedApprovalSuccess" xml:space="preserve">
+    <value>Matches will be sent to the admin for approval before the users are notified of their pairing.</value>
+    <comment>The text to show when need approval setting was successfully changed</comment>
+  </data>
+  <data name="NotifyModeNoApprovalSuccess" xml:space="preserve">
+    <value>Matches will be sent to the pairs without asking for admin approval.</value>
+    <comment>The text to show when no approval setting was successfully changed</comment>
   </data>
   <data name="OptInConfirmation" xml:space="preserve">
     <value>Welcome back! You've been missed. I've restarted your matches. Have fun!</value>
