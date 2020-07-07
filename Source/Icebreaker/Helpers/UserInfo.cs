@@ -66,6 +66,10 @@ namespace Icebreaker.Helpers
         /// <summary>
         /// Gets or sets a list of past matches. The first one is the most recent.
         /// </summary>
+        /// Note: There is a 2MB limit on document sizes.
+        /// One of these user info objects with one user match was 914 bytes, with two user matches was 1191 bytes
+        /// So 1191-914=277, roughly 300 bytes for one user match object.
+        /// Rough math (2M-1k)/300 bytes/12 matches per year = 555 years of user matches can be stored before we hit the limit so we're ok.
         [JsonProperty("pastMatches")]
         public List<UserMatch> Matches { get; set; } = new List<UserMatch>();
     }
