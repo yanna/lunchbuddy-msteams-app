@@ -205,6 +205,14 @@
     <value>{0} / {1} LunchBuddy</value>
     <comment>The title for the Meetup - {0} is the name of the first person that user has been matched with and {1} is the name of the user</comment>
   </data>
+  <data name="NewPairingsDescription" xml:space="preserve">
+    <value>You have received this message because you are the admin designated for approving new pairings for the team.&lt;br/&gt;Send the pairings if it looks good, or you may create new pairings.</value>
+    <comment>Description for the new pairings text</comment>
+  </data>
+  <data name="NewPairingsOddPerson" xml:space="preserve">
+    <value>Odd Person</value>
+    <comment>Odd person in new pairings</comment>
+  </data>
   <data name="NewPairingsTitle" xml:space="preserve">
     <value>New Pairings for {0}</value>
     <comment>The title text for the new pairings card</comment>
@@ -246,7 +254,7 @@
     <comment>Button text to propose the meetup with the match of the user</comment>
   </data>
   <data name="RegeneratePairingsButtonText" xml:space="preserve">
-    <value>Regenerate</value>
+    <value>Create New Pairings</value>
     <comment>Button text to regenerate pairings</comment>
   </data>
   <data name="ResumePairingsButtonText" xml:space="preserve">

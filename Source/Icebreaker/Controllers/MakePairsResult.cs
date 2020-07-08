@@ -20,7 +20,7 @@ namespace Icebreaker.Controllers
         public List<Tuple<string, string>> PairChannelAccountIds { get; set; } = new List<Tuple<string, string>>();
 
         /// <summary>
-        /// Gets or sets the team id
+        /// Gets or sets the team id the ChannelAccount ids were from
         /// </summary>
         public string TeamId { get; set; } = string.Empty;
     }

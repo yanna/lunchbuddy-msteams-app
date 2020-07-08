@@ -259,6 +259,24 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You have received this message because you are the admin designated for approving new pairings for the team.&lt;br/&gt;Send the pairings if it looks good, or you may create new pairings..
+        /// </summary>
+        internal static string NewPairingsDescription {
+            get {
+                return ResourceManager.GetString("NewPairingsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Odd Person.
+        /// </summary>
+        internal static string NewPairingsOddPerson {
+            get {
+                return ResourceManager.GetString("NewPairingsOddPerson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New Pairings for {0}.
         /// </summary>
         internal static string NewPairingsTitle {
@@ -349,7 +367,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regenerate.
+        ///   Looks up a localized string similar to Create New Pairings.
         /// </summary>
         internal static string RegeneratePairingsButtonText {
             get {

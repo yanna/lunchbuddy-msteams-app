@@ -45,5 +45,10 @@ namespace Icebreaker.Controllers
         /// The timer triggered pairing will send the pairings to the admin for approval.
         /// </summary>
         public const string AdminChangeNotifyModeNeedApproval = "notifyneedapproval";
+
+        /// <summary>
+        /// Execute the timer triggered code which triggers matches for all teams
+        /// </summary>
+        public const string DebugTriggerAllTeams = "debugtriggerallteams";
     }
 }

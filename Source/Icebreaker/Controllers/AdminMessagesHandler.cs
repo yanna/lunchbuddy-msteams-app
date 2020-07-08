@@ -50,7 +50,7 @@ namespace Icebreaker.Controllers
                 MessageIds.AdminMakePairs,
                 MessageIds.AdminNotifyPairs,
                 MessageIds.AdminChangeNotifyModeNeedApproval,
-                MessageIds.AdminChangeNotifyModeNoApproval,
+                MessageIds.AdminChangeNotifyModeNoApproval
             };
             return acceptedMsgs.Contains(msgId.ToLowerInvariant());
         }
@@ -62,12 +62,13 @@ namespace Icebreaker.Controllers
         /// <param name="connectorClient">connector client</param>
         /// <param name="activity">activity that had the message</param>
         /// <param name="senderAadId">sender AAD id</param>
-        /// <returns>void</returns>
-        public async Task HandleMessage(string msgId, ConnectorClient connectorClient, Activity activity, string senderAadId)
+        /// <param name="senderChannelAccountId">sender ChannelAccount id</param>
+        /// <returns>Task</returns>
+        public async Task HandleMessage(string msgId, ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
         {
             if (msgId == MessageIds.AdminMakePairs)
             {
-                await this.HandleAdminMakePairs(connectorClient, activity, senderAadId);
+                await this.HandleAdminMakePairs(connectorClient, activity, senderAadId, senderChannelAccountId);
             }
             else if (msgId == MessageIds.AdminNotifyPairs)
             {
@@ -78,15 +79,15 @@ namespace Icebreaker.Controllers
             }
             else if (msgId == MessageIds.AdminChangeNotifyModeNeedApproval)
             {
-                await this.HandleAdminNotifyNeedApproval(connectorClient, activity, senderAadId);
+                await this.HandleAdminNotifyNeedApproval(connectorClient, activity, senderAadId, senderChannelAccountId);
             }
             else if (msgId == MessageIds.AdminChangeNotifyModeNoApproval)
             {
-                await this.HandleAdminNotifyNoApproval(connectorClient, activity, senderAadId);
+                await this.HandleAdminNotifyNoApproval(connectorClient, activity, senderAadId, senderChannelAccountId);
             }
         }
 
-        private async Task HandleAdminMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId)
+        private async Task HandleAdminMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -99,13 +100,14 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
+                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionGeneratePairs,
                     adminActionMessageId: MessageIds.AdminMakePairs,
                     this.HandleAdminMakePairsForTeam);
             }
         }
 
-        private async Task HandleAdminNotifyNoApproval(ConnectorClient connectorClient, Activity activity, string senderAadId)
+        private async Task HandleAdminNotifyNoApproval(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -118,13 +120,14 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
+                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionNotifyNoApproval,
                     adminActionMessageId: MessageIds.AdminChangeNotifyModeNoApproval,
                     this.HandleAdminNotifyNoApprovalForTeam);
             }
         }
 
-        private async Task HandleAdminNotifyNeedApproval(ConnectorClient connectorClient, Activity activity, string senderAadId)
+        private async Task HandleAdminNotifyNeedApproval(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -137,6 +140,7 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
+                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionNotifyNeedApproval,
                     adminActionMessageId: MessageIds.AdminChangeNotifyModeNeedApproval,
                     this.HandleAdminNotifyNeedApprovalForTeam);
@@ -165,13 +169,14 @@ namespace Icebreaker.Controllers
             ConnectorClient connectorClient,
             Activity activity,
             string senderAadId,
+            string senderChannelAccountId,
             string adminActionName,
             string adminActionMessageId,
             Func<ConnectorClient, Activity, string, TeamInstallInfo, string, Task> adminActionFcn)
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered {adminActionName} with no team specified");
 
-            var teamsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderAadId);
+            var teamsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderChannelAccountId);
 
             if (teamsAllowingAdminActionsByUser.Count == 0)
             {
@@ -222,48 +227,11 @@ namespace Icebreaker.Controllers
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs");
 
             var matchResult = await this.bot.MakePairsForTeam(team);
-            var pairs = matchResult.Pairs;
-            var pairsStrs = pairs.Select((pair, i) => $"{i + 1}. {pair.Item1.Name} - {pair.Item2.Name}").ToList();
-            var allPairsStr = string.Join("<p/>", pairsStrs);
-            if (matchResult.OddPerson != null)
-            {
-                allPairsStr += $"<p/>Odd person: {matchResult.OddPerson.Name}";
-            }
-
-            var idPairs = pairs.Select(pair => new Tuple<string, string>(pair.Item1.Id, pair.Item2.Id)).ToList();
-            var makePairsResult = new MakePairsResult()
-            {
-                PairChannelAccountIds = idPairs,
-                TeamId = team.Id
-            };
 
             Activity reply = activity.CreateReply();
             reply.Attachments = new List<Attachment>
             {
-                new HeroCard()
-                {
-                    Title = string.Format(Resources.NewPairingsTitle, teamName),
-                    Text = allPairsStr,
-                    Buttons = new List<CardAction>()
-                    {
-                        new CardAction
-                        {
-                            Title = Resources.SendPairingsButtonText,
-                            DisplayText = Resources.SendPairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.AdminNotifyPairs,
-                            Value = JsonConvert.SerializeObject(makePairsResult)
-                        },
-                        new CardAction
-                        {
-                            Title = Resources.RegeneratePairingsButtonText,
-                            DisplayText = Resources.RegeneratePairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.AdminMakePairs,
-                            Value = JsonConvert.SerializeObject(new TeamContext { TeamId = team.Id, TeamName = teamName })
-                        }
-                    }
-                }.ToAttachment()
+                this.bot.CreateMatchAttachment(matchResult, team.Id, teamName)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }

@@ -12,6 +12,7 @@ namespace Icebreaker
     using System.Threading.Tasks;
     using Helpers;
     using Helpers.AdaptiveCards;
+    using Icebreaker.Controllers;
     using Icebreaker.Match;
     using Icebreaker.Properties;
     using Microsoft.ApplicationInsights;
@@ -81,6 +82,89 @@ namespace Icebreaker
         }
 
         /// <summary>
+        /// Create the card attachment for showing match result
+        /// </summary>
+        /// <param name="matchResult">match result</param>
+        /// <param name="teamId">team id of the match the result is for</param>
+        /// <param name="teamName">team name of the match the result is for</param>
+        /// <returns>attachment</returns>
+        public Attachment CreateMatchAttachment(MatchResult matchResult, string teamId, string teamName)
+        {
+            var allPairsStr = this.GetPairingText(matchResult);
+
+            var idPairs = matchResult.Pairs.Select(pair => new Tuple<string, string>(pair.Item1.Id, pair.Item2.Id)).ToList();
+            var makePairsResult = new MakePairsResult()
+            {
+                PairChannelAccountIds = idPairs,
+                TeamId = teamId
+            };
+
+            var matchCard = new HeroCard()
+            {
+                Title = string.Format(Resources.NewPairingsTitle, teamName),
+                Text = allPairsStr,
+                Buttons = new List<CardAction>()
+                    {
+                        new CardAction
+                        {
+                            Title = Resources.SendPairingsButtonText,
+                            DisplayText = Resources.SendPairingsButtonText,
+                            Type = ActionTypes.MessageBack,
+                            Text = MessageIds.AdminNotifyPairs,
+                            Value = JsonConvert.SerializeObject(makePairsResult)
+                        },
+                        new CardAction
+                        {
+                            Title = Resources.RegeneratePairingsButtonText,
+                            DisplayText = Resources.RegeneratePairingsButtonText,
+                            Type = ActionTypes.MessageBack,
+                            Text = MessageIds.AdminMakePairs,
+                            Value = JsonConvert.SerializeObject(new TeamContext { TeamId = teamId, TeamName = teamName })
+                        }
+                    }
+            };
+
+            return matchCard.ToAttachment();
+        }
+
+        /// <summary>
+        /// Notify the pairing to the admin user
+        /// </summary>
+        /// <param name="team">team info</param>
+        /// <param name="matchResult">match result</param>
+        /// <returns>Task</returns>
+        public async Task NotifyAdminPairings(TeamInstallInfo team, MatchResult matchResult)
+        {
+            if (string.IsNullOrEmpty(team.AdminUserChannelAccountId))
+            {
+                return;
+            }
+
+            this.telemetryClient.TrackTrace($"Notify admin {team.AdminUserChannelAccountId} for team {team.Id}");
+
+            try
+            {
+                // Need to trust the service url for sending proactive messages
+                MicrosoftAppCredentials.TrustServiceUrl(team.ServiceUrl);
+
+                using (var connectorClient = new ConnectorClient(new Uri(team.ServiceUrl)))
+                {
+                    var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
+
+                    var matchAttachment = this.CreateMatchAttachment(matchResult, team.TeamId, teamName);
+                    var adminUser = new ChannelAccount { Id = team.AdminUserChannelAccountId };
+
+                    await this.NotifyUser(connectorClient, matchAttachment, adminUser, team.TenantId);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.telemetryClient.TrackTrace($"Error notifying admin {team.AdminUserChannelAccountId} of pairing for team {team.Id}: {ex.Message}", SeverityLevel.Warning);
+                this.telemetryClient.TrackException(ex);
+            }
+        }
+
+        /// <summary>
         /// Notify the pairs of the pair up
         /// </summary>
         /// <param name="team">team info</param>
@@ -103,11 +187,12 @@ namespace Icebreaker
                     var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
 
                     var matchDate = DateTime.UtcNow;
-                    foreach (var pair in pairs)
-                    {
-                        usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, teamName, pair, matchDate);
-                        pairsNotifiedCount++;
-                    }
+
+                    var notifyPairsTasks = pairs.Select(pair => this.NotifyPair(connectorClient, team.TenantId, teamName, pair, matchDate));
+                    var usersNotifiedCounts = await Task.WhenAll(notifyPairsTasks);
+
+                    usersNotifiedCount += usersNotifiedCounts.Sum();
+                    pairsNotifiedCount += pairs.Count;
                 }
             }
             catch (Exception ex)
@@ -124,19 +209,19 @@ namespace Icebreaker
         /// <summary>
         /// Return all teams where the specified user can perform admin actions
         /// </summary>
-        /// <param name="userAadId">user id</param>
+        /// <param name="userChannelAccountId">user ChannelAccount id</param>
         /// <returns>a list of teams</returns>
-        public async Task<IList<TeamInstallInfo>> GetTeamsAllowingAdminActionsByUser(string userAadId)
+        public async Task<IList<TeamInstallInfo>> GetTeamsAllowingAdminActionsByUser(string userChannelAccountId)
         {
             var teams = await this.dataProvider.GetInstalledTeamsAsync();
-            return teams.Where(team => team.AdminUserId == userAadId).ToList();
+            return teams.Where(team => team.AdminUserChannelAccountId == userChannelAccountId).ToList();
         }
 
         /// <summary>
         /// Generate pairups and send pairup notifications.
         /// </summary>
         /// <returns>The number of pairups that were made</returns>
-        public async Task<int> MakePairsAndNotify()
+        public async Task<int> MakePairsAndNotifyForAllTeams()
         {
             this.telemetryClient.TrackTrace("Making pairups");
 
@@ -160,7 +245,15 @@ namespace Icebreaker
                 foreach (var team in teams)
                 {
                     var matchResult = await this.MakePairsForTeam(team);
-                    pairsNotifiedCount += await this.NotifyAllPairs(team, matchResult.Pairs);
+
+                    if (team.NotifyMode == TeamInstallInfo.NotifyModeNoApproval)
+                    {
+                        pairsNotifiedCount += await this.NotifyAllPairs(team, matchResult.Pairs);
+                    }
+                    else if (team.NotifyMode == TeamInstallInfo.NotifyModeNeedApproval)
+                    {
+                        await this.NotifyAdminPairings(team, matchResult);
+                    }
                 }
             }
             catch (Exception ex)
@@ -177,7 +270,6 @@ namespace Icebreaker
             };
             this.telemetryClient.TrackEvent("ProcessedPairups", properties);
 
-            this.telemetryClient.TrackTrace($"Made {pairsNotifiedCount} pairups");
             return pairsNotifiedCount;
         }
 
@@ -229,7 +321,7 @@ namespace Icebreaker
                 }
 
                 var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, userThatJustJoined.Name, this.botDisplayName, botInstaller);
-                await this.NotifyUser(connectorClient, welcomeMessageCard, userThatJustJoined, tenantId);
+                await this.NotifyUser(connectorClient, this.CreateAdaptiveCardAttachment(welcomeMessageCard), userThatJustJoined, tenantId);
             }
             else
             {
@@ -352,9 +444,9 @@ namespace Icebreaker
         /// <param name="teamId">The team id</param>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="botInstallerUserName">Name of the person that added the bot to the team</param>
-        /// <param name="botInstallerUserAadId">User AAD id of the person that has added the bot to the team</param>
+        /// <param name="botInstallerUserChannelAccountId">User ChannelAccount id of the person that has added the bot to the team</param>
         /// <returns>Tracking task</returns>
-        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string botInstallerUserAadId)
+        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string botInstallerUserChannelAccountId)
         {
             var teamInstallInfo = new TeamInstallInfo
             {
@@ -362,7 +454,7 @@ namespace Icebreaker
                 TeamId = teamId,
                 TenantId = tenantId,
                 InstallerName = botInstallerUserName,
-                AdminUserId = botInstallerUserAadId,
+                AdminUserChannelAccountId = botInstallerUserChannelAccountId,
                 NotifyMode = TeamInstallInfo.NotifyModeNoApproval
             };
             return this.dataProvider.UpdateTeamInstallStatusAsync(teamInstallInfo, true);
@@ -462,6 +554,27 @@ namespace Icebreaker
         }
 
         /// <summary>
+        /// Get the text that lists all the pairings
+        /// </summary>
+        /// <param name="matchResult">Result of a match event</param>
+        /// <returns>All pairings text</returns>
+        private string GetPairingText(MatchResult matchResult)
+        {
+            var pairs = matchResult.Pairs;
+            var pairsStrs = pairs.Select((pair, i) => $"{i + 1}. {pair.Item1.Name} - {pair.Item2.Name}").ToList();
+            var allPairsStr = string.Join("<br/>", pairsStrs);
+
+            var emptyLine = "<br/><br/>";
+
+            if (matchResult.OddPerson != null)
+            {
+                allPairsStr += $"{emptyLine}< b>{Resources.NewPairingsOddPerson}</b>: {matchResult.OddPerson.Name}";
+            }
+
+            return Resources.NewPairingsDescription + emptyLine + allPairsStr + emptyLine;
+        }
+
+        /// <summary>
         /// Notify a pairup.
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
@@ -485,8 +598,9 @@ namespace Icebreaker
 
             // Send notifications and return the number that was successful
             var notifyResults = await Task.WhenAll(
-                this.NotifyUser(connectorClient, cardForPerson1, teamsPerson1, tenantId),
-                this.NotifyUser(connectorClient, cardForPerson2, teamsPerson2, tenantId));
+                this.NotifyUser(connectorClient, this.CreateAdaptiveCardAttachment(cardForPerson1), teamsPerson1, tenantId),
+                this.NotifyUser(connectorClient, this.CreateAdaptiveCardAttachment(cardForPerson2), teamsPerson2, tenantId));
+
             var successfulNotifyCount = notifyResults.Count(wasNotified => wasNotified);
             if (successfulNotifyCount > 0)
             {
@@ -508,7 +622,7 @@ namespace Icebreaker
             };
         }
 
-        private async Task<bool> NotifyUser(ConnectorClient connectorClient, string cardToSend, ChannelAccount user, string tenantId)
+        private async Task<bool> NotifyUser(ConnectorClient connectorClient, Attachment cardToSend, ChannelAccount user, string tenantId)
         {
             var userId = user.GetUserId();
             this.telemetryClient.TrackTrace($"Sending notification to user {userId}");
@@ -530,7 +644,7 @@ namespace Icebreaker
                     },
                     Attachments = new List<Attachment>()
                     {
-                        this.CreateAdaptiveCardAttachment(cardToSend)
+                        cardToSend
                     }
                 };
 

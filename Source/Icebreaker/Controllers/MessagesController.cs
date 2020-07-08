@@ -75,6 +75,7 @@ namespace Icebreaker
             try
             {
                 var senderAadId = activity.From.Properties["aadObjectId"].ToString();
+                var senderChannelAccountId = activity.From.Id;
                 var teamChannelData = activity.GetChannelData<TeamsChannelData>();
                 var tenantId = teamChannelData.Tenant.Id;
                 var hasTeamContext = teamChannelData.Team != null;
@@ -106,7 +107,11 @@ namespace Icebreaker
                 }
                 else if (this.adminMessagesHandler.CanHandleMessage(msg))
                 {
-                    await this.adminMessagesHandler.HandleMessage(msg, connectorClient, activity, senderAadId);
+                    await this.adminMessagesHandler.HandleMessage(msg, connectorClient, activity, senderAadId, senderChannelAccountId);
+                }
+                else if (msg == MessageIds.DebugTriggerAllTeams)
+                {
+                    await this.bot.MakePairsAndNotifyForAllTeams();
                 }
                 else
                 {
@@ -284,9 +289,9 @@ namespace Icebreaker
 
                                 var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id);
                                 var personName = personThatAddedBot?.Name;
-                                var personAadId = personThatAddedBot?.GetUserId();
+                                var personChannelAccountId = personThatAddedBot?.Id;
 
-                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, personAadId);
+                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, personChannelAccountId);
 
                                 // Turn this off for now because constantly installing/uninstalling to try new version of the app.
                                 // TODO: not big deal to not have it. Perhaps turn it off permanently.
