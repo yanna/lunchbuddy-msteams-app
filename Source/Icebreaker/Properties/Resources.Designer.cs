@@ -61,6 +61,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to edit team settings.
+        /// </summary>
+        internal static string AdminActionEditTeamSettings {
+            get {
+                return ResourceManager.GetString("AdminActionEditTeamSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to generate pairs.
         /// </summary>
         internal static string AdminActionGeneratePairs {

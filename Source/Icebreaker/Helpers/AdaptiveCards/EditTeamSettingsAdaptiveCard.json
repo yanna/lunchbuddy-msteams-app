@@ -1,0 +1,77 @@
+﻿{
+    "type": "AdaptiveCard",
+    "body": [
+        {
+            "type": "TextBlock",
+            "weight": "Bolder",
+            "size": "Large",
+            "wrap": true,
+            "text": "Edit Team Settings for %teamName%"
+        },
+        {
+            "type": "TextBlock",
+            "text": "Admin User",
+            "size": "Medium",
+            "weight": "Bolder"
+        },
+        {
+            "type": "TextBlock",
+            "text": "%adminUserName%"
+        },
+        {
+            "type": "TextBlock",
+            "text": "Notify Mode",
+            "size": "Medium",
+            "weight": "Bolder"
+        },
+        {
+            "type": "TextBlock",
+            "text": "When the pairings are triggered by a timer, set whether the pairings need approval by the admin before they are sent.",
+            "wrap": true
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "choices": [
+                {
+                    "title": "No Approval",
+                    "value": "%noApprovalValue%"
+                },
+                {
+                    "title": "Need Approval",
+                    "value": "%needApprovalValue%"
+                }
+            ],
+            "style": "expanded",
+            "value": "%defaultNotifyMode%",
+            "id":  "NotifyMode"
+        },
+        {
+            "type": "TextBlock",
+            "size": "Medium",
+            "weight": "Bolder",
+            "text": "Edit Profile Subteam Names"
+        },
+        {
+            "type": "TextBlock",
+            "text": "When users edit their profile, provide this list as the available team names so people can be matched with the same team name.",
+            "wrap": true
+        },
+        {
+            "type": "Input.Text",
+            "placeholder": "TeamA, TeamB",
+            "id": "SubteamNames",
+            "value": "%subteamNames%"
+        }
+    ],
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.1",
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "Submit",
+            "data": {
+                "TeamId": "%teamId%"
+            }
+        }
+    ]
+}

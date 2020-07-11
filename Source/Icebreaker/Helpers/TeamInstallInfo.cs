@@ -72,6 +72,14 @@ namespace Icebreaker.Helpers
         [JsonProperty("notifyMode")]
         public string NotifyMode { get; set; } = NotifyModeNoApproval;
 
+        /// <summary>
+        /// Gets or sets the subteam names hint for Edit Profile page.
+        /// Can be empty if it was never configured.
+        /// This is so that multiple people on the same team will conform to the same name.
+        /// </summary>
+        [JsonProperty("subteamNames")]
+        public string SubteamNames { get; set; } = string.Empty;
+
         /// <inheritdoc/>
         public override string ToString()
         {

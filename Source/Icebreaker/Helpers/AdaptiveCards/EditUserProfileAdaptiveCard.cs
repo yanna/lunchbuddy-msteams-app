@@ -11,7 +11,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Web.Hosting;
 
     /// <summary>
-    /// Builder class for the welcome new member card
+    /// Builder class for the edit user profile card
     /// </summary>
     public static class EditUserProfileAdaptiveCard
     {
@@ -30,11 +30,11 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="gender">User gender</param>
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
+        /// <param name="subteamNamesHint">List of suggested sub team names. Can be empty</param>
         /// <returns>user profile card</returns>
-        public static string GetCard(string discipline, string gender, string seniority, List<string> teams)
+        public static string GetCard(string discipline, string gender, string seniority, List<string> teams, string subteamNamesHint)
         {
-            // TODO: Derive team names from current ones in the database
-            var teamNamesHint = "Team Names: mediaapp, mediadiscovery, mediapicker, mtpleasant, photos, pptvideo, rnd";
+            var teamNamesHint = string.IsNullOrEmpty(subteamNamesHint) ? string.Empty : "Suggested Teams: " + subteamNamesHint;
 
             // TODO: Lots of strings to put in the resources including those in the json file
             var variablesToValues = new Dictionary<string, string>()

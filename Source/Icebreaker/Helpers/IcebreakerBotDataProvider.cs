@@ -73,6 +73,23 @@ namespace Icebreaker.Helpers
             return false;
         }
 
+        public async Task<bool> UpdateTeamInstallInfoAsync(TeamInstallInfo team)
+        {
+            await this.EnsureInitializedAsync();
+
+            try
+            {
+                var result = await this.documentClient.UpsertDocumentAsync(this.teamsCollection.SelfLink, team);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                this.telemetryClient.TrackException(ex.InnerException);
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Get the list of teams to which the app was installed.
         /// </summary>

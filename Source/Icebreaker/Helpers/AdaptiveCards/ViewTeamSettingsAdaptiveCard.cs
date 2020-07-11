@@ -11,35 +11,42 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Web.Hosting;
 
     /// <summary>
-    /// Builder class for the read only user profile card
+    /// Builder class for the team settings card
     /// </summary>
-    public static class ViewUserProfileAdaptiveCard
+    public static class ViewTeamSettingsAdaptiveCard
     {
         private static readonly string CardTemplate;
 
-        static ViewUserProfileAdaptiveCard()
+        static ViewTeamSettingsAdaptiveCard()
         {
-            var cardJsonFilePath = HostingEnvironment.MapPath("~/Helpers/AdaptiveCards/ViewUserProfileAdaptiveCard.json");
+            var cardJsonFilePath = HostingEnvironment.MapPath("~/Helpers/AdaptiveCards/ViewTeamSettingsAdaptiveCard.json");
             CardTemplate = File.ReadAllText(cardJsonFilePath);
         }
 
         /// <summary>
-        /// Creates the read only user profile card
+        /// Creates the read only team settings card
         /// </summary>
-        /// <param name="discipline">User discipline</param>
-        /// <param name="gender">User gender</param>
-        /// <param name="seniority">User seniority</param>
-        /// <param name="teams">Sub team names the user has been on</param>
-        /// <returns>user profile card</returns>
-        public static string GetCard(string discipline, string gender, string seniority, List<string> teams)
+        /// <param name="notifyMode">Notify mode</param>
+        /// <param name="subteamNames">Subteam names</param>
+        /// <returns>team settings card</returns>
+        public static string GetCard(string notifyMode, string subteamNames)
         {
+            var notifyModeDisplay = string.Empty;
+            switch (notifyMode)
+            {
+                case TeamInstallInfo.NotifyModeNeedApproval:
+                    notifyModeDisplay = "Need Approval";
+                    break;
+                case TeamInstallInfo.NotifyModeNoApproval:
+                    notifyModeDisplay = "No Approval";
+                    break;
+            }
+
             var variablesToValues = new Dictionary<string, string>()
             {
-                { "title", "Saved Profile" },
-                { "discipline", GetUIText(discipline) },
-                { "teams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams) },
-                { "seniority", GetUIText(seniority) },
-                { "gender", GetUIText(gender) },
+                { "title", "Saved Team Settings" },
+                { "notifyMode", notifyModeDisplay },
+                { "subteamNames", GetUIText(subteamNames) }
             };
 
             return AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);

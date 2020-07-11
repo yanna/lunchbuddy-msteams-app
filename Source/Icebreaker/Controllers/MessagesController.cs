@@ -80,12 +80,16 @@ namespace Icebreaker
                 var tenantId = teamChannelData.Tenant.Id;
                 var hasTeamContext = teamChannelData.Team != null;
 
-                if (activity.Text == null)
+                // Submit action from an adaptive card results in no text and hopefully some value.
+                if (activity.Text == null && activity.Value != null)
                 {
-                    // Submit action from an adaptive card results in no text and hopefully some value.
-                    if (activity.Value != null && activity.Value.ToString().TryParseJson(out UserProfile userProfile))
+                    if (activity.Value.ToString().TryParseJson(out UserProfile userProfile))
                     {
                         await this.HandleSaveProfile(connectorClient, activity, tenantId, senderAadId, userProfile);
+                    }
+                    else if (activity.Value.ToString().TryParseJson(out TeamSettings teamSettings))
+                    {
+                        await this.HandleSaveTeamSettings(connectorClient, activity, teamSettings);
                     }
 
                     return;
@@ -108,10 +112,6 @@ namespace Icebreaker
                 else if (this.adminMessagesHandler.CanHandleMessage(msg))
                 {
                     await this.adminMessagesHandler.HandleMessage(msg, connectorClient, activity, senderAadId, senderChannelAccountId);
-                }
-                else if (msg == MessageIds.DebugTriggerAllTeams)
-                {
-                    await this.bot.MakePairsAndNotifyForAllTeams();
                 }
                 else
                 {
@@ -245,6 +245,16 @@ namespace Icebreaker
                 teams);
         }
 
+        private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, TeamSettings teamSettings)
+        {
+            return this.bot.SaveTeamSettings(
+                connectorClient,
+                activity,
+                teamSettings.TeamId,
+                teamSettings.NotifyMode,
+                teamSettings.SubteamNames);
+        }
+
         private async Task HandleSystemActivity(ConnectorClient connectorClient, Activity message)
         {
             this.telemetryClient.TrackTrace("Processing system message");
@@ -368,6 +378,15 @@ namespace Icebreaker
             public string Gender { get; set; } = string.Empty;
 
             public string Teams { get; set; } = string.Empty;
+        }
+
+        private class TeamSettings
+        {
+            public string TeamId { get; set; } = string.Empty;
+
+            public string NotifyMode { get; set; } = string.Empty;
+
+            public string SubteamNames { get; set; } = string.Empty;
         }
     }
 }

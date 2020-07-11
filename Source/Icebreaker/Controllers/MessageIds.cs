@@ -47,8 +47,8 @@ namespace Icebreaker.Controllers
         public const string AdminChangeNotifyModeNeedApproval = "notifyneedapproval";
 
         /// <summary>
-        /// Execute the timer triggered code which triggers matches for all teams
+        /// Edit team settings
         /// </summary>
-        public const string DebugTriggerAllTeams = "debugtriggerallteams";
+        public const string AdminEditTeamSettings = "editteamsettings";
     }
 }

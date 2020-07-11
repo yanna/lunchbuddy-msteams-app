@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AdminActionEditTeamSettings" xml:space="preserve">
+    <value>edit team settings</value>
+    <comment>Action for edit team settings</comment>
+  </data>
   <data name="AdminActionGeneratePairs" xml:space="preserve">
     <value>generate pairs</value>
     <comment>Admin action option for filling into the which teams </comment>

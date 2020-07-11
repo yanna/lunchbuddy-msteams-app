@@ -50,7 +50,8 @@ namespace Icebreaker.Controllers
                 MessageIds.AdminMakePairs,
                 MessageIds.AdminNotifyPairs,
                 MessageIds.AdminChangeNotifyModeNeedApproval,
-                MessageIds.AdminChangeNotifyModeNoApproval
+                MessageIds.AdminChangeNotifyModeNoApproval,
+                MessageIds.AdminEditTeamSettings
             };
             return acceptedMsgs.Contains(msgId.ToLowerInvariant());
         }
@@ -84,6 +85,10 @@ namespace Icebreaker.Controllers
             else if (msgId == MessageIds.AdminChangeNotifyModeNoApproval)
             {
                 await this.HandleAdminNotifyNoApproval(connectorClient, activity, senderAadId, senderChannelAccountId);
+            }
+            else if (msgId == MessageIds.AdminEditTeamSettings)
+            {
+                await this.HandleAdminEditTeamSettings(connectorClient, activity, senderAadId, senderChannelAccountId);
             }
         }
 
@@ -267,6 +272,32 @@ namespace Icebreaker.Controllers
 
             Activity reply = activity.CreateReply(replyMessage);
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
+        }
+
+        private async Task HandleAdminEditTeamSettings(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        {
+            if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
+            {
+                var team = await this.bot.GetInstalledTeam(request.TeamId);
+                await this.HandleAdminEditTeamSettingsForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+            }
+            else
+            {
+                await this.HandleAdminActionWithNoTeamSpecified(
+                    connectorClient,
+                    activity,
+                    senderAadId,
+                    senderChannelAccountId,
+                    adminActionName: Resources.AdminActionEditTeamSettings,
+                    adminActionMessageId: MessageIds.AdminEditTeamSettings,
+                    this.HandleAdminEditTeamSettingsForTeam);
+            }
+        }
+
+        private Task HandleAdminEditTeamSettingsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        {
+            var replyActivity = activity.CreateReply();
+            return this.bot.EditTeamSettings(connectorClient, replyActivity, team.TeamId, teamName);
         }
     }
 }

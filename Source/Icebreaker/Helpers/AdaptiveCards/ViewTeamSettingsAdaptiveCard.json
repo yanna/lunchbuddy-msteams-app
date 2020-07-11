@@ -19,22 +19,12 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "Discipline:",
+                            "text": "NotifyMode:",
                             "weight": "Bolder"
                         },
                         {
                             "type": "TextBlock",
-                            "text": "Teams:",
-                            "weight": "Bolder"
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": "Seniority:",
-                            "weight": "Bolder"
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": "Gender:",
+                            "text": "Edit Profile Subteam Names:",
                             "weight": "Bolder"
                         }
                     ]
@@ -45,19 +35,12 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "%discipline%"
+                            "text": "%notifyMode%"
                         },
                         {
                             "type": "TextBlock",
-                            "text": "%teams%"
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": "%seniority%"
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": "%gender%"
+                            "text": "%subteamNames%",
+                            "wrap": true
                         }
                     ]
                 }

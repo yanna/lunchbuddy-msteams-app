@@ -66,9 +66,13 @@ namespace Icebreaker
                 {
                     var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
 
-                    this.telemetryClient.TrackTrace($"Team {team.Id} has {optedInUsers.Count} opted in users.");
-
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
                     matchResult = await this.MakePairs(optedInUsers);
+                    watch.Stop();
+                    var elapsedMs = watch.ElapsedMilliseconds;
+
+                    this.telemetryClient.TrackTrace($"Team {team.Id} took {elapsedMs} ms to makepairs for {optedInUsers.Count} opted in users.");
+
                     matchResult.Pairs.Take(this.maxPairUpsPerTeam).ToList();
                 }
             }
@@ -297,18 +301,8 @@ namespace Icebreaker
             this.telemetryClient.TrackTrace($"Sending welcome message for user {memberAddedId}");
 
             var teamName = await this.GetTeamNameAsync(connectorClient, teamId);
-            var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
 
-            ChannelAccount userThatJustJoined = null;
-            foreach (var m in allMembers)
-            {
-                // both values are 29: values
-                if (m.Id == memberAddedId)
-                {
-                    userThatJustJoined = m;
-                    break;
-                }
-            }
+            var userThatJustJoined = await this.GetChannelAccountByChannelAccountId(memberAddedId, connectorClient, teamId);
 
             if (userThatJustJoined != null)
             {
@@ -372,7 +366,9 @@ namespace Icebreaker
         public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
-            var card = EditUserProfileAdaptiveCard.GetCard(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams);
+            var subteamsHint = await this.GetSubteamNamesHintForUser(connectorClient, userAadId);
+
+            var card = EditUserProfileAdaptiveCard.GetCard(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams, subteamsHint);
             replyActivity.Attachments = new List<Attachment>()
             {
                 this.CreateAdaptiveCardAttachment(card)
@@ -427,6 +423,52 @@ namespace Icebreaker
                         this.GetUITextForProfileData(gender),
                         this.GetUITextForProfileData(seniority),
                         teams))
+                };
+            }
+            else
+            {
+                replyActivity.Text = Resources.SaveProfileFailText;
+            }
+
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        /// <summary>
+        /// Saves the team settings to the database
+        /// </summary>
+        /// <param name="connectorClient">The connector client</param>
+        /// <param name="activity">Activity of the user data submission</param>
+        /// <param name="teamId">Team id</param>
+        /// <param name="notifyMode">How the pairs will be notified</param>
+        /// <param name="subteamNames">Subteam names to show in EditProfile page</param>
+        /// <returns>Empty task</returns>
+        public async Task SaveTeamSettings(
+            ConnectorClient connectorClient,
+            Activity activity,
+            string teamId,
+            string notifyMode,
+            string subteamNames)
+        {
+            var team = await this.GetInstalledTeam(teamId);
+            team.NotifyMode = notifyMode;
+            team.SubteamNames = subteamNames;
+
+            var isSuccess = await this.dataProvider.UpdateTeamInstallInfoAsync(team);
+
+            // After you do the card submission, the card resets to the old values even though the new values are saved.
+            // This is just the default behaviour of Adaptive Cards.
+            // So we can do this a couple of ways:
+            // 1) manually update the message to update the card to the new values but this requires storing the original activity id
+            //    because it's not the submit activity but the activity that triggered the submit activity.
+            // 2) let it happen and reply with a readonly card representing the new state.
+            // Picking option 2 because I want to avoid storing extra state.
+            var replyActivity = activity.CreateReply();
+            if (isSuccess)
+            {
+                replyActivity.Attachments = new List<Attachment>
+                {
+                    this.CreateAdaptiveCardAttachment(ViewTeamSettingsAdaptiveCard.GetCard(
+                        notifyMode, subteamNames))
                 };
             }
             else
@@ -534,6 +576,40 @@ namespace Icebreaker
             teamToUpdate.NotifyMode = newApprovalMode;
 
             return await this.dataProvider.UpdateTeamInstallStatusAsync(teamToUpdate, installed: true);
+        }
+
+        /// <summary>
+        /// Edit team settings
+        /// </summary>
+        /// <param name="connectorClient">The connector client</param>
+        /// <param name="replyActivity">Activity for replying</param>
+        /// <param name="teamId">Team id of team to modify</param>
+        /// <param name="teamName">Team name of the team to modify</param>
+        /// <returns>Empty task</returns>
+        public async Task EditTeamSettings(ConnectorClient connectorClient, Activity replyActivity, string teamId, string teamName)
+        {
+            var teamInfo = await this.GetInstalledTeam(teamId);
+            var adminUserChannelAccount = await this.GetChannelAccountByChannelAccountId(teamInfo.AdminUserChannelAccountId, connectorClient, teamId);
+            var adminUserName = adminUserChannelAccount?.Name;
+            var card = EditTeamSettingsAdaptiveCard.GetCard(teamId, teamName, adminUserName, teamInfo.NotifyMode, teamInfo.SubteamNames);
+            replyActivity.Attachments = new List<Attachment>()
+            {
+                this.CreateAdaptiveCardAttachment(card)
+            };
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        /// <summary>
+        /// Get the user name by a ChannelAccount id. May return null if the id does not exist within the team.
+        /// </summary>
+        /// <param name="channelAccountId">channel acccount id</param>
+        /// <param name="connectorClient">connector client</param>
+        /// <param name="teamId">team id</param>
+        /// <returns>Channel Account for the user</returns>
+        private async Task<ChannelAccount> GetChannelAccountByChannelAccountId(string channelAccountId, ConnectorClient connectorClient, string teamId)
+        {
+            var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
+            return allMembers.FirstOrDefault(m => m.Id == channelAccountId);
         }
 
         /// <summary>
@@ -759,6 +835,44 @@ namespace Icebreaker
                 var peopleData = await new PeopleDataCreator(this.dataProvider, users).Get();
                 return new StableMarriageAlgorithm(random, peopleData).CreateMatches(users);
             }
+        }
+
+        private async Task<string> GetSubteamNamesIfUserExistsInTeam(ConnectorClient connectorClient, TeamInstallInfo team, string userAadId)
+        {
+            var members = await connectorClient.Conversations.GetConversationMembersAsync(team.Id);
+            var foundUser = members.FirstOrDefault(member => member.GetUserId() == userAadId);
+            return foundUser == null ? string.Empty : team.SubteamNames;
+        }
+
+        private async Task<string> GetSubteamNamesHintForUser(ConnectorClient connectorClient, string userAadId)
+        {
+            var teams = await this.dataProvider.GetInstalledTeamsAsync();
+            var subteams = new List<string>();
+            if (teams.Count == 1)
+            {
+                var onlyTeam = teams.First();
+                subteams.Add(onlyTeam.SubteamNames);
+            }
+            else if (teams.Count > 1)
+            {
+                // Note: This is pretty expensive if teams list/teams are quite big.
+                //       May need to revist and store a user's teams
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                var tasks = teams.Select(team => this.GetSubteamNamesIfUserExistsInTeam(connectorClient, team, userAadId));
+                subteams = (await Task.WhenAll(tasks)).ToList();
+
+                watch.Stop();
+                var elapsedMs = watch.ElapsedMilliseconds;
+                if (elapsedMs > 500)
+                {
+                    this.telemetryClient.TrackTrace("EditProfileTooLong", SeverityLevel.Warning);
+                }
+            }
+
+            var subteamsSanitized = subteams.Where(names => !string.IsNullOrEmpty(names)).Select(names => names.Trim());
+            var subteamsHint = string.Join(", ", subteamsSanitized);
+            return subteamsHint;
         }
     }
 }
