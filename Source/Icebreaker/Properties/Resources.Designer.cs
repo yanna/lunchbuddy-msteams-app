@@ -169,6 +169,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to In the meantime, edit your profile to ensure a good match. .
+        /// </summary>
+        internal static string InstallMessagePart4 {
+            get {
+                return ResourceManager.GetString("InstallMessagePart4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s because I was installed to **{0} Team.** .
         /// </summary>
         internal static string InstallMessageUnknownInstallerPart1 {

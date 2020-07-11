@@ -50,7 +50,17 @@ namespace Icebreaker.Helpers.AdaptiveCards
 
             var meetingTitle = string.Format(Resources.MeetupTitle, senderGivenName, recipientGivenName);
             var meetingContent = string.Format(Resources.MeetupContent, botDisplayName);
-            var meetingLink = "https://teams.microsoft.com/l/meeting/new?subject=" + Uri.EscapeDataString(meetingTitle) + "&attendees=" + recipientUpn + "&content=" + Uri.EscapeDataString(meetingContent);
+
+            // Defaulting to next Wed at noon for no meetings day
+            // https://docs.microsoft.com/en-us/microsoftteams/platform/concepts/build-and-test/deep-links
+            var nextWedDate = GetNextWeekday(DayOfWeek.Wednesday);
+            var nextWedNoon = new DateTime(nextWedDate.Year, nextWedDate.Month, nextWedDate.Day, 12, 0, 0);
+            var startTimeIso8601 = nextWedNoon.ToString("s", System.Globalization.CultureInfo.InvariantCulture);
+
+            var meetingLink = "https://teams.microsoft.com/l/meeting/new?subject=" + Uri.EscapeDataString(meetingTitle) +
+                "&startTime=" + Uri.EscapeDataString(startTimeIso8601) +
+                "&attendees=" + recipientUpn +
+                "&content=" + Uri.EscapeDataString(meetingContent);
 
             var matchUpCardTitleContent = Resources.MatchUpCardTitleContent;
             var matchUpCardMatchedText = string.Format(Resources.MatchUpCardMatchedText, recipient.Name);
@@ -92,6 +102,17 @@ namespace Icebreaker.Helpers.AdaptiveCards
         private static bool IsGuestUser(TeamsChannelAccount account)
         {
             return account.UserPrincipalName?.IndexOf(ExternallyAuthenticatedUpnMarker, StringComparison.InvariantCultureIgnoreCase) >= 0;
+        }
+
+        private static DateTime GetNextWeekday(DayOfWeek day)
+        {
+            var result = DateTime.Now;
+            while (result.DayOfWeek != day)
+            {
+                result = result.AddDays(1);
+            }
+
+            return result;
         }
     }
 }

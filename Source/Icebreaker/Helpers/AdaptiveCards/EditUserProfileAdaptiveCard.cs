@@ -40,7 +40,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var variablesToValues = new Dictionary<string, string>()
             {
                 { "title", "Please tell me about yourself" },
-                { "body", "This helps me provide you with better matches." },
+                { "body", "This helps me improve your matches." },
                 { "defaultDiscipline", discipline },
                 { "defaultGender", gender },
                 { "defaultSeniority", seniority },

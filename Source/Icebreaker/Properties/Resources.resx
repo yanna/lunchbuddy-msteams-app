@@ -165,6 +165,10 @@
     <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
     <comment>Part 3 of the install message with the name of the installer known</comment>
   </data>
+  <data name="InstallMessagePart4" xml:space="preserve">
+    <value>In the meantime, edit your profile to ensure a good match. </value>
+    <comment>Ask the user to edit their profile</comment>
+  </data>
   <data name="InstallMessageUnknownInstallerPart1" xml:space="preserve">
     <value>If you're reading this, it's because I was installed to **{0} Team.** </value>
     <comment>Install message and also the welcome message when the app installer is not known - {0} is the placeholder for the name of the team that the app has been installed to</comment>

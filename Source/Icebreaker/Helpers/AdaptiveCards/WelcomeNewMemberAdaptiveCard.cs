@@ -53,6 +53,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 introMessagePart3 = Resources.InstallMessageKnownInstallerPart3;
             }
 
+            var introMessagePart4 = Resources.InstallMessagePart4;
+
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
             var htmlUrl = Uri.EscapeDataString($"https://{baseDomain}/Content/tour.html?theme={{theme}}");
             var tourTitle = Resources.WelcomeTourTitle;
@@ -72,6 +74,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "introMessagePart1", introMessagePart1 },
                 { "introMessagePart2", introMessagePart2 },
                 { "introMessagePart3", introMessagePart3 },
+                { "introMessagePart4", introMessagePart4 },
                 { "welcomeCardImageUrl", welcomeCardImageUrl },
                 { "editProfileText", editProfileText },
                 { "pauseMatchesText", pauseMatchesText },
