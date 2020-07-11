@@ -73,6 +73,11 @@ namespace Icebreaker.Helpers
             return false;
         }
 
+        /// <summary>
+        /// Update the team install info
+        /// </summary>
+        /// <param name="team">team info to update</param>
+        /// <returns>Whether the update was successful</returns>
         public async Task<bool> UpdateTeamInstallInfoAsync(TeamInstallInfo team)
         {
             await this.EnsureInitializedAsync();

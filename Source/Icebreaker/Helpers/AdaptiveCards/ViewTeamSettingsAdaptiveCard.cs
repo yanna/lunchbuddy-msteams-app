@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------------------------------------------------
-// <copyright file="ViewUserProfileAdaptiveCard.cs" company="Microsoft">
+// <copyright file="ViewTeamSettingsAdaptiveCard.cs" company="Microsoft">
 // Copyright (c) Microsoft. All rights reserved.
 // </copyright>
 //----------------------------------------------------------------------------------------------

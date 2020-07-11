@@ -315,7 +315,7 @@ namespace Icebreaker
                 }
 
                 var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, userThatJustJoined.Name, this.botDisplayName, botInstaller);
-                await this.NotifyUser(connectorClient, this.CreateAdaptiveCardAttachment(welcomeMessageCard), userThatJustJoined, tenantId);
+                await this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeMessageCard), userThatJustJoined, tenantId);
             }
             else
             {
@@ -344,13 +344,18 @@ namespace Icebreaker
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
         /// <param name="replyActivity">The activity for replying to a message</param>
+        /// <param name="tenantId">User tenant id</param>
+        /// <param name="userAadId">User AAD id</param>
+        /// <param name="userName">User name</param>
         /// <returns>Tracking task</returns>
-        public async Task SendUnrecognizedInputMessage(ConnectorClient connectorClient, Activity replyActivity)
+        public async Task SendUnrecognizedInputMessage(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, string userName)
         {
-            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCard();
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
+
+            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCard(userInfo.OptedIn, userName);
             replyActivity.Attachments = new List<Attachment>()
             {
-                this.CreateAdaptiveCardAttachment(unrecognizedInputAdaptiveCard)
+                AdaptiveCardHelper.CreateAdaptiveCardAttachment(unrecognizedInputAdaptiveCard)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
@@ -371,7 +376,7 @@ namespace Icebreaker
             var card = EditUserProfileAdaptiveCard.GetCard(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams, subteamsHint);
             replyActivity.Attachments = new List<Attachment>()
             {
-                this.CreateAdaptiveCardAttachment(card)
+                AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
@@ -418,7 +423,7 @@ namespace Icebreaker
             {
                 replyActivity.Attachments = new List<Attachment>
                 {
-                    this.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCard(
+                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCard(
                         this.GetUITextForProfileData(discipline),
                         this.GetUITextForProfileData(gender),
                         this.GetUITextForProfileData(seniority),
@@ -467,7 +472,7 @@ namespace Icebreaker
             {
                 replyActivity.Attachments = new List<Attachment>
                 {
-                    this.CreateAdaptiveCardAttachment(ViewTeamSettingsAdaptiveCard.GetCard(
+                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewTeamSettingsAdaptiveCard.GetCard(
                         notifyMode, subteamNames))
                 };
             }
@@ -594,7 +599,7 @@ namespace Icebreaker
             var card = EditTeamSettingsAdaptiveCard.GetCard(teamId, teamName, adminUserName, teamInfo.NotifyMode, teamInfo.SubteamNames);
             replyActivity.Attachments = new List<Attachment>()
             {
-                this.CreateAdaptiveCardAttachment(card)
+                AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
@@ -674,8 +679,8 @@ namespace Icebreaker
 
             // Send notifications and return the number that was successful
             var notifyResults = await Task.WhenAll(
-                this.NotifyUser(connectorClient, this.CreateAdaptiveCardAttachment(cardForPerson1), teamsPerson1, tenantId),
-                this.NotifyUser(connectorClient, this.CreateAdaptiveCardAttachment(cardForPerson2), teamsPerson2, tenantId));
+                this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(cardForPerson1), teamsPerson1, tenantId),
+                this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(cardForPerson2), teamsPerson2, tenantId));
 
             var successfulNotifyCount = notifyResults.Count(wasNotified => wasNotified);
             if (successfulNotifyCount > 0)
@@ -687,15 +692,6 @@ namespace Icebreaker
             }
 
             return successfulNotifyCount;
-        }
-
-        private Attachment CreateAdaptiveCardAttachment(string cardJSON)
-        {
-            return new Attachment()
-            {
-                ContentType = "application/vnd.microsoft.card.adaptive",
-                Content = JsonConvert.DeserializeObject(cardJSON),
-            };
         }
 
         private async Task<bool> NotifyUser(ConnectorClient connectorClient, Attachment cardToSend, ChannelAccount user, string tenantId)
@@ -769,7 +765,7 @@ namespace Icebreaker
                     },
                     Attachments = new List<Attachment>()
                     {
-                        this.CreateAdaptiveCardAttachment(cardToSend)
+                        AdaptiveCardHelper.CreateAdaptiveCardAttachment(cardToSend)
                     }
                 };
 

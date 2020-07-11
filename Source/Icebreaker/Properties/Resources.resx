@@ -150,7 +150,7 @@
     <comment>Edit profile button text</comment>
   </data>
   <data name="ErrorOccured" xml:space="preserve">
-    <value>There was an error while processing request. Retry?</value>
+    <value>There was an error while processing the request. Retry?</value>
     <comment>A generic message that is sent when there is an error occurring</comment>
   </data>
   <data name="InstallMessageKnownInstallerPart1" xml:space="preserve">
@@ -238,7 +238,7 @@
     <comment>The confirmation reply that is sent when the user resumes the matches</comment>
   </data>
   <data name="OptInUserFailText" xml:space="preserve">
-    <value>Sorry, I had trouble opting you back in. Please make sure you are connected to the internet. </value>
+    <value>Sorry, I had trouble opting you back in. Retry?</value>
     <comment>Show this text when the user opt in failed</comment>
   </data>
   <data name="OptOutConfirmation" xml:space="preserve">
@@ -246,15 +246,15 @@
     <comment>The confirmation reply that is sent when the user pauses all matches</comment>
   </data>
   <data name="OptOutUserFailText" xml:space="preserve">
-    <value>Sorry, I had trouble opting you out. Please make sure you are connected to the internet. </value>
+    <value>Sorry, I had trouble opting you out. Retry?</value>
     <comment>Show this text when the user opt out failed</comment>
   </data>
   <data name="PausePairingsButtonText" xml:space="preserve">
-    <value>Pause all matches</value>
+    <value>Pause All Matches</value>
     <comment>Button text to pause pairings</comment>
   </data>
   <data name="ProposeMeetupButtonText" xml:space="preserve">
-    <value>Propose meetup</value>
+    <value>Propose Meetup</value>
     <comment>Button text to propose the meetup with the match of the user</comment>
   </data>
   <data name="RegeneratePairingsButtonText" xml:space="preserve">
@@ -262,7 +262,7 @@
     <comment>Button text to regenerate pairings</comment>
   </data>
   <data name="ResumePairingsButtonText" xml:space="preserve">
-    <value>Resume matches</value>
+    <value>Resume Matches</value>
     <comment>Button text to resume pairings</comment>
   </data>
   <data name="SalutationTitleText" xml:space="preserve">
@@ -270,7 +270,7 @@
     <comment>This is the text for the salutation in the adaptive cards when the bot is installed to a team and also when new users are added to the team</comment>
   </data>
   <data name="SaveProfileFailText" xml:space="preserve">
-    <value>Sorry, I could not save the user profile. Please make sure you are connected to the internet.</value>
+    <value>Sorry, I could not save the user profile. Retry?</value>
     <comment>Show this text when the user profile could not be saved</comment>
   </data>
   <data name="SendPairingsButtonText" xml:space="preserve">
@@ -278,11 +278,11 @@
     <comment>Button text to send pairings</comment>
   </data>
   <data name="TakeATourButtonText" xml:space="preserve">
-    <value>Take a tour</value>
+    <value>Take a Tour</value>
     <comment>The text for the button which launches a tour when clicked</comment>
   </data>
   <data name="UnrecognizedInput" xml:space="preserve">
-    <value>I'm sorry, but I can't process the incoming message. You can take a tour, though, to learn more about my functionality.</value>
+    <value>Hi {0}! Can I help you with any of these actions?</value>
     <comment>The text for the unrecognized input scenario</comment>
   </data>
   <data name="WelcomeTourTitle" xml:space="preserve">

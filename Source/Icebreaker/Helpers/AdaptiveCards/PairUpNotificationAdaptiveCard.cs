@@ -59,6 +59,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var chatWithMatchButtonText = string.Format(Resources.ChatWithMatchButtonText, recipientGivenName);
             var pauseMatchesButtonText = Resources.PausePairingsButtonText;
             var proposeMeetupButtonText = Resources.ProposeMeetupButtonText;
+            var editProfileText = Resources.EditProfileButtonText;
 
             var variablesToValues = new Dictionary<string, string>()
             {
@@ -70,7 +71,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "pauseMatchesButtonText", pauseMatchesButtonText },
                 { "proposeMeetupButtonText", proposeMeetupButtonText },
                 { "meetingLink", meetingLink },
-                { "personUpn", recipientUpn }
+                { "personUpn", recipientUpn },
+                { "editProfileText", editProfileText }
             };
 
             var cardBody = CardTemplate;
@@ -89,7 +91,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <returns>True if the account is a guest user, false otherwise.</returns>
         private static bool IsGuestUser(TeamsChannelAccount account)
         {
-            return account.UserPrincipalName.IndexOf(ExternallyAuthenticatedUpnMarker, StringComparison.InvariantCultureIgnoreCase) >= 0;
+            return account.UserPrincipalName?.IndexOf(ExternallyAuthenticatedUpnMarker, StringComparison.InvariantCultureIgnoreCase) >= 0;
         }
     }
 }

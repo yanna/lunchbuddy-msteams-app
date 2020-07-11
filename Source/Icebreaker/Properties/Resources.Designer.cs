@@ -133,7 +133,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was an error while processing request. Retry?.
+        ///   Looks up a localized string similar to There was an error while processing the request. Retry?.
         /// </summary>
         internal static string ErrorOccured {
             get {
@@ -331,7 +331,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sorry, I had trouble opting you back in. Please make sure you are connected to the internet. .
+        ///   Looks up a localized string similar to Sorry, I had trouble opting you back in. Retry?.
         /// </summary>
         internal static string OptInUserFailText {
             get {
@@ -349,7 +349,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sorry, I had trouble opting you out. Please make sure you are connected to the internet. .
+        ///   Looks up a localized string similar to Sorry, I had trouble opting you out. Retry?.
         /// </summary>
         internal static string OptOutUserFailText {
             get {
@@ -358,7 +358,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pause all matches.
+        ///   Looks up a localized string similar to Pause All Matches.
         /// </summary>
         internal static string PausePairingsButtonText {
             get {
@@ -367,7 +367,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Propose meetup.
+        ///   Looks up a localized string similar to Propose Meetup.
         /// </summary>
         internal static string ProposeMeetupButtonText {
             get {
@@ -385,7 +385,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Resume matches.
+        ///   Looks up a localized string similar to Resume Matches.
         /// </summary>
         internal static string ResumePairingsButtonText {
             get {
@@ -403,7 +403,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sorry, I could not save the user profile. Please make sure you are connected to the internet..
+        ///   Looks up a localized string similar to Sorry, I could not save the user profile. Retry?.
         /// </summary>
         internal static string SaveProfileFailText {
             get {
@@ -421,7 +421,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Take a tour.
+        ///   Looks up a localized string similar to Take a Tour.
         /// </summary>
         internal static string TakeATourButtonText {
             get {
@@ -430,7 +430,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to I&apos;m sorry, but I can&apos;t process the incoming message. You can take a tour, though, to learn more about my functionality..
+        ///   Looks up a localized string similar to Hi {0}! Can I help you with any of these actions?.
         /// </summary>
         internal static string UnrecognizedInput {
             get {

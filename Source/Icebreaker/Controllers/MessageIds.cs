@@ -50,5 +50,15 @@ namespace Icebreaker.Controllers
         /// Edit team settings
         /// </summary>
         public const string AdminEditTeamSettings = "editteamsettings";
+
+        /// <summary>
+        /// Debug the notify user card
+        /// </summary>
+        public const string DebugNotifyUser = "notifyme";
+
+        /// <summary>
+        /// Debug the welcome card
+        /// </summary>
+        public const string DebugWelcomeUser = "welcomeme";
     }
 }

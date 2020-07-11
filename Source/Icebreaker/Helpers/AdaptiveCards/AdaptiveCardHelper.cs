@@ -7,6 +7,8 @@
 namespace Icebreaker.Helpers.AdaptiveCards
 {
     using System.Collections.Generic;
+    using Microsoft.Bot.Connector;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Helper class for Adaptive Cards
@@ -34,6 +36,20 @@ namespace Icebreaker.Helpers.AdaptiveCards
             }
 
             return cardBody;
+        }
+
+        /// <summary>
+        /// Create attachment for a bot reply for an adaptive card
+        /// </summary>
+        /// <param name="cardJSON">Adaptive card json</param>
+        /// <returns>Attachment</returns>
+        public static Attachment CreateAdaptiveCardAttachment(string cardJSON)
+        {
+            return new Attachment()
+            {
+                ContentType = "application/vnd.microsoft.card.adaptive",
+                Content = JsonConvert.DeserializeObject(cardJSON),
+            };
         }
     }
 }

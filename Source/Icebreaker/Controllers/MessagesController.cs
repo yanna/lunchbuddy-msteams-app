@@ -20,6 +20,7 @@ namespace Icebreaker
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
+    using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
     using Properties;
 
@@ -113,18 +114,21 @@ namespace Icebreaker
                 {
                     await this.adminMessagesHandler.HandleMessage(msg, connectorClient, activity, senderAadId, senderChannelAccountId);
                 }
+                else if (msg == MessageIds.DebugNotifyUser)
+                {
+                    await this.HandleDebugNotifyUser(connectorClient, activity, activity.From.AsTeamsChannelAccount());
+                }
+                else if (msg == MessageIds.DebugWelcomeUser)
+                {
+                    await this.HandleDebugWelcomeUser(connectorClient, activity, activity.From.AsTeamsChannelAccount());
+                }
                 else
                 {
-                    if (hasTeamContext)
+                    if (!hasTeamContext)
                     {
-                        // Unknown input
-                        this.telemetryClient.TrackTrace($"Cannot process the following: {activity.Text}");
+                        // Unknown input in a personal chat, not in the team channel
                         var replyActivity = activity.CreateReply();
-                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity);
-                    }
-                    else
-                    {
-                        // TODO provide pause/unpause, edit profile etc
+                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId, activity.From.Name);
                     }
                 }
             }
@@ -253,6 +257,26 @@ namespace Icebreaker
                 teamSettings.TeamId,
                 teamSettings.NotifyMode,
                 teamSettings.SubteamNames);
+        }
+
+        private async Task HandleDebugNotifyUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
+        {
+            var notifyCard = PairUpNotificationAdaptiveCard.GetCard("TestTeam", sender, sender, "LunchBuddy");
+
+            var replyActivity = activity.CreateReply();
+            replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(notifyCard) };
+
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        private async Task HandleDebugWelcomeUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
+        {
+            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCard("TestTeam", "Firstname", "LunchBuddy", "InstallerPerson");
+
+            var replyActivity = activity.CreateReply();
+            replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };
+
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
         private async Task HandleSystemActivity(ConnectorClient connectorClient, Activity message)

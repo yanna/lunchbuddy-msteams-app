@@ -9,6 +9,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Collections.Generic;
     using System.IO;
     using System.Web.Hosting;
+    using Icebreaker.Controllers;
     using Icebreaker.Properties;
     using Microsoft.Azure;
 
@@ -28,10 +29,12 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <summary>
         /// Generates the adaptive card string for the unrecognized input.
         /// </summary>
+        /// <param name="isOptedIn">Whether the user is opted in to being matched</param>
+        /// <param name="userName">Name of user to interact with</param>
         /// <returns>The adaptive card for the unrecognized input</returns>
-        public static string GetCard()
+        public static string GetCard(bool isOptedIn, string userName)
         {
-            var messageContent = Resources.UnrecognizedInput;
+            var messageContent = string.Format(Resources.UnrecognizedInput, userName);
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
             var htmlUrl = Uri.EscapeDataString($"https://{baseDomain}/Content/tour.html?theme={{theme}}");
             var tourTitle = Resources.WelcomeTourTitle;
@@ -43,7 +46,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
             {
                 { "messageContent", messageContent },
                 { "tourUrl", tourUrl },
-                { "tourButtonText", tourButtonText }
+                { "tourButtonText", tourButtonText },
+                { "editProfileText", Resources.EditProfileButtonText },
+                { "pauseOrResumeMatchesText",  isOptedIn ? Resources.PausePairingsButtonText : Resources.ResumePairingsButtonText },
+                { "pauseOrResume", isOptedIn ? MessageIds.OptOut : MessageIds.OptIn }
             };
 
             var cardBody = CardTemplate;
