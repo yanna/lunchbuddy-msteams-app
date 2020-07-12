@@ -133,6 +133,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Admin: Edit Team Settings.
+        /// </summary>
+        internal static string EditTeamSettingsButtonText {
+            get {
+                return ResourceManager.GetString("EditTeamSettingsButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an error while processing the request. Retry?.
         /// </summary>
         internal static string ErrorOccured {
@@ -201,6 +210,15 @@ namespace Icebreaker.Properties {
         internal static string InstallMessageUnknownInstallerPart3 {
             get {
                 return ResourceManager.GetString("InstallMessageUnknownInstallerPart3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Admin: Create Pairs.
+        /// </summary>
+        internal static string MakePairsButtonText {
+            get {
+                return ResourceManager.GetString("MakePairsButtonText", resourceCulture);
             }
         }
         
@@ -439,7 +457,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hi {0}! Can I help you with any of these actions?.
+        ///   Looks up a localized string similar to Hi! What would you like to do?.
         /// </summary>
         internal static string UnrecognizedInput {
             get {

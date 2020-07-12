@@ -128,7 +128,7 @@ namespace Icebreaker
                     {
                         // Unknown input in a personal chat, not in the team channel
                         var replyActivity = activity.CreateReply();
-                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId, activity.From.Name);
+                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId, senderChannelAccountId);
                     }
                 }
             }

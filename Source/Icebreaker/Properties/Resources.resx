@@ -149,6 +149,10 @@
     <value>Edit Profile </value>
     <comment>Edit profile button text</comment>
   </data>
+  <data name="EditTeamSettingsButtonText" xml:space="preserve">
+    <value>Admin: Edit Team Settings</value>
+    <comment>Button text for edit team settings</comment>
+  </data>
   <data name="ErrorOccured" xml:space="preserve">
     <value>There was an error while processing the request. Retry?</value>
     <comment>A generic message that is sent when there is an error occurring</comment>
@@ -180,6 +184,10 @@
   <data name="InstallMessageUnknownInstallerPart3" xml:space="preserve">
     <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
     <comment>Part 3 of the install message when the name of the installer is not known</comment>
+  </data>
+  <data name="MakePairsButtonText" xml:space="preserve">
+    <value>Admin: Create Pairs</value>
+    <comment>Button text for make pairs from opted in users</comment>
   </data>
   <data name="ManualNotifiedUsersErrorMessage" xml:space="preserve">
     <value>Could not notify the users. Please try again or regenerate new pairings.</value>
@@ -286,7 +294,7 @@
     <comment>The text for the button which launches a tour when clicked</comment>
   </data>
   <data name="UnrecognizedInput" xml:space="preserve">
-    <value>Hi {0}! Can I help you with any of these actions?</value>
+    <value>Hi! What would you like to do?</value>
     <comment>The text for the unrecognized input scenario</comment>
   </data>
   <data name="WelcomeTourTitle" xml:space="preserve">

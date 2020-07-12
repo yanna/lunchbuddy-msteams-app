@@ -346,13 +346,27 @@ namespace Icebreaker
         /// <param name="replyActivity">The activity for replying to a message</param>
         /// <param name="tenantId">User tenant id</param>
         /// <param name="userAadId">User AAD id</param>
-        /// <param name="userName">User name</param>
+        /// <param name="userChannelAccountId">User channel account id</param>
         /// <returns>Tracking task</returns>
-        public async Task SendUnrecognizedInputMessage(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, string userName)
+        public async Task SendUnrecognizedInputMessage(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, string userChannelAccountId)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
 
-            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCard(userInfo.OptedIn, userName);
+            var teamsAllowingAdminActionsByUser = await this.GetTeamsAllowingAdminActionsByUser(userChannelAccountId);
+            var showAdminActions = teamsAllowingAdminActionsByUser.Count > 0;
+            TeamContext teamContext = null;
+            if (teamsAllowingAdminActionsByUser.Count == 1)
+            {
+                var adminTeam = teamsAllowingAdminActionsByUser.First();
+                var teamName = await this.GetTeamNameAsync(connectorClient, adminTeam.TeamId);
+                teamContext = new TeamContext
+                {
+                    TeamId = adminTeam.TeamId,
+                    TeamName = teamName
+                };
+            }
+
+            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCard(userInfo.OptedIn, showAdminActions, teamContext);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(unrecognizedInputAdaptiveCard)
@@ -649,7 +663,7 @@ namespace Icebreaker
 
             if (matchResult.OddPerson != null)
             {
-                allPairsStr += $"{emptyLine}< b>{Resources.NewPairingsOddPerson}</b>: {matchResult.OddPerson.Name}";
+                allPairsStr += $"{emptyLine}<b>{Resources.NewPairingsOddPerson}</b>: {matchResult.OddPerson.Name}";
             }
 
             return Resources.NewPairingsDescription + emptyLine + allPairsStr + emptyLine;

@@ -8,6 +8,7 @@ namespace Icebreaker.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Result of generating pairs from opted in users in the team
@@ -17,11 +18,13 @@ namespace Icebreaker.Controllers
         /// <summary>
         /// Gets or sets the channel account ids of the pair
         /// </summary>
+        [JsonProperty(Required = Required.Always)]
         public List<Tuple<string, string>> PairChannelAccountIds { get; set; } = new List<Tuple<string, string>>();
 
         /// <summary>
         /// Gets or sets the team id the ChannelAccount ids were from
         /// </summary>
+        [JsonProperty(Required = Required.Always)]
         public string TeamId { get; set; } = string.Empty;
     }
 }
