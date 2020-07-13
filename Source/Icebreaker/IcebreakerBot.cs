@@ -837,13 +837,13 @@ namespace Icebreaker
 
             if (userCount < useStableMarriageAlgorithmUserCount)
             {
-                var randomAlgorithm = new RandomAlgorithm(random);
-                return randomAlgorithm.CreateMatches(users);
+                var randomMatchCreator = new RandomMatchCreator(random);
+                return randomMatchCreator.CreateMatches(users);
             }
             else
             {
                 var peopleData = await new PeopleDataCreator(this.dataProvider, users).Get();
-                return new StableMarriageAlgorithm(random, peopleData).CreateMatches(users);
+                return new StableMarriageMatchCreator(random, peopleData).CreateMatches(users);
             }
         }
 

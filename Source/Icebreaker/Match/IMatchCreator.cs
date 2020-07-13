@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------------------------------------------------
-// <copyright file="IMatchAlgorithm.cs" company="Microsoft">
+// <copyright file="IMatchCreator.cs" company="Microsoft">
 // Copyright (c) Microsoft. All rights reserved.
 // </copyright>
 //----------------------------------------------------------------------------------------------
@@ -12,7 +12,7 @@ namespace Icebreaker.Match
     /// <summary>
     /// Interface for matching a pair of users
     /// </summary>
-    public interface IMatchAlgorithm
+    public interface IMatchCreator
     {
         /// <summary>
         /// Create matches for the provided users
