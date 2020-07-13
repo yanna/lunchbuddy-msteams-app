@@ -291,18 +291,20 @@ namespace Icebreaker
         /// Send a welcome message to the user that was just added to a team.
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
-        /// <param name="memberAddedId">The id of the added user</param>
+        /// <param name="memberAddedChannelAccountId">The id of the added user</param>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="teamId">The id of the team the user was added to</param>
         /// <param name="botInstaller">The person that installed the bot</param>
+        /// <param name="showAdminActions">Show admin actions</param>
+        /// <param name="adminTeamContext">Team context for the admin actions</param>
         /// <returns>Tracking task</returns>
-        public async Task WelcomeUser(ConnectorClient connectorClient, string memberAddedId, string tenantId, string teamId, string botInstaller)
+        public async Task WelcomeUser(ConnectorClient connectorClient, string memberAddedChannelAccountId, string tenantId, string teamId, string botInstaller, bool showAdminActions = false, TeamContext adminTeamContext = null)
         {
-            this.telemetryClient.TrackTrace($"Sending welcome message for user {memberAddedId}");
+            this.telemetryClient.TrackTrace($"Sending welcome message for user {memberAddedChannelAccountId}");
 
             var teamName = await this.GetTeamNameAsync(connectorClient, teamId);
 
-            var userThatJustJoined = await this.GetChannelAccountByChannelAccountId(memberAddedId, connectorClient, teamId);
+            var userThatJustJoined = await this.GetChannelAccountByChannelAccountId(memberAddedChannelAccountId, connectorClient, teamId);
 
             if (userThatJustJoined != null)
             {
@@ -314,12 +316,12 @@ namespace Icebreaker
                     await this.dataProvider.SetUserInfoAsync(userInfo);
                 }
 
-                var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, this.botDisplayName, botInstaller);
+                var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, this.botDisplayName, botInstaller, showAdminActions, adminTeamContext);
                 await this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeMessageCard), userThatJustJoined, tenantId);
             }
             else
             {
-                this.telemetryClient.TrackTrace($"Member {memberAddedId} was not found in team {teamId}, skipping welcome message.", SeverityLevel.Warning);
+                this.telemetryClient.TrackTrace($"Member {memberAddedChannelAccountId} was not found in team {teamId}, skipping welcome message.", SeverityLevel.Warning);
             }
         }
 
@@ -505,9 +507,9 @@ namespace Icebreaker
         /// <param name="teamId">The team id</param>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="botInstallerUserName">Name of the person that added the bot to the team</param>
-        /// <param name="botInstallerUserChannelAccountId">User ChannelAccount id of the person that has added the bot to the team</param>
+        /// <param name="teamAdminChannelAccountId">User ChannelAccount id of the person that is the admin for the bot for this team</param>
         /// <returns>Tracking task</returns>
-        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string botInstallerUserChannelAccountId)
+        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string teamAdminChannelAccountId)
         {
             var teamInstallInfo = new TeamInstallInfo
             {
@@ -515,7 +517,7 @@ namespace Icebreaker
                 TeamId = teamId,
                 TenantId = tenantId,
                 InstallerName = botInstallerUserName,
-                AdminUserChannelAccountId = botInstallerUserChannelAccountId,
+                AdminUserChannelAccountId = teamAdminChannelAccountId,
                 NotifyMode = TeamInstallInfo.NotifyModeNoApproval
             };
             return this.dataProvider.UpdateTeamInstallStatusAsync(teamInstallInfo, true);

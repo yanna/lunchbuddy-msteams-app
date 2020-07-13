@@ -6,10 +6,12 @@
 
 namespace Icebreaker.Helpers.AdaptiveCards
 {
+    using System;
     using System.Collections.Generic;
     using global::AdaptiveCards;
     using Icebreaker.Controllers;
     using Icebreaker.Properties;
+    using Microsoft.Azure;
     using Microsoft.Bot.Connector;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -102,6 +104,20 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 CreateSubmitAction(Resources.MakePairsButtonText, MessageIds.AdminMakePairs, adminTeamContext)
             };
             return adminActions;
+        }
+
+        /// <summary>
+        /// Create tour url
+        /// </summary>
+        /// <returns>Url to the bot tour page</returns>
+        public static string CreateTourUrl()
+        {
+            var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
+            var htmlUrl = Uri.EscapeDataString($"https://{baseDomain}/Content/tour.html?theme={{theme}}");
+            var tourTitle = Resources.WelcomeTourTitle;
+            var appId = CloudConfigurationManager.GetSetting("ManifestAppId");
+            var tourUrl = $"https://teams.microsoft.com/l/task/{appId}?url={htmlUrl}&height=533px&width=600px&title={tourTitle}";
+            return tourUrl;
         }
     }
 }

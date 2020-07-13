@@ -10,8 +10,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using global::AdaptiveCards;
     using Icebreaker.Controllers;
     using Icebreaker.Properties;
-    using Microsoft.Azure;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Builder class for the unrecognized input message
@@ -64,13 +62,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
 
         private static AdaptiveOpenUrlAction CreateTakeTourAction()
         {
-            var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
-            var htmlUrl = Uri.EscapeDataString($"https://{baseDomain}/Content/tour.html?theme={{theme}}");
-            var tourTitle = Resources.WelcomeTourTitle;
-            var appId = CloudConfigurationManager.GetSetting("ManifestAppId");
-            var tourUrl = $"https://teams.microsoft.com/l/task/{appId}?url={htmlUrl}&height=533px&width=600px&title={tourTitle}";
-
             var tourButtonText = Resources.TakeATourButtonText;
+            var tourUrl = AdaptiveCardHelper.CreateTourUrl();
 
             return new AdaptiveOpenUrlAction
             {

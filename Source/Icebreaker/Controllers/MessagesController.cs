@@ -302,7 +302,14 @@ namespace Icebreaker
                                 var personName = personThatAddedBot?.Name;
                                 var personChannelAccountId = personThatAddedBot?.Id;
 
-                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, personChannelAccountId);
+                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, teamAdminChannelAccountId: personChannelAccountId);
+
+                                // Welcome the admin
+                                if (personThatAddedBot != null)
+                                {
+                                    var adminTeamContext = new TeamContext { TeamId = teamId, TeamName = teamsChannelData?.Team?.Name };
+                                    await this.bot.WelcomeUser(connectorClient, personChannelAccountId, tenantId, teamId, "you", showAdminActions: true, adminTeamContext);
+                                }
 
                                 // Turn this off for now because constantly installing/uninstalling to try new version of the app.
                                 // TODO: not big deal to not have it. Perhaps turn it off permanently.

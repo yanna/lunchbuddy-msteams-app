@@ -40,16 +40,15 @@ namespace Icebreaker.Helpers.AdaptiveCards
 
             if (string.IsNullOrEmpty(botInstaller))
             {
-                teamIntroPart1 = string.Format(Resources.InstallMessageUnknownInstallerPart1, teamName);
-                teamIntroPart2 = Resources.InstallMessageUnknownInstallerPart2;
-                teamIntroPart3 = Resources.InstallMessageUnknownInstallerPart3;
+                teamIntroPart1 = string.Format(Resources.InstallMessageUnknownInstaller, teamName);
             }
             else
             {
-                teamIntroPart1 = string.Format(Resources.InstallMessageKnownInstallerPart1, botInstaller, teamName);
-                teamIntroPart2 = Resources.InstallMessageKnownInstallerPart2;
-                teamIntroPart3 = Resources.InstallMessageKnownInstallerPart3;
+                teamIntroPart1 = string.Format(Resources.InstallMessageKnownInstaller, botInstaller, teamName);
             }
+
+            teamIntroPart2 = Resources.InstallMessageBotDescription;
+            teamIntroPart3 = Resources.InstallMessageInstruction;
 
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
             var htmlUrl = Uri.EscapeDataString($"https://{baseDomain}/Content/tour.html?theme={{theme}}");

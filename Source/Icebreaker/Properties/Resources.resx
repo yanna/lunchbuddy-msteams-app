@@ -157,33 +157,32 @@
     <value>There was an error while processing the request. Retry?</value>
     <comment>A generic message that is sent when there is an error occurring</comment>
   </data>
-  <data name="InstallMessageKnownInstallerPart1" xml:space="preserve">
-    <value>If you're reading this, it's most likely because {0} added me to the **{1} Team.**</value>
-    <comment>Install message and also the welcome message when the app installer is known - {0} is the placeholder for the name of the user that has installed the app to the team, and {1} is the placeholder for the name of the team that the app has been installed to</comment>
-  </data>
-  <data name="InstallMessageKnownInstallerPart2" xml:space="preserve">
+  <data name="InstallMessageBotDescription" xml:space="preserve">
     <value>I get to help you meet more people around your organization by randomly pairing you with someone new every month. You get to make more friends and learn about the people you work with.</value>
     <comment>Part 2 of the install message when the name of the installer is known</comment>
   </data>
-  <data name="InstallMessageKnownInstallerPart3" xml:space="preserve">
+  <data name="InstallMessageInstruction" xml:space="preserve">
     <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
     <comment>Part 3 of the install message with the name of the installer known</comment>
   </data>
-  <data name="InstallMessagePart4" xml:space="preserve">
+  <data name="InstallMessageInstructionAdmin" xml:space="preserve">
+    <value>**Admin Instructions**</value>
+    <comment>Admin instructions title</comment>
+  </data>
+  <data name="InstallMessageKnownInstaller" xml:space="preserve">
+    <value>If you're reading this, it's most likely because {0} added me to the **{1} Team.**</value>
+    <comment>Install message and also the welcome message when the app installer is known - {0} is the placeholder for the name of the user that has installed the app to the team, and {1} is the placeholder for the name of the team that the app has been installed to</comment>
+  </data>
+  <data name="InstallMessageSuggestedNextStep" xml:space="preserve">
     <value>In the meantime, edit your profile to ensure a good match. </value>
     <comment>Ask the user to edit their profile</comment>
   </data>
-  <data name="InstallMessageUnknownInstallerPart1" xml:space="preserve">
+  <data name="InstallMessageSuggestedNextStepAdmin" xml:space="preserve">
+    <value>1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. Additional users to the team will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away</value>
+  </data>
+  <data name="InstallMessageUnknownInstaller" xml:space="preserve">
     <value>If you're reading this, it's because I was installed to **{0} Team.** </value>
     <comment>Install message and also the welcome message when the app installer is not known - {0} is the placeholder for the name of the team that the app has been installed to</comment>
-  </data>
-  <data name="InstallMessageUnknownInstallerPart2" xml:space="preserve">
-    <value>I get to help you meet more people around your organization by randomly pairing you with someone new every month. You get to make more friends and learn about the people you work with.</value>
-    <comment>Part 2 of the install message when the name of the installer is not known</comment>
-  </data>
-  <data name="InstallMessageUnknownInstallerPart3" xml:space="preserve">
-    <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
-    <comment>Part 3 of the install message when the name of the installer is not known</comment>
   </data>
   <data name="MakePairsButtonText" xml:space="preserve">
     <value>Admin: Create Pairs</value>

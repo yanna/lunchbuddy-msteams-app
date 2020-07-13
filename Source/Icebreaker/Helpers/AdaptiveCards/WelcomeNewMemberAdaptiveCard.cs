@@ -6,7 +6,6 @@
 
 namespace Icebreaker.Helpers.AdaptiveCards
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Web.Hosting;
@@ -34,35 +33,31 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="teamName">The team name</param>
         /// <param name="botDisplayName">The bot name</param>
         /// <param name="botInstaller">The name of the person that installed the bot to the team</param>
+        /// <param name="showAdminActions">Show admin actions</param>
+        /// <param name="adminTeamContext">Team context for the admin actions</param>
         /// <returns>The welcome new member card</returns>
-        public static string GetCard(string teamName, string botDisplayName, string botInstaller, bool showAdminActions = false, TeamContext adminTeamContext = null)
+        public static string GetCard(string teamName, string botDisplayName, string botInstaller, bool showAdminActions, TeamContext adminTeamContext)
         {
             string introMessagePart1 = string.Empty;
-            string introMessagePart2 = string.Empty;
-            string introMessagePart3 = string.Empty;
-
             if (string.IsNullOrEmpty(botInstaller))
             {
-                introMessagePart1 = string.Format(Resources.InstallMessageUnknownInstallerPart1, teamName);
-                introMessagePart2 = Resources.InstallMessageUnknownInstallerPart2;
-                introMessagePart3 = Resources.InstallMessageUnknownInstallerPart3;
+                introMessagePart1 = string.Format(Resources.InstallMessageUnknownInstaller, teamName);
             }
             else
             {
-                introMessagePart1 = string.Format(Resources.InstallMessageKnownInstallerPart1, botInstaller, teamName);
-                introMessagePart2 = Resources.InstallMessageKnownInstallerPart2;
-                introMessagePart3 = Resources.InstallMessageKnownInstallerPart3;
+                introMessagePart1 = string.Format(Resources.InstallMessageKnownInstaller, botInstaller, teamName);
             }
 
-            var introMessagePart4 = Resources.InstallMessagePart4;
+            var introMessagePart2 = Resources.InstallMessageBotDescription;
+            var introMessagePart3 = showAdminActions ? Resources.InstallMessageInstructionAdmin : Resources.InstallMessageInstruction;
+            var suggestedNextStep = showAdminActions ?
+                string.Format(Resources.InstallMessageSuggestedNextStepAdmin, Resources.MakePairsButtonText) : Resources.InstallMessageSuggestedNextStep;
 
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
-            var htmlUrl = Uri.EscapeDataString($"https://{baseDomain}/Content/tour.html?theme={{theme}}");
-            var tourTitle = Resources.WelcomeTourTitle;
-            var appId = CloudConfigurationManager.GetSetting("ManifestAppId");
-            var pauseMatchesText = Resources.PausePairingsButtonText;
             var welcomeCardImageUrl = $"https://{baseDomain}/Content/welcome-card-image.png";
-            var tourUrl = $"https://teams.microsoft.com/l/task/{appId}?url={htmlUrl}&height=533px&width=600px&title={tourTitle}";
+
+            var pauseMatchesText = Resources.PausePairingsButtonText;
+            var tourUrl = AdaptiveCardHelper.CreateTourUrl();
             var salutationText = Resources.SalutationTitleText;
             var tourButtonText = Resources.TakeATourButtonText;
             var editProfileText = Resources.EditProfileButtonText;
@@ -74,7 +69,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "introMessagePart1", introMessagePart1 },
                 { "introMessagePart2", introMessagePart2 },
                 { "introMessagePart3", introMessagePart3 },
-                { "introMessagePart4", introMessagePart4 },
+                { "suggestedNextStep", suggestedNextStep },
                 { "welcomeCardImageUrl", welcomeCardImageUrl },
                 { "editProfileText", editProfileText },
                 { "pauseMatchesText", pauseMatchesText },
@@ -83,11 +78,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "tourButtonText", tourButtonText }
             };
 
-            var cardBody = CardTemplate;
-            foreach (var kvp in variablesToValues)
-            {
-                cardBody = cardBody.Replace($"%{kvp.Key}%", kvp.Value);
-            }
+            var cardBody = AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
 
             if (showAdminActions)
             {

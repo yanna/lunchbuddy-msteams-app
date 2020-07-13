@@ -41,7 +41,7 @@
         },
         {
             "type": "TextBlock",
-            "text": "%introMessagePart4%",
+            "text": "%suggestedNextStep%",
             "wrap": true,
             "spacing": "Medium"
         }

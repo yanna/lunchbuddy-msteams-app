@@ -151,65 +151,65 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s most likely because {0} added me to the **{1} Team.**.
-        /// </summary>
-        internal static string InstallMessageKnownInstallerPart1 {
-            get {
-                return ResourceManager.GetString("InstallMessageKnownInstallerPart1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to I get to help you meet more people around your organization by randomly pairing you with someone new every month. You get to make more friends and learn about the people you work with..
         /// </summary>
-        internal static string InstallMessageKnownInstallerPart2 {
+        internal static string InstallMessageBotDescription {
             get {
-                return ResourceManager.GetString("InstallMessageKnownInstallerPart2", resourceCulture);
+                return ResourceManager.GetString("InstallMessageBotDescription", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to **To meet new people, just hang tight. I&apos;ll send you an invite when a new month starts.**.
         /// </summary>
-        internal static string InstallMessageKnownInstallerPart3 {
+        internal static string InstallMessageInstruction {
             get {
-                return ResourceManager.GetString("InstallMessageKnownInstallerPart3", resourceCulture);
+                return ResourceManager.GetString("InstallMessageInstruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to **Admin Instructions**.
+        /// </summary>
+        internal static string InstallMessageInstructionAdmin {
+            get {
+                return ResourceManager.GetString("InstallMessageInstructionAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s most likely because {0} added me to the **{1} Team.**.
+        /// </summary>
+        internal static string InstallMessageKnownInstaller {
+            get {
+                return ResourceManager.GetString("InstallMessageKnownInstaller", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to In the meantime, edit your profile to ensure a good match. .
         /// </summary>
-        internal static string InstallMessagePart4 {
+        internal static string InstallMessageSuggestedNextStep {
             get {
-                return ResourceManager.GetString("InstallMessagePart4", resourceCulture);
+                return ResourceManager.GetString("InstallMessageSuggestedNextStep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. Additional users to the team will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away.
+        /// </summary>
+        internal static string InstallMessageSuggestedNextStepAdmin {
+            get {
+                return ResourceManager.GetString("InstallMessageSuggestedNextStepAdmin", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s because I was installed to **{0} Team.** .
         /// </summary>
-        internal static string InstallMessageUnknownInstallerPart1 {
+        internal static string InstallMessageUnknownInstaller {
             get {
-                return ResourceManager.GetString("InstallMessageUnknownInstallerPart1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to I get to help you meet more people around your organization by randomly pairing you with someone new every month. You get to make more friends and learn about the people you work with..
-        /// </summary>
-        internal static string InstallMessageUnknownInstallerPart2 {
-            get {
-                return ResourceManager.GetString("InstallMessageUnknownInstallerPart2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to **To meet new people, just hang tight. I&apos;ll send you an invite when a new month starts.**.
-        /// </summary>
-        internal static string InstallMessageUnknownInstallerPart3 {
-            get {
-                return ResourceManager.GetString("InstallMessageUnknownInstallerPart3", resourceCulture);
+                return ResourceManager.GetString("InstallMessageUnknownInstaller", resourceCulture);
             }
         }
         
