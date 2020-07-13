@@ -54,11 +54,16 @@ namespace Icebreaker.Controllers
         /// <summary>
         /// Debug the notify user card
         /// </summary>
-        public const string DebugNotifyUser = "notifyme";
+        public const string DebugNotifyUser = "debugnotifyme";
 
         /// <summary>
-        /// Debug the welcome card
+        /// Debug the welcome card for a normal user
         /// </summary>
-        public const string DebugWelcomeUser = "welcomeme";
+        public const string DebugWelcomeUser = "debugwelcomeme";
+
+        /// <summary>
+        /// Debug the welcome card for an admin user
+        /// </summary>
+        public const string DebugWelcomeUserAdmin = "debugwelcomemeadmin";
     }
 }

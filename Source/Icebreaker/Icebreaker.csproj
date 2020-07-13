@@ -195,7 +195,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\AdminMessagesHandler.cs" />
+    <Compile Include="Controllers\AdminMessageHandler.cs" />
+    <Compile Include="Controllers\DebugMessageHandler.cs" />
     <Compile Include="Controllers\MakePairsResult.cs" />
     <Compile Include="Controllers\MessageIds.cs" />
     <Compile Include="Controllers\MessagesController.cs" />

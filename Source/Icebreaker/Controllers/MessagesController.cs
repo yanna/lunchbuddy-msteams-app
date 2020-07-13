@@ -20,7 +20,6 @@ namespace Icebreaker
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
-    using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
     using Properties;
 
@@ -32,7 +31,8 @@ namespace Icebreaker
     {
         private readonly IcebreakerBot bot;
         private readonly TelemetryClient telemetryClient;
-        private AdminMessagesHandler adminMessagesHandler;
+        private readonly AdminMessageHandler adminMessageHandler;
+        private readonly DebugMessageHandler debugMessageHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessagesController"/> class.
@@ -43,7 +43,8 @@ namespace Icebreaker
         {
             this.bot = bot;
             this.telemetryClient = telemetryClient;
-            this.adminMessagesHandler = new AdminMessagesHandler(bot, telemetryClient);
+            this.adminMessageHandler = new AdminMessageHandler(bot, telemetryClient);
+            this.debugMessageHandler = new DebugMessageHandler();
         }
 
         /// <summary>
@@ -110,17 +111,13 @@ namespace Icebreaker
                 {
                     await this.HandleEditProfile(connectorClient, activity, tenantId, senderAadId);
                 }
-                else if (this.adminMessagesHandler.CanHandleMessage(msg))
+                else if (this.adminMessageHandler.CanHandleMessage(msg))
                 {
-                    await this.adminMessagesHandler.HandleMessage(msg, connectorClient, activity, senderAadId, senderChannelAccountId);
+                    await this.adminMessageHandler.HandleMessage(msg, connectorClient, activity, senderAadId, senderChannelAccountId);
                 }
-                else if (msg == MessageIds.DebugNotifyUser)
+                else if (this.debugMessageHandler.CanHandleMessage(msg))
                 {
-                    await this.HandleDebugNotifyUser(connectorClient, activity, activity.From.AsTeamsChannelAccount());
-                }
-                else if (msg == MessageIds.DebugWelcomeUser)
-                {
-                    await this.HandleDebugWelcomeUser(connectorClient, activity, activity.From.AsTeamsChannelAccount());
+                    await this.debugMessageHandler.HandleMessage(msg, connectorClient, activity, senderAadId, senderChannelAccountId);
                 }
                 else
                 {
@@ -257,26 +254,6 @@ namespace Icebreaker
                 teamSettings.TeamId,
                 teamSettings.NotifyMode,
                 teamSettings.SubteamNames);
-        }
-
-        private async Task HandleDebugNotifyUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
-        {
-            var notifyCard = PairUpNotificationAdaptiveCard.GetCard("TestTeam", sender, sender, "LunchBuddy");
-
-            var replyActivity = activity.CreateReply();
-            replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(notifyCard) };
-
-            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
-        }
-
-        private async Task HandleDebugWelcomeUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
-        {
-            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCard("TestTeam", "Firstname", "LunchBuddy", "InstallerPerson");
-
-            var replyActivity = activity.CreateReply();
-            replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };
-
-            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
         private async Task HandleSystemActivity(ConnectorClient connectorClient, Activity message)

@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------------------------------------------------
-// <copyright file="AdminMessagesHandler.cs" company="Microsoft">
+// <copyright file="AdminMessageHandler.cs" company="Microsoft">
 // Copyright (c) Microsoft. All rights reserved.
 // </copyright>
 //----------------------------------------------------------------------------------------------
@@ -22,17 +22,17 @@ namespace Icebreaker.Controllers
     /// <summary>
     /// Handles admin messages
     /// </summary>
-    public class AdminMessagesHandler
+    public class AdminMessageHandler
     {
         private readonly IcebreakerBot bot;
         private readonly TelemetryClient telemetryClient;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AdminMessagesHandler"/> class.
+        /// Initializes a new instance of the <see cref="AdminMessageHandler"/> class.
         /// </summary>
         /// <param name="bot">The Icebreaker bot instance</param>
         /// <param name="telemetryClient">The telemetry client instance</param>
-        public AdminMessagesHandler(IcebreakerBot bot, TelemetryClient telemetryClient)
+        public AdminMessageHandler(IcebreakerBot bot, TelemetryClient telemetryClient)
         {
             this.bot = bot;
             this.telemetryClient = telemetryClient;

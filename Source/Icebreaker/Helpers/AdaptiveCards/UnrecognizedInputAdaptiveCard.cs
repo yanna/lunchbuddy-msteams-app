@@ -18,8 +18,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
     /// </summary>
     public class UnrecognizedInputAdaptiveCard
     {
-        private static readonly string CardTemplate;
-
         static UnrecognizedInputAdaptiveCard()
         {
         }
@@ -50,48 +48,18 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 Actions = new List<AdaptiveAction>
                 {
                     CreateTakeTourAction(),
-                    CreateSubmitAction(Resources.EditProfileButtonText, MessageIds.EditProfile),
-                    CreateSubmitAction(pauseOrResumeMatchesButtonText, pauseOrResumeMatchesMessage)
+                    AdaptiveCardHelper.CreateSubmitAction(Resources.EditProfileButtonText, MessageIds.EditProfile),
+                    AdaptiveCardHelper.CreateSubmitAction(pauseOrResumeMatchesButtonText, pauseOrResumeMatchesMessage)
                 }
             };
 
             if (showAdminActions)
             {
-                var adminActions = new List<AdaptiveAction>()
-                {
-                    CreateSubmitAction(Resources.EditTeamSettingsButtonText, MessageIds.AdminEditTeamSettings, adminTeamContext),
-                    CreateSubmitAction(Resources.MakePairsButtonText, MessageIds.AdminMakePairs, adminTeamContext)
-                };
+                var adminActions = AdaptiveCardHelper.CreateAdminActions(adminTeamContext);
                 card.Actions.AddRange(adminActions);
             }
 
             return card.ToJson();
-        }
-
-        private static AdaptiveSubmitAction CreateSubmitAction(string title, string messageId, TeamContext teamContext = null)
-        {
-            var data = JObject.FromObject(new
-            {
-                msteams = new
-                {
-                    type = "messageBack",
-                    displayText = title,
-                    text = messageId
-                }
-            });
-
-            if (teamContext != null)
-            {
-                // In order for the data to be left in the activity.Value to be deserialized into a TeamContext
-                // object it needs to be on the root object.
-                data.Merge(JObject.FromObject(teamContext));
-            }
-
-            return new AdaptiveSubmitAction
-            {
-                Title = title,
-                Data = data
-            };
         }
 
         private static AdaptiveOpenUrlAction CreateTakeTourAction()

@@ -10,6 +10,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Collections.Generic;
     using System.IO;
     using System.Web.Hosting;
+    using global::AdaptiveCards;
+    using Icebreaker.Controllers;
     using Icebreaker.Properties;
     using Microsoft.Azure;
 
@@ -30,11 +32,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// Creates the welcome new member card.
         /// </summary>
         /// <param name="teamName">The team name</param>
-        /// <param name="personFirstName">The first name of the new member</param>
         /// <param name="botDisplayName">The bot name</param>
-        /// <param name="botInstaller">The person that installed the bot to the team</param>
+        /// <param name="botInstaller">The name of the person that installed the bot to the team</param>
         /// <returns>The welcome new member card</returns>
-        public static string GetCard(string teamName, string personFirstName, string botDisplayName, string botInstaller)
+        public static string GetCard(string teamName, string botDisplayName, string botInstaller, bool showAdminActions = false, TeamContext adminTeamContext = null)
         {
             string introMessagePart1 = string.Empty;
             string introMessagePart2 = string.Empty;
@@ -69,7 +70,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var variablesToValues = new Dictionary<string, string>()
             {
                 { "team", teamName },
-                { "personFirstName", personFirstName },
                 { "botDisplayName", botDisplayName },
                 { "introMessagePart1", introMessagePart1 },
                 { "introMessagePart2", introMessagePart2 },
@@ -87,6 +87,14 @@ namespace Icebreaker.Helpers.AdaptiveCards
             foreach (var kvp in variablesToValues)
             {
                 cardBody = cardBody.Replace($"%{kvp.Key}%", kvp.Value);
+            }
+
+            if (showAdminActions)
+            {
+                var card = AdaptiveCard.FromJson(cardBody).Card;
+                var adminActions = AdaptiveCardHelper.CreateAdminActions(adminTeamContext);
+                card.Actions.AddRange(adminActions);
+                cardBody = card.ToJson();
             }
 
             return cardBody;

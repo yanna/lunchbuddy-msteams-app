@@ -314,7 +314,7 @@ namespace Icebreaker
                     await this.dataProvider.SetUserInfoAsync(userInfo);
                 }
 
-                var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, userThatJustJoined.Name, this.botDisplayName, botInstaller);
+                var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, this.botDisplayName, botInstaller);
                 await this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeMessageCard), userThatJustJoined, tenantId);
             }
             else
