@@ -178,7 +178,7 @@
     <comment>Ask the user to edit their profile</comment>
   </data>
   <data name="InstallMessageSuggestedNextStepAdmin" xml:space="preserve">
-    <value>1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. Additional users to the team will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away</value>
+    <value>1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away</value>
   </data>
   <data name="InstallMessageUnknownInstaller" xml:space="preserve">
     <value>If you're reading this, it's because I was installed to **{0} Team.** </value>

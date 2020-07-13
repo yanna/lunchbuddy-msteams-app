@@ -196,7 +196,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. Additional users to the team will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away.
+        ///   Looks up a localized string similar to 1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away.
         /// </summary>
         internal static string InstallMessageSuggestedNextStepAdmin {
             get {
