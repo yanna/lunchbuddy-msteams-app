@@ -20,7 +20,7 @@
         "appName": {
             "type": "string",
             "minLength": 1,
-            "defaultValue": "Icebreaker",
+            "defaultValue": "LunchBuddy",
             "metadata": {
                 "description": "The app name to use for the resources that will be provisioned."
             }
@@ -28,7 +28,7 @@
         "appDescription": {
             "type": "string",
             "minLength": 1,
-            "defaultValue": "Icebreaker is a cute little bot that randomly pairs team members up every week to help the team build trust and personal connections.",
+            "defaultValue": "LunchBuddy randomly pairs up team members for lunch every month to help the team get to know one another.",
             "metadata": {
                 "description": "The description for the app."
             }
@@ -41,10 +41,16 @@
                 "description": "The link to the icon for the bot. It must resolve to a PNG file."
             }
         },
+		"pairingFirstOccurence": {
+            "type": "string",
+            "metadata": {
+                "description": "The date and time of the first pairing trigger. Example: Sep 18, 2020 at 2:00 PM, enter 2020-09-18T14:00:00"
+            }
+        },
         "pairingWeekInterval": {
             "type": "int",
-            "minValue": 1,
-            "defaultValue": 1,
+            "minValue": 4,
+            "defaultValue": 4,
             "metadata": {
                 "description": "The number of weeks between pairings."
             }
@@ -151,7 +157,7 @@
         "gitRepoUrl": {
             "type": "string",
             "minLength": 1,
-            "defaultValue": "https://github.com/OfficeDev/microsoft-teams-icebreaker-app.git",
+            "defaultValue": "https://github.com/yanna/microsoft-teams-icebreaker-app.git",
             "metadata": {
               "description": "The URL to the GitHub repository to deploy."
             }
@@ -290,7 +296,7 @@
                         },
                         {
                             "name": "CosmosCollectionUsers",
-                            "value": "UsersOptInStatus"
+                            "value": "UserInfo"
                         },
                         {
                             "name": "MaxPairUpsPerTeam",
@@ -413,6 +419,7 @@
                                         "[parameters('pairingDayOfWeek')]"
                                     ]
                                 },
+								"startTime": "[parameters('pairingFirstOccurence')]",
                                 "timeZone": "[parameters('pairingTimeZone')]"
                             },
                             "type": "Recurrence"
