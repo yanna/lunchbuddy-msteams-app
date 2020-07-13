@@ -39,7 +39,7 @@ namespace Icebreaker.Helpers
         public bool OptedIn { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the user's discipline [data,design,engineering,pm,other]
+        /// Gets or sets the user's discipline [data,design,engineering,pm,future,other]
         /// </summary>
         [JsonProperty("discipline")]
         public string Discipline { get; set; } = string.Empty;
