@@ -179,7 +179,7 @@
     <Content Include="Global.asax" />
     <Content Include="Helpers\AdaptiveCards\ViewUserProfileAdaptiveCard.json" />
     <Content Include="Helpers\AdaptiveCards\EditTeamSettingsAdaptiveCard.json" />
-    <None Include="Helpers\AdaptiveCards\EditUserProfileAdaptiveCard.json" />
+    <Content Include="Helpers\AdaptiveCards\EditUserProfileAdaptiveCard.json" />
     <Content Include="libman.json" />
     <Content Include="lib\jquery\jquery.min.map" />
     <Content Include="lib\jquery\jquery.js" />
