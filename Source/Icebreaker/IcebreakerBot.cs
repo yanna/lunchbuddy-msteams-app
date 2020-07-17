@@ -14,6 +14,7 @@ namespace Icebreaker
     using Helpers.AdaptiveCards;
     using Icebreaker.Controllers;
     using Icebreaker.Match;
+    using Icebreaker.Model;
     using Icebreaker.Properties;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;

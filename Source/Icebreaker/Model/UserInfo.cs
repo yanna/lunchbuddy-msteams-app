@@ -4,7 +4,7 @@
 // </copyright>
 //----------------------------------------------------------------------------------------------
 
-namespace Icebreaker.Helpers
+namespace Icebreaker.Model
 {
     using System.Collections.Generic;
     using Microsoft.Azure.Documents;

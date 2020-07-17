@@ -7,6 +7,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Collections.Generic;
     using System.IO;
     using System.Web.Hosting;
+    using Icebreaker.Model;
 
     /// <summary>
     /// Card for editing the team settings

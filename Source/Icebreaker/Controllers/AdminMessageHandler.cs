@@ -12,6 +12,7 @@ namespace Icebreaker.Controllers
     using System.Threading.Tasks;
     using System.Web.UI.WebControls;
     using Icebreaker.Helpers;
+    using Icebreaker.Model;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;

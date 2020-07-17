@@ -10,6 +10,7 @@ namespace Icebreaker.Helpers
     using System.Linq;
     using System.Threading.Tasks;
     using Icebreaker.Match;
+    using Icebreaker.Model;
     using Microsoft.Bot.Connector;
 
     /// <summary>

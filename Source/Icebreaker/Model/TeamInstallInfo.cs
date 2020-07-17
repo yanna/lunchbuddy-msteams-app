@@ -4,7 +4,7 @@
 // </copyright>
 //----------------------------------------------------------------------------------------------
 
-namespace Icebreaker.Helpers
+namespace Icebreaker.Model
 {
     using Microsoft.Azure.Documents;
     using Newtonsoft.Json;

@@ -9,6 +9,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Collections.Generic;
     using System.IO;
     using System.Web.Hosting;
+    using Icebreaker.Model;
 
     /// <summary>
     /// Builder class for the team settings card

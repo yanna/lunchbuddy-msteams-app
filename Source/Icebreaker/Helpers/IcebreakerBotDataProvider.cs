@@ -9,6 +9,7 @@ namespace Icebreaker.Helpers
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Icebreaker.Model;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Azure;

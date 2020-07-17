@@ -216,9 +216,9 @@
     <Compile Include="Helpers\AdaptiveCards\WelcomeTeamAdaptiveCard.cs" />
     <Compile Include="Helpers\JsonExtensions.cs" />
     <Compile Include="Helpers\IcebreakerBotDataProvider.cs" />
-    <Compile Include="Helpers\TeamInstallInfo.cs" />
-    <Compile Include="Helpers\UserInfo.cs" />
-    <Compile Include="Helpers\UserMatch.cs" />
+    <Compile Include="Model\TeamInstallInfo.cs" />
+    <Compile Include="Model\UserInfo.cs" />
+    <Compile Include="Model\UserMatch.cs" />
     <Compile Include="IcebreakerBot.cs" />
     <Compile Include="IcebreakerModule.cs" />
     <Compile Include="Helpers\ChannelAccountExtensions.cs" />
