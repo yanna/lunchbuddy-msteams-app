@@ -21,6 +21,7 @@ namespace Icebreaker
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams.Models;
+    using Newtonsoft.Json;
     using Properties;
 
     /// <summary>
@@ -85,13 +86,25 @@ namespace Icebreaker
                 // Submit action from an adaptive card results in no text and hopefully some value.
                 if (activity.Text == null && activity.Value != null)
                 {
-                    if (activity.Value.ToString().TryParseJson(out UserProfile userProfile))
+                    if (activity.Value.ToString().TryParseJson(out UserInfo userInfo))
+                    {
+                        await this.HandleSaveProfileAndOptInStatus(connectorClient, activity, tenantId, userInfo);
+                    }
+                    else if (activity.Value.ToString().TryParseJson(out UserProfile userProfile))
                     {
                         await this.HandleSaveProfile(connectorClient, activity, tenantId, senderAadId, userProfile);
                     }
                     else if (activity.Value.ToString().TryParseJson(out TeamSettings teamSettings))
                     {
                         await this.HandleSaveTeamSettings(connectorClient, activity, teamSettings);
+                    }
+                    else if (activity.Value.ToString().TryParseJson(out ChooseUserResult chooseUser))
+                    {
+                        if (chooseUser.MessageId == MessageIds.AdminEditUser)
+                        {
+                            await this.adminMessageHandler.HandleAdminEditUserForUser(
+                                connectorClient, activity, tenantId, chooseUser.GetUserId(), chooseUser.GetUserName());
+                        }
                     }
 
                     return;
@@ -246,6 +259,20 @@ namespace Icebreaker
                 teams);
         }
 
+        private async Task HandleSaveProfileAndOptInStatus(ConnectorClient connectorClient, Activity activity, string tenantId, UserInfo userInfo)
+        {
+            await this.HandleSaveProfile(connectorClient, activity, tenantId, userInfo.UserAadId, userInfo);
+
+            if (userInfo.OptedIn)
+            {
+                await this.HandleOptIn(connectorClient, activity, userInfo.UserAadId, tenantId);
+            }
+            else
+            {
+                await this.HandleOptOut(connectorClient, activity, userInfo.UserAadId, tenantId);
+            }
+        }
+
         private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, TeamSettings teamSettings)
         {
             return this.bot.SaveTeamSettings(
@@ -379,21 +406,37 @@ namespace Icebreaker
 
         private class UserProfile
         {
+            [JsonProperty(Required = Required.Always)]
             public string Discipline { get; set; } = string.Empty;
 
+            [JsonProperty(Required = Required.Always)]
             public string Seniority { get; set; } = string.Empty;
 
+            [JsonProperty(Required = Required.Always)]
             public string Gender { get; set; } = string.Empty;
 
+            [JsonProperty(Required = Required.Always)]
             public string Teams { get; set; } = string.Empty;
+        }
+
+        private class UserInfo : UserProfile
+        {
+            [JsonProperty(Required = Required.Always)]
+            public bool OptedIn { get; set; } = false;
+
+            [JsonProperty(Required = Required.Always)]
+            public string UserAadId { get; set; } = string.Empty;
         }
 
         private class TeamSettings
         {
+            [JsonProperty(Required = Required.Always)]
             public string TeamId { get; set; } = string.Empty;
 
+            [JsonProperty(Required = Required.Always)]
             public string NotifyMode { get; set; } = string.Empty;
 
+            [JsonProperty(Required = Required.Always)]
             public string SubteamNames { get; set; } = string.Empty;
         }
     }

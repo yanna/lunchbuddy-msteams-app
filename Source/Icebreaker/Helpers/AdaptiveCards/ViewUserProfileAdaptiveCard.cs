@@ -31,7 +31,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
         /// <returns>user profile card</returns>
-        public static string GetCard(string discipline, string gender, string seniority, List<string> teams)
+        public static string GetCardJson(string discipline, string gender, string seniority, List<string> teams)
         {
             var variablesToValues = new Dictionary<string, string>()
             {

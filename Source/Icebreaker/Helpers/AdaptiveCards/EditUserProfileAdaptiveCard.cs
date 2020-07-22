@@ -31,8 +31,15 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
         /// <param name="subteamNamesHint">List of suggested sub team names. Can be empty</param>
+        /// <param name="titleSize">Size of the title</param>
         /// <returns>user profile card</returns>
-        public static string GetCard(string discipline, string gender, string seniority, List<string> teams, string subteamNamesHint)
+        public static string GetCardJson(
+            string discipline,
+            string gender,
+            string seniority,
+            List<string> teams,
+            string subteamNamesHint,
+            string titleSize = "Large")
         {
             var teamNamesHint = string.IsNullOrEmpty(subteamNamesHint) ? string.Empty : "Suggested Teams: " + subteamNamesHint;
 
@@ -40,7 +47,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var variablesToValues = new Dictionary<string, string>()
             {
                 { "title", "Please tell me about yourself" },
-                { "body", "This helps me improve your matches." },
+                { "titleSize", titleSize },
+                { "description", "This helps me improve your matches." },
                 { "defaultDiscipline", discipline },
                 { "defaultGender", gender },
                 { "defaultSeniority", seniority },

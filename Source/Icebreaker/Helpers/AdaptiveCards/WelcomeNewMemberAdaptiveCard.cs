@@ -36,7 +36,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="showAdminActions">Show admin actions</param>
         /// <param name="adminTeamContext">Team context for the admin actions</param>
         /// <returns>The welcome new member card</returns>
-        public static string GetCard(string teamName, string botDisplayName, string botInstaller, bool showAdminActions, TeamContext adminTeamContext)
+        public static string GetCardJson(string teamName, string botDisplayName, string botInstaller, bool showAdminActions, TeamContext adminTeamContext)
         {
             string introMessagePart1 = string.Empty;
             if (string.IsNullOrEmpty(botInstaller))

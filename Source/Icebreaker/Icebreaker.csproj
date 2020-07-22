@@ -197,6 +197,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AdminMessageHandler.cs" />
     <Compile Include="Controllers\DebugMessageHandler.cs" />
+    <Compile Include="Controllers\ChooseUserResult.cs" />
     <Compile Include="Controllers\MakePairsResult.cs" />
     <Compile Include="Controllers\MessageIds.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
@@ -206,7 +207,9 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\AdaptiveCards\AdaptiveCardHelper.cs" />
+    <Compile Include="Helpers\AdaptiveCards\ChooseUserAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditTeamSettingsAdaptiveCard.cs" />
+    <Compile Include="Helpers\AdaptiveCards\EditUserInfoAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\ViewTeamSettingsAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\ViewUserProfileAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.cs" />

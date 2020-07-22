@@ -121,6 +121,10 @@
     <value>edit team settings</value>
     <comment>Action for edit team settings</comment>
   </data>
+  <data name="AdminActionEditUser" xml:space="preserve">
+    <value>edit user</value>
+    <comment>Admin action for editing user profile and opt in status</comment>
+  </data>
   <data name="AdminActionGeneratePairs" xml:space="preserve">
     <value>generate pairs</value>
     <comment>Admin action option for filling into the which teams </comment>
@@ -152,6 +156,10 @@
   <data name="EditTeamSettingsButtonText" xml:space="preserve">
     <value>Admin: Edit Team Settings</value>
     <comment>Button text for edit team settings</comment>
+  </data>
+  <data name="EditUserButtonText" xml:space="preserve">
+    <value>Admin: Edit User</value>
+    <comment>Admin action for editing user profile and opt in status of someone on the team they manage</comment>
   </data>
   <data name="ErrorOccured" xml:space="preserve">
     <value>There was an error while processing the request. Retry?</value>

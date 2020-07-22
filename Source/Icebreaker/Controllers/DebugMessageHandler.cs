@@ -68,7 +68,7 @@ namespace Icebreaker.Controllers
 
         private async Task HandleDebugNotifyUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
         {
-            var notifyCard = PairUpNotificationAdaptiveCard.GetCard("TestTeam", sender, sender, "LunchBuddy");
+            var notifyCard = PairUpNotificationAdaptiveCard.GetCardJson("TestTeam", sender, sender, "LunchBuddy");
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(notifyCard) };
@@ -78,7 +78,7 @@ namespace Icebreaker.Controllers
 
         private async Task HandleDebugWelcomeUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
         {
-            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCard("TestTeam", "LunchBuddy", "InstallerPerson", false, null);
+            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCardJson("TestTeam", "LunchBuddy", "InstallerPerson", false, null);
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };
@@ -88,7 +88,7 @@ namespace Icebreaker.Controllers
 
         private async Task HandleDebugWelcomeUserAdmin(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
         {
-            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCard("TestTeam", "LunchBuddy", "you", true, null);
+            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCardJson("TestTeam", "LunchBuddy", "you", true, null);
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };

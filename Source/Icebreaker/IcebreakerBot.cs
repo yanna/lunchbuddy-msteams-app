@@ -317,7 +317,7 @@ namespace Icebreaker
                     await this.dataProvider.SetUserInfoAsync(userInfo);
                 }
 
-                var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamName, this.botDisplayName, botInstaller, showAdminActions, adminTeamContext);
+                var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCardJson(teamName, this.botDisplayName, botInstaller, showAdminActions, adminTeamContext);
                 await this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeMessageCard), userThatJustJoined, tenantId);
             }
             else
@@ -338,7 +338,7 @@ namespace Icebreaker
             this.telemetryClient.TrackTrace($"Sending welcome message for team {teamId}");
 
             var teamName = await this.GetTeamNameAsync(connectorClient, teamId);
-            var welcomeTeamMessageCard = WelcomeTeamAdaptiveCard.GetCard(teamName, this.botDisplayName, botInstaller);
+            var welcomeTeamMessageCard = WelcomeTeamAdaptiveCard.GetCardJson(teamName, this.botDisplayName, botInstaller);
             await this.NotifyTeam(connectorClient, welcomeTeamMessageCard, teamId);
         }
 
@@ -369,7 +369,7 @@ namespace Icebreaker
                 };
             }
 
-            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCard(userInfo.OptedIn, showAdminActions, teamContext);
+            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCardJson(userInfo.OptedIn, showAdminActions, teamContext);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(unrecognizedInputAdaptiveCard)
@@ -390,7 +390,29 @@ namespace Icebreaker
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             var subteamsHint = await this.GetSubteamNamesHintForUser(connectorClient, userAadId);
 
-            var card = EditUserProfileAdaptiveCard.GetCard(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams, subteamsHint);
+            var card = EditUserProfileAdaptiveCard.GetCardJson(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams, subteamsHint);
+            replyActivity.Attachments = new List<Attachment>()
+            {
+                AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
+            };
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        /// <summary>
+        /// Edit the user info which includes the user profile and enrollment
+        /// </summary>
+        /// <param name="connectorClient">connector client</param>
+        /// <param name="replyActivity">reply activity</param>
+        /// <param name="tenantId">user tenant id</param>
+        /// <param name="userAadId">user AAD id</param>
+        /// <param name="userName">user display name</param>
+        /// <returns>Task</returns>
+        public async Task EditUserInfo(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, string userName)
+        {
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
+            var subteamsHint = await this.GetSubteamNamesHintForUser(connectorClient, userAadId);
+
+            var card = EditUserInfoAdaptiveCard.GetCard(userInfo.UserId, userName, userInfo.OptedIn, userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams, subteamsHint);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
@@ -440,7 +462,7 @@ namespace Icebreaker
             {
                 replyActivity.Attachments = new List<Attachment>
                 {
-                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCard(
+                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCardJson(
                         this.GetUITextForProfileData(discipline),
                         this.GetUITextForProfileData(gender),
                         this.GetUITextForProfileData(seniority),
@@ -489,7 +511,7 @@ namespace Icebreaker
             {
                 replyActivity.Attachments = new List<Attachment>
                 {
-                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewTeamSettingsAdaptiveCard.GetCard(
+                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewTeamSettingsAdaptiveCard.GetCardJson(
                         notifyMode, subteamNames))
                 };
             }
@@ -613,7 +635,7 @@ namespace Icebreaker
             var teamInfo = await this.GetInstalledTeam(teamId);
             var adminUserChannelAccount = await this.GetChannelAccountByChannelAccountId(teamInfo.AdminUserChannelAccountId, connectorClient, teamId);
             var adminUserName = adminUserChannelAccount?.Name;
-            var card = EditTeamSettingsAdaptiveCard.GetCard(teamId, teamName, adminUserName, teamInfo.NotifyMode, teamInfo.SubteamNames);
+            var card = EditTeamSettingsAdaptiveCard.GetCardJson(teamId, teamName, adminUserName, teamInfo.NotifyMode, teamInfo.SubteamNames);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
@@ -689,10 +711,10 @@ namespace Icebreaker
             this.telemetryClient.TrackTrace($"Sending pairup notification to {teamsPerson1.GetUserId()} and {teamsPerson2.GetUserId()}");
 
             // Fill in person2's info in the card for person1
-            var cardForPerson1 = PairUpNotificationAdaptiveCard.GetCard(teamName, teamsPerson1, teamsPerson2, this.botDisplayName);
+            var cardForPerson1 = PairUpNotificationAdaptiveCard.GetCardJson(teamName, teamsPerson1, teamsPerson2, this.botDisplayName);
 
             // Fill in person1's info in the card for person2
-            var cardForPerson2 = PairUpNotificationAdaptiveCard.GetCard(teamName, teamsPerson2, teamsPerson1, this.botDisplayName);
+            var cardForPerson2 = PairUpNotificationAdaptiveCard.GetCardJson(teamName, teamsPerson2, teamsPerson1, this.botDisplayName);
 
             // Send notifications and return the number that was successful
             var notifyResults = await Task.WhenAll(

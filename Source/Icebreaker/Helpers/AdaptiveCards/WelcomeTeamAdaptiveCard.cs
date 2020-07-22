@@ -32,7 +32,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="botDisplayName">The bot display name</param>
         /// <param name="botInstaller">The name of the person that installed the bot</param>
         /// <returns>The welcome team adaptive card</returns>
-        public static string GetCard(string teamName, string botDisplayName, string botInstaller)
+        public static string GetCardJson(string teamName, string botDisplayName, string botInstaller)
         {
             string teamIntroPart1 = string.Empty;
             string teamIntroPart2 = string.Empty;

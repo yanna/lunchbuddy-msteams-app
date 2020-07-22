@@ -30,7 +30,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="notifyMode">Notify mode</param>
         /// <param name="subteamNames">Subteam names</param>
         /// <returns>team settings card</returns>
-        public static string GetCard(string notifyMode, string subteamNames)
+        public static string GetCardJson(string notifyMode, string subteamNames)
         {
             var notifyModeDisplay = string.Empty;
             switch (notifyMode)

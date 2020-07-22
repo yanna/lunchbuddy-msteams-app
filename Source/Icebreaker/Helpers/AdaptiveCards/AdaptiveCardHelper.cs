@@ -59,6 +59,20 @@ namespace Icebreaker.Helpers.AdaptiveCards
         }
 
         /// <summary>
+        /// Create attachment for a bot reply for an adaptive card
+        /// </summary>
+        /// <param name="card">Adaptive card</param>
+        /// <returns>Attachment</returns>
+        public static Attachment CreateAdaptiveCardAttachment(AdaptiveCard card)
+        {
+            return new Attachment()
+            {
+                ContentType = "application/vnd.microsoft.card.adaptive",
+                Content = card,
+            };
+        }
+
+        /// <summary>
         /// Create a submit action that will apply the title, message and a team context for admin actions if available
         /// </summary>
         /// <param name="title">Button title and the message back when clicked</param>
@@ -101,6 +115,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var adminActions = new List<AdaptiveAction>()
             {
                 CreateSubmitAction(Resources.EditTeamSettingsButtonText, MessageIds.AdminEditTeamSettings, adminTeamContext),
+                CreateSubmitAction(Resources.EditUserButtonText, MessageIds.AdminEditUser, adminTeamContext),
                 CreateSubmitAction(Resources.MakePairsButtonText, MessageIds.AdminMakePairs, adminTeamContext)
             };
             return adminActions;

@@ -27,7 +27,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="showAdminActions">Whether to show the admin actions</param>
         /// <param name="adminTeamContext">Can be null. The admin team context for the admin actions</param>
         /// <returns>The adaptive card for the unrecognized input</returns>
-        public static string GetCard(bool isOptedIn, bool showAdminActions, TeamContext adminTeamContext)
+        public static string GetCardJson(bool isOptedIn, bool showAdminActions, TeamContext adminTeamContext)
         {
             var messageContent = Resources.UnrecognizedInput;
             var pauseOrResumeMatchesButtonText = isOptedIn ? Resources.PausePairingsButtonText : Resources.ResumePairingsButtonText;

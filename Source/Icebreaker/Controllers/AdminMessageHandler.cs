@@ -12,9 +12,11 @@ namespace Icebreaker.Controllers
     using System.Threading.Tasks;
     using System.Web.UI.WebControls;
     using Icebreaker.Helpers;
+    using Icebreaker.Helpers.AdaptiveCards;
     using Icebreaker.Model;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
+    using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams.Models;
     using Newtonsoft.Json;
@@ -52,7 +54,8 @@ namespace Icebreaker.Controllers
                 MessageIds.AdminNotifyPairs,
                 MessageIds.AdminChangeNotifyModeNeedApproval,
                 MessageIds.AdminChangeNotifyModeNoApproval,
-                MessageIds.AdminEditTeamSettings
+                MessageIds.AdminEditTeamSettings,
+                MessageIds.AdminEditUser
             };
             return acceptedMsgs.Contains(msgId.ToLowerInvariant());
         }
@@ -91,6 +94,56 @@ namespace Icebreaker.Controllers
             {
                 await this.HandleAdminEditTeamSettings(connectorClient, activity, senderAadId, senderChannelAccountId);
             }
+            else if (msgId == MessageIds.AdminEditUser)
+            {
+                await this.HandleAdminEditUser(connectorClient, activity, senderAadId, senderChannelAccountId);
+            }
+        }
+
+        /// <summary>
+        /// Handle editing the user with a specified user
+        /// </summary>
+        /// <param name="connectorClient">connector client</param>
+        /// <param name="activity">activity</param>
+        /// <param name="tenantId">user's tenant id</param>
+        /// <param name="userAadId">user AAD id</param>
+        /// <param name="userName">user display name</param>
+        /// <returns>Task</returns>
+        public async Task HandleAdminEditUserForUser(ConnectorClient connectorClient, Activity activity, string tenantId, string userAadId, string userName)
+        {
+            await this.bot.EditUserInfo(connectorClient, activity.CreateReply(), tenantId, userAadId, userName);
+        }
+
+        private async Task HandleAdminEditUser(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        {
+            if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
+            {
+                var team = await this.bot.GetInstalledTeam(request.TeamId);
+                await this.HandleAdminEditUserForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+            }
+            else
+            {
+                await this.HandleAdminActionWithNoTeamSpecified(
+                    connectorClient,
+                    activity,
+                    senderAadId,
+                    senderChannelAccountId,
+                    adminActionName: Resources.AdminActionEditUser,
+                    adminActionMessageId: MessageIds.AdminEditUser,
+                    this.HandleAdminEditUserForTeam);
+            }
+        }
+
+        private async Task HandleAdminEditUserForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        {
+            var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(team.Id);
+            var users = allMembers.Select(account => new ChooseUserAdaptiveCard.User { AadId = account.GetUserId(), Name = account.Name }).OrderBy(t => t.Name);
+            var pickUser = ChooseUserAdaptiveCard.GetCard(users.ToList(), MessageIds.AdminEditUser);
+
+            var replyActivity = activity.CreateReply();
+            replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(pickUser) };
+
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
         private async Task HandleAdminMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)

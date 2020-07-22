@@ -52,6 +52,11 @@ namespace Icebreaker.Controllers
         public const string AdminEditTeamSettings = "editteamsettings";
 
         /// <summary>
+        /// Edit user info which includes profile and opt in status
+        /// </summary>
+        public const string AdminEditUser = "adminedituser";
+
+        /// <summary>
         /// Debug the notify user card
         /// </summary>
         public const string DebugNotifyUser = "debugnotifyme";

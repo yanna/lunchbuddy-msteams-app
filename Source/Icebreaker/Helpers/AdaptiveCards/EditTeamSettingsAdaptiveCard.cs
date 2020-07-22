@@ -31,7 +31,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="teamNotifyMode">How pairings will be notified</param>
         /// <param name="subteamNames">Sub team names hints for Edit Profile page</param>
         /// <returns>user profile card</returns>
-        public static string GetCard(string teamId, string teamName, string adminUserName, string teamNotifyMode, string subteamNames)
+        public static string GetCardJson(string teamId, string teamName, string adminUserName, string teamNotifyMode, string subteamNames)
         {
             // TODO: Make admin reassignable to another person in the team
             var variablesToValues = new Dictionary<string, string>()

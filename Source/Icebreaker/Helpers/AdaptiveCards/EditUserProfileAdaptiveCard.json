@@ -7,12 +7,12 @@
             "type": "TextBlock",
             "text": "%title%",
             "weight": "Bolder",
-            "size": "Large",
-            "wrap":  true
+            "size": "%titleSize%",
+            "wrap": true
         },
         {
             "type": "TextBlock",
-            "text": "%body%",
+            "text": "%description%",
             "isSubtle": true,
             "wrap": true
         },
