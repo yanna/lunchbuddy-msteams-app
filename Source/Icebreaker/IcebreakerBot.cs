@@ -21,7 +21,6 @@ namespace Icebreaker
     using Microsoft.Azure;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Implements the core logic for Icebreaker bot
@@ -410,13 +409,7 @@ namespace Icebreaker
             string seniority,
             List<string> teams)
         {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
-            userInfo.Discipline = discipline;
-            userInfo.Gender = gender;
-            userInfo.Seniority = seniority;
-            userInfo.Teams = teams;
-
-            var isSuccess = await this.dataProvider.SetUserInfoAsync(userInfo);
+            var isSuccess = await this.SaveUserInfo(tenantId, userAadId, discipline, gender, seniority, teams, optedIn: null);
 
             // After you do the card submission, the card resets to the old values even though the new values are saved.
             // This is just the default behaviour of Adaptive Cards.
@@ -430,7 +423,7 @@ namespace Icebreaker
             {
                 replyActivity.Attachments = new List<Attachment>
                 {
-                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewUserProfileAdaptiveCard.GetCardJson(
+                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(EditUserProfileAdaptiveCard.GetResultCard(
                         this.GetUITextForProfileData(discipline),
                         this.GetUITextForProfileData(gender),
                         this.GetUITextForProfileData(seniority),
@@ -440,6 +433,60 @@ namespace Icebreaker
             else
             {
                 replyActivity.Text = Resources.SaveProfileFailText;
+            }
+
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        /// <summary>
+        /// Saves the user info to the database
+        /// </summary>
+        /// <param name="connectorClient">The connector client</param>
+        /// <param name="activity">Activity of the user data submission</param>
+        /// <param name="tenantId">Tenant id of the user</param>
+        /// <param name="userAadId">AAD id of the user</param>
+        /// <param name="discipline">Discipline of the user to store in the database. Can be empty string.</param>
+        /// <param name="gender">Gender of the user to store in the database. Can be empty string.</param>
+        /// <param name="seniority">Seniority of the user to store in the database. Can be empty string.</param>
+        /// <param name="teams">Teams of the user to store in the database. Can be empty list.</param>
+        /// <param name="optedIn">Whether the user is opted into matches</param>
+        /// <returns>Empty task</returns>
+        public async Task SaveUserInfo(
+            ConnectorClient connectorClient,
+            Activity activity,
+            string tenantId,
+            string userAadId,
+            string discipline,
+            string gender,
+            string seniority,
+            List<string> teams,
+            bool optedIn)
+        {
+            var isSuccess = await this.SaveUserInfo(tenantId, userAadId, discipline, gender, seniority, teams, optedIn);
+
+            // After you do the card submission, the card resets to the old values even though the new values are saved.
+            // This is just the default behaviour of Adaptive Cards.
+            // So we can do this a couple of ways:
+            // 1) manually update the message to update the card to the new values but this requires storing the original activity id
+            //    because it's not the submit activity but the activity that triggered the submit activity.
+            // 2) let it happen and reply with a readonly card representing the new state.
+            // Picking option 2 because I want to avoid storing extra state.
+            var replyActivity = activity.CreateReply();
+            if (isSuccess)
+            {
+                replyActivity.Attachments = new List<Attachment>
+                {
+                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(EditUserInfoAdaptiveCard.GetResultCard(
+                        optedIn,
+                        this.GetUITextForProfileData(discipline),
+                        this.GetUITextForProfileData(gender),
+                        this.GetUITextForProfileData(seniority),
+                        teams))
+                };
+            }
+            else
+            {
+                replyActivity.Text = Resources.SaveUserInfoFailText;
             }
 
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
@@ -479,7 +526,7 @@ namespace Icebreaker
             {
                 replyActivity.Attachments = new List<Attachment>
                 {
-                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(ViewTeamSettingsAdaptiveCard.GetCardJson(
+                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(EditTeamSettingsAdaptiveCard.GetResultCard(
                         notifyMode, subteamNames))
                 };
             }
@@ -609,6 +656,29 @@ namespace Icebreaker
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        private async Task<bool> SaveUserInfo(
+           string tenantId,
+           string userAadId,
+           string discipline,
+           string gender,
+           string seniority,
+           List<string> teams,
+           bool? optedIn)
+        {
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
+            userInfo.Discipline = discipline;
+            userInfo.Gender = gender;
+            userInfo.Seniority = seniority;
+            userInfo.Teams = teams;
+            if (optedIn != null)
+            {
+                userInfo.OptedIn = (bool)optedIn;
+            }
+
+            var isSuccess = await this.dataProvider.SetUserInfoAsync(userInfo);
+            return isSuccess;
         }
 
         /// <summary>

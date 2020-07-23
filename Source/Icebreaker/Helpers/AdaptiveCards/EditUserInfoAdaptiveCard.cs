@@ -6,6 +6,7 @@
 
 namespace Icebreaker.Helpers.AdaptiveCards
 {
+    using System;
     using System.Collections.Generic;
     using global::AdaptiveCards;
     using Newtonsoft.Json.Linq;
@@ -97,6 +98,25 @@ namespace Icebreaker.Helpers.AdaptiveCards
             editInfoCard.Body.AddRange(editProfileBody);
 
             return editInfoCard;
+        }
+
+        /// <summary>
+        /// Creates the read only user info card
+        /// </summary>
+        /// <param name="optedIn">Whether opted in to matches</param>
+        /// <param name="discipline">User discipline</param>
+        /// <param name="gender">User gender</param>
+        /// <param name="seniority">User seniority</param>
+        /// <param name="teams">Sub team names the user has been on</param>
+        /// <returns>user profile card</returns>
+        public static AdaptiveCard GetResultCard(bool optedIn, string discipline, string gender, string seniority, List<string> teams)
+        {
+            var pairs = new List<Tuple<string, string>>
+            {
+                new Tuple<string, string>("Opted In", optedIn.ToString())
+            };
+            pairs.AddRange(EditUserProfileAdaptiveCard.GetDataForResultCard(discipline, gender, seniority, teams));
+            return AdaptiveCardHelper.CreateSubmitResultCard("Saved User Info", pairs);
         }
     }
 }

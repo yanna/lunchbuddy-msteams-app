@@ -6,9 +6,11 @@
 
 namespace Icebreaker.Helpers.AdaptiveCards
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Web.Hosting;
+    using global::AdaptiveCards;
 
     /// <summary>
     /// Builder class for the edit user profile card
@@ -62,6 +64,47 @@ namespace Icebreaker.Helpers.AdaptiveCards
 
             return AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
         }
+
+        /// <summary>
+        /// Creates the read only user profile card
+        /// </summary>
+        /// <param name="discipline">User discipline</param>
+        /// <param name="gender">User gender</param>
+        /// <param name="seniority">User seniority</param>
+        /// <param name="teams">Sub team names the user has been on</param>
+        /// <returns>user profile card</returns>
+        public static AdaptiveCard GetResultCard(string discipline, string gender, string seniority, List<string> teams)
+        {
+            var pairs = GetDataForResultCard(discipline, gender, seniority, teams);
+            return AdaptiveCardHelper.CreateSubmitResultCard("Saved Your Profile", pairs);
+        }
+
+        /// <summary>
+        /// Creates the data for the read only user profile card
+        /// </summary>
+        /// <param name="discipline">User discipline</param>
+        /// <param name="gender">User gender</param>
+        /// <param name="seniority">User seniority</param>
+        /// <param name="teams">Sub team names the user has been on</param>
+        /// <returns>pairs of data</returns>
+        public static List<Tuple<string, string>> GetDataForResultCard(string discipline, string gender, string seniority, List<string> teams)
+        {
+            return new List<Tuple<string, string>>
+            {
+                new Tuple<string, string>("Discipline", GetUIText(discipline)),
+                new Tuple<string, string>("Teams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams)),
+                new Tuple<string, string>("Seniority", GetUIText(seniority)),
+                new Tuple<string, string>("Gender", GetUIText(gender))
+            };
+        }
+
+        /// <summary>
+        /// Convert the stored value to a user presentable value.
+        /// Mention if the value is empty.
+        /// </summary>
+        /// <param name="value">value to display</param>
+        /// <returns>Value for the user</returns>
+        private static string GetUIText(string value) => string.IsNullOrEmpty(value) ? "<empty>" : value;
 
         private static string GetValueOrDefault(string value, string defaultValue) => string.IsNullOrEmpty(value) ? defaultValue : value;
     }

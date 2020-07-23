@@ -88,11 +88,11 @@ namespace Icebreaker
                 {
                     if (activity.Value.ToString().TryParseJson(out UserInfo userInfo))
                     {
-                        await this.HandleSaveProfileAndOptInStatus(connectorClient, activity, tenantId, userInfo);
+                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, userInfo.UserAadId, userInfo, userInfo.OptedIn);
                     }
                     else if (activity.Value.ToString().TryParseJson(out UserProfile userProfile))
                     {
-                        await this.HandleSaveProfile(connectorClient, activity, tenantId, senderAadId, userProfile);
+                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, senderAadId, userProfile, optedIn: null);
                     }
                     else if (activity.Value.ToString().TryParseJson(out TeamSettings teamSettings))
                     {
@@ -242,34 +242,43 @@ namespace Icebreaker
             await this.bot.EditUserProfile(connectorClient, replyActivity, tenantId, senderAadId);
         }
 
-        private async Task HandleSaveProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId, UserProfile userProfile)
+        private async Task HandleSaveUserInfoOrProfile(
+            ConnectorClient connectorClient,
+            Activity activity,
+            string tenantId,
+            string senderAadId,
+            UserProfile userProfile,
+            bool? optedIn)
         {
-            // Who knows whether users will enter the separator and a space, split without the space and trim.
+            // Who knows whether users will enter the separator and a space, so split without the space and trim.
             string[] teamsSeparator = { AdaptiveCardHelper.TeamsSeparatorWithSpace.Trim() };
             var splitTeams = userProfile.Teams.Split(teamsSeparator, StringSplitOptions.RemoveEmptyEntries);
             var teams = splitTeams.Select(team => team.Trim().ToLowerInvariant()).ToList();
-            await this.bot.SaveUserProfile(
-                connectorClient,
-                activity,
-                tenantId,
-                senderAadId,
-                userProfile.Discipline,
-                userProfile.Gender,
-                userProfile.Seniority,
-                teams);
-        }
 
-        private async Task HandleSaveProfileAndOptInStatus(ConnectorClient connectorClient, Activity activity, string tenantId, UserInfo userInfo)
-        {
-            await this.HandleSaveProfile(connectorClient, activity, tenantId, userInfo.UserAadId, userInfo);
-
-            if (userInfo.OptedIn)
+            if (optedIn == null)
             {
-                await this.HandleOptIn(connectorClient, activity, userInfo.UserAadId, tenantId);
+                await this.bot.SaveUserProfile(
+                    connectorClient,
+                    activity,
+                    tenantId,
+                    senderAadId,
+                    userProfile.Discipline,
+                    userProfile.Gender,
+                    userProfile.Seniority,
+                    teams);
             }
             else
             {
-                await this.HandleOptOut(connectorClient, activity, userInfo.UserAadId, tenantId);
+                await this.bot.SaveUserInfo(
+                    connectorClient,
+                    activity,
+                    tenantId,
+                    senderAadId,
+                    userProfile.Discipline,
+                    userProfile.Gender,
+                    userProfile.Seniority,
+                    teams,
+                    (bool)optedIn);
             }
         }
 

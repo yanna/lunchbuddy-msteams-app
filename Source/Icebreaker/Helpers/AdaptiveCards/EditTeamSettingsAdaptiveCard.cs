@@ -4,9 +4,11 @@
 
 namespace Icebreaker.Helpers.AdaptiveCards
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Web.Hosting;
+    using global::AdaptiveCards;
     using Icebreaker.Model;
 
     /// <summary>
@@ -47,5 +49,41 @@ namespace Icebreaker.Helpers.AdaptiveCards
 
             return AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
         }
+
+        /// <summary>
+        /// Creates the read only team settings card
+        /// </summary>
+        /// <param name="notifyMode">Notify mode</param>
+        /// <param name="subteamNames">Subteam names</param>
+        /// <returns>team settings card</returns>
+        public static AdaptiveCard GetResultCard(string notifyMode, string subteamNames)
+        {
+            var notifyModeDisplay = string.Empty;
+            switch (notifyMode)
+            {
+                case TeamInstallInfo.NotifyModeNeedApproval:
+                    notifyModeDisplay = "Need Approval";
+                    break;
+                case TeamInstallInfo.NotifyModeNoApproval:
+                    notifyModeDisplay = "No Approval";
+                    break;
+            }
+
+            var pairs = new List<Tuple<string, string>>()
+            {
+                new Tuple<string, string>("Subteam Names", GetUIText(subteamNames)),
+                new Tuple<string, string>("Notify Mode", notifyModeDisplay)
+            };
+
+            return AdaptiveCardHelper.CreateSubmitResultCard("Saved Team Settings", pairs);
+        }
+
+        /// <summary>
+        /// Convert the stored value to a user presentable value.
+        /// Mention if the value is empty.
+        /// </summary>
+        /// <param name="value">value to display</param>
+        /// <returns>Value for the user</returns>
+        private static string GetUIText(string value) => string.IsNullOrEmpty(value) ? "<empty>" : value;
     }
 }

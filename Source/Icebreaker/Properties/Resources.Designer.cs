@@ -457,6 +457,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sorry, I could not save the user info. Retry?.
+        /// </summary>
+        internal static string SaveUserInfoFailText {
+            get {
+                return ResourceManager.GetString("SaveUserInfoFailText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Send Pairings.
         /// </summary>
         internal static string SendPairingsButtonText {

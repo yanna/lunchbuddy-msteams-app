@@ -292,6 +292,10 @@
     <value>Sorry, I could not save the user profile. Retry?</value>
     <comment>Show this text when the user profile could not be saved</comment>
   </data>
+  <data name="SaveUserInfoFailText" xml:space="preserve">
+    <value>Sorry, I could not save the user info. Retry?</value>
+    <comment>Show this text when the user info could not be saved</comment>
+  </data>
   <data name="SendPairingsButtonText" xml:space="preserve">
     <value>Send Pairings</value>
     <comment>Button text to send pairings</comment>

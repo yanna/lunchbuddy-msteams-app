@@ -8,6 +8,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using global::AdaptiveCards;
     using Icebreaker.Controllers;
     using Icebreaker.Properties;
@@ -133,6 +134,36 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var appId = CloudConfigurationManager.GetSetting("ManifestAppId");
             var tourUrl = $"https://teams.microsoft.com/l/task/{appId}?url={htmlUrl}&height=533px&width=600px&title={tourTitle}";
             return tourUrl;
+        }
+
+        /// <summary>
+        /// Create a card that just lists the key value pairs
+        /// </summary>
+        /// <param name="title">title of the card</param>
+        /// <param name="pairs">key value pairs to show</param>
+        /// <returns>the card</returns>
+        public static AdaptiveCard CreateSubmitResultCard(
+            string title,
+            List<Tuple<string, string>> pairs)
+        {
+            var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 0))
+            {
+                Body = new List<AdaptiveElement>
+                {
+                    new AdaptiveTextBlock()
+                    {
+                        Text = title,
+                        Size = AdaptiveTextSize.Large,
+                        Wrap = true,
+                        Weight = AdaptiveTextWeight.Bolder
+                    },
+                    new AdaptiveFactSet()
+                    {
+                        Facts = pairs.Select(pair => new AdaptiveFact(pair.Item1, pair.Item2)).ToList()
+                    }
+                }
+            };
+            return card;
         }
     }
 }

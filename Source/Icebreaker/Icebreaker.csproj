@@ -177,7 +177,6 @@
     <Content Include="Content\welcome-card-image.png" />
     <Content Include="default.htm" />
     <Content Include="Global.asax" />
-    <Content Include="Helpers\AdaptiveCards\ViewUserProfileAdaptiveCard.json" />
     <Content Include="Helpers\AdaptiveCards\EditTeamSettingsAdaptiveCard.json" />
     <Content Include="Helpers\AdaptiveCards\EditUserProfileAdaptiveCard.json" />
     <Content Include="libman.json" />
@@ -210,8 +209,6 @@
     <Compile Include="Helpers\AdaptiveCards\ChooseUserAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditTeamSettingsAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditUserInfoAdaptiveCard.cs" />
-    <Compile Include="Helpers\AdaptiveCards\ViewTeamSettingsAdaptiveCard.cs" />
-    <Compile Include="Helpers\AdaptiveCards\ViewUserProfileAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\UnrecognizedInputAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditUserProfileAdaptiveCard.cs" />
@@ -256,7 +253,6 @@
     </Content>
     <Content Include="Helpers\AdaptiveCards\WelcomeTeamAdaptiveCard.json" />
     <Content Include="lib\microsoft-teams\dist\MicrosoftTeams.js.map" />
-    <Content Include="Helpers\AdaptiveCards\ViewTeamSettingsAdaptiveCard.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
