@@ -26,16 +26,19 @@ namespace Icebreaker.Match
     {
         private readonly Random random;
         private readonly IDictionary<string, PersonData> peopleData;
+        private readonly int numRetryOnPreviouslyMatchedPair;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StableMarriageMatchCreator"/> class.
         /// </summary>
         /// <param name="random">random generator</param>
         /// <param name="peopleData">userId to PersonData objects</param>
-        public StableMarriageMatchCreator(Random random, IDictionary<string, PersonData> peopleData)
+        /// <param name="numRetryOnPreviouslyMatchedPair">number of times to reshuffle and try again if a matched pair is found</param>
+        public StableMarriageMatchCreator(Random random, IDictionary<string, PersonData> peopleData, int numRetryOnPreviouslyMatchedPair)
         {
             this.random = random;
             this.peopleData = peopleData;
+            this.numRetryOnPreviouslyMatchedPair = numRetryOnPreviouslyMatchedPair;
         }
 
         /// <summary>
@@ -46,8 +49,17 @@ namespace Icebreaker.Match
         public MatchResult CreateMatches(List<ChannelAccount> channelAccounts)
         {
             var people = channelAccounts.Select(account => new Person<ChannelAccount>(account)).ToList();
-            RandomAlgorithm.Shuffle<Person<ChannelAccount>>(this.random, people);
-            return this.CreateMatches(people);
+
+            var numRetries = this.numRetryOnPreviouslyMatchedPair;
+            MatchResult result;
+            do
+            {
+                RandomAlgorithm.Shuffle<Person<ChannelAccount>>(this.random, people);
+                result = this.CreateMatches(people);
+            }
+            while (result.HasAnyPreviouslyMatchedPair && (numRetries-- > 0));
+
+            return result;
         }
 
         private MatchResult CreateMatches(List<Person<ChannelAccount>> people)
@@ -68,8 +80,22 @@ namespace Icebreaker.Match
 
             // 3. Run stable marriage
             StableMarriageAlgorithm.DoMarriage<ChannelAccount>(group1);
-            var pairs = group1.Select(person => new Tuple<ChannelAccount, ChannelAccount>(person.Data, person.Fiance.Data)).ToList();
+            var pairs = group1.Select(person =>
+                {
+                    var person1 = person.Data;
+                    var person2 = person.Fiance.Data;
+                    var isPreviouslyMatched = this.GetIsPreviouslyMatched(person1.GetUserId(), person2.GetUserId());
+                    return new MatchResult.MatchPair(person1, person2, isPreviouslyMatched);
+                }).ToList();
             return new MatchResult(pairs, oddPerson);
+        }
+
+        private bool GetIsPreviouslyMatched(string userId1, string userId2)
+        {
+            PersonData personData;
+            this.peopleData.TryGetValue(userId1, out personData);
+            var pastMatch = personData?.PastMatches.Find(m => m.UserId == userId2);
+            return pastMatch != null;
         }
     }
 }

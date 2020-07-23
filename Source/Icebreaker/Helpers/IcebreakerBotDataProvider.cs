@@ -150,10 +150,10 @@ namespace Icebreaker.Helpers
         }
 
         /// <summary>
-        /// Get the stored information about the given user
+        /// Get the stored information about the given user. If the user doesn't exist, return null.
         /// </summary>
         /// <param name="userAadId">User id</param>
-        /// <returns>User information</returns>
+        /// <returns>User information or null</returns>
         public async Task<UserInfo> GetUserInfoAsync(string userAadId)
         {
             await this.EnsureInitializedAsync();

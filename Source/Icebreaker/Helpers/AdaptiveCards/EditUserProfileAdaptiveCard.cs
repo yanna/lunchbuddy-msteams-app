@@ -15,6 +15,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
     /// </summary>
     public static class EditUserProfileAdaptiveCard
     {
+        private static readonly string DEFAULTDISCIPLINE = "data";
+        private static readonly string DEFAULTGENDER = "female";
+        private static readonly string DEFAULTSENIORITY = "intern";
+
         private static readonly string CardTemplate;
 
         static EditUserProfileAdaptiveCard()
@@ -49,14 +53,16 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "title", "Please tell me about yourself" },
                 { "titleSize", titleSize },
                 { "description", "This helps me improve your matches." },
-                { "defaultDiscipline", discipline },
-                { "defaultGender", gender },
-                { "defaultSeniority", seniority },
+                { "defaultDiscipline", GetValueOrDefault(discipline, DEFAULTDISCIPLINE) },
+                { "defaultGender", GetValueOrDefault(gender, DEFAULTGENDER) },
+                { "defaultSeniority", GetValueOrDefault(seniority, DEFAULTSENIORITY) },
                 { "defaultTeams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams) },
                 { "teamNamesHint", teamNamesHint }
             };
 
             return AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
         }
+
+        private static string GetValueOrDefault(string value, string defaultValue) => string.IsNullOrEmpty(value) ? defaultValue : value;
     }
 }

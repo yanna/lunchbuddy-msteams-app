@@ -13,7 +13,7 @@ namespace LunchBuddyTest
         [TestMethod]
         public void TestCreateMatchesNoPeople()
         {
-            var algo = new StableMarriageMatchCreator(new System.Random(), new Dictionary<string, PersonData>());
+            var algo = new StableMarriageMatchCreator(new System.Random(), new Dictionary<string, PersonData>(), 0);
             var match = algo.CreateMatches(new List<ChannelAccount>());
             Assert.AreEqual(0, match.Pairs.Count);
         }
@@ -21,7 +21,10 @@ namespace LunchBuddyTest
         [TestMethod]
         public void TestCreateMatchesOnePerson()
         {
-            var algo = new StableMarriageMatchCreator(new System.Random(), new Dictionary<string, PersonData> { { "abc", new PersonData() { Discipline = "design" } } });
+            var algo = new StableMarriageMatchCreator(
+                new System.Random(),
+                new Dictionary<string, PersonData> { { "abc", new PersonData() { Discipline = "design" } } },
+                0);
             var match = algo.CreateMatches(new List<ChannelAccount> { new TeamsChannelAccount { ObjectId = "abc" } });
             Assert.AreEqual(0, match.Pairs.Count);
             Assert.AreEqual("abc", match.OddPerson.GetUserId());
@@ -30,11 +33,14 @@ namespace LunchBuddyTest
         [TestMethod]
         public void TestCreateMatchesFivePeople()
         {
-            var algo = new StableMarriageMatchCreator(new System.Random(12345), new Dictionary<string, PersonData> {
-                { "aaa", new PersonData() { Discipline = "design" } },
-                { "bbb", new PersonData() { Discipline = "engineering" } },
-                { "eee", new PersonData() { Discipline = "engineering" } },
-            });
+            var algo = new StableMarriageMatchCreator(
+                new System.Random(12345), 
+                new Dictionary<string, PersonData> {
+                    { "aaa", new PersonData() { Discipline = "design" } },
+                    { "bbb", new PersonData() { Discipline = "engineering" } },
+                    { "eee", new PersonData() { Discipline = "engineering" } },
+                },
+                0);
             var match = algo.CreateMatches(new List<ChannelAccount> {
                 new TeamsChannelAccount { ObjectId = "aaa" },
                 new TeamsChannelAccount { ObjectId = "bbb" },
@@ -47,8 +53,8 @@ namespace LunchBuddyTest
             Assert.AreEqual(2, match.Pairs.Count);
             Assert.AreEqual("ddd", match.OddPerson.GetUserId());
 
-            Assert.AreEqual("ccc", match.Pairs[0].Item2.GetUserId());
-            Assert.AreEqual("eee", match.Pairs[1].Item2.GetUserId());
+            Assert.AreEqual("ccc", match.Pairs[0].Person2.GetUserId());
+            Assert.AreEqual("eee", match.Pairs[1].Person2.GetUserId());
         }
     }
 }

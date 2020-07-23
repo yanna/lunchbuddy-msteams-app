@@ -35,11 +35,13 @@ namespace Icebreaker.Match
         {
             RandomAlgorithm.Shuffle(this.random, users);
 
-            var pairs = new List<Tuple<ChannelAccount, ChannelAccount>>();
+            var pairs = new List<MatchResult.MatchPair>();
             int i = 0;
             for (; i < users.Count - 1; i += 2)
             {
-                pairs.Add(new Tuple<ChannelAccount, ChannelAccount>(users[i], users[i + 1]));
+                // TODO: Get real isPreviouslyMatched by going to the DB.
+                // Not bothering with that right now because this is only used for small sets.
+                pairs.Add(new MatchResult.MatchPair(users[i], users[i + 1], isPreviouslyMatched: false));
             }
 
             var oddPerson = i == users.Count ? null : users[i];

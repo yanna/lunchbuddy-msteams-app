@@ -95,40 +95,7 @@ namespace Icebreaker
         /// <returns>attachment</returns>
         public Attachment CreateMatchAttachment(MatchResult matchResult, string teamId, string teamName)
         {
-            var allPairsStr = this.GetPairingText(matchResult);
-
-            var idPairs = matchResult.Pairs.Select(pair => new Tuple<string, string>(pair.Item1.Id, pair.Item2.Id)).ToList();
-            var makePairsResult = new MakePairsResult()
-            {
-                PairChannelAccountIds = idPairs,
-                TeamId = teamId
-            };
-
-            var matchCard = new HeroCard()
-            {
-                Title = string.Format(Resources.NewPairingsTitle, teamName),
-                Text = allPairsStr,
-                Buttons = new List<CardAction>()
-                    {
-                        new CardAction
-                        {
-                            Title = Resources.SendPairingsButtonText,
-                            DisplayText = Resources.SendPairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.AdminNotifyPairs,
-                            Value = JsonConvert.SerializeObject(makePairsResult)
-                        },
-                        new CardAction
-                        {
-                            Title = Resources.RegeneratePairingsButtonText,
-                            DisplayText = Resources.RegeneratePairingsButtonText,
-                            Type = ActionTypes.MessageBack,
-                            Text = MessageIds.AdminMakePairs,
-                            Value = JsonConvert.SerializeObject(new TeamContext { TeamId = teamId, TeamName = teamName })
-                        }
-                    }
-            };
-
+            var matchCard = MakePairsHeroCard.GetCard(matchResult, teamId, teamName);
             return matchCard.ToAttachment();
         }
 
@@ -253,7 +220,8 @@ namespace Icebreaker
 
                     if (team.NotifyMode == TeamInstallInfo.NotifyModeNoApproval)
                     {
-                        pairsNotifiedCount += await this.NotifyAllPairs(team, matchResult.Pairs);
+                        var pairs = matchResult.Pairs.Select(p => new Tuple<ChannelAccount, ChannelAccount>(p.Person1, p.Person2)).ToList();
+                        pairsNotifiedCount += await this.NotifyAllPairs(team, pairs);
                     }
                     else if (team.NotifyMode == TeamInstallInfo.NotifyModeNeedApproval)
                     {
@@ -674,27 +642,6 @@ namespace Icebreaker
         }
 
         /// <summary>
-        /// Get the text that lists all the pairings
-        /// </summary>
-        /// <param name="matchResult">Result of a match event</param>
-        /// <returns>All pairings text</returns>
-        private string GetPairingText(MatchResult matchResult)
-        {
-            var pairs = matchResult.Pairs;
-            var pairsStrs = pairs.Select((pair, i) => $"{i + 1}. {pair.Item1.Name} - {pair.Item2.Name}").ToList();
-            var allPairsStr = string.Join("<br/>", pairsStrs);
-
-            var emptyLine = "<br/><br/>";
-
-            if (matchResult.OddPerson != null)
-            {
-                allPairsStr += $"{emptyLine}<b>{Resources.NewPairingsOddPerson}</b>: {matchResult.OddPerson.Name}";
-            }
-
-            return Resources.NewPairingsDescription + emptyLine + allPairsStr + emptyLine;
-        }
-
-        /// <summary>
         /// Notify a pairup.
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
@@ -853,7 +800,7 @@ namespace Icebreaker
 
             if (userCount == 1)
             {
-                return new MatchResult(new List<Tuple<ChannelAccount, ChannelAccount>>(), users.First());
+                return new MatchResult(new List<MatchResult.MatchPair>(), users.First());
             }
 
             Random random = new Random(Guid.NewGuid().GetHashCode());
@@ -868,7 +815,7 @@ namespace Icebreaker
             else
             {
                 var peopleData = await new PeopleDataCreator(this.dataProvider, users).Get();
-                return new StableMarriageMatchCreator(random, peopleData).CreateMatches(users);
+                return new StableMarriageMatchCreator(random, peopleData, numRetryOnPreviouslyMatchedPair: 3).CreateMatches(users);
             }
         }
 
