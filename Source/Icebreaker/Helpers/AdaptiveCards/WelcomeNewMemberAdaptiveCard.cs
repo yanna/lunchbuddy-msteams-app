@@ -57,9 +57,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var welcomeCardImageUrl = $"https://{baseDomain}/Content/welcome-card-image.png";
 
             var pauseMatchesText = Resources.PausePairingsButtonText;
-            var tourUrl = AdaptiveCardHelper.CreateTourUrl();
             var salutationText = Resources.SalutationTitleText;
-            var tourButtonText = Resources.TakeATourButtonText;
             var editProfileText = Resources.EditProfileButtonText;
 
             var variablesToValues = new Dictionary<string, string>()
@@ -73,9 +71,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "welcomeCardImageUrl", welcomeCardImageUrl },
                 { "editProfileText", editProfileText },
                 { "pauseMatchesText", pauseMatchesText },
-                { "tourUrl", tourUrl },
-                { "salutationText", salutationText },
-                { "tourButtonText", tourButtonText }
+                { "salutationText", salutationText }
             };
 
             var cardBody = AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);

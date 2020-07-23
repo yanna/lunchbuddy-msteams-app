@@ -166,11 +166,11 @@
     <comment>A generic message that is sent when there is an error occurring</comment>
   </data>
   <data name="InstallMessageBotDescription" xml:space="preserve">
-    <value>I get to help you meet more people around your organization by randomly pairing you with someone new every month. You get to make more friends and learn about the people you work with.</value>
+    <value>Do you eat lunch or take a rest break? Why not do it with a buddy? I can help you meet new friends or get to know your team by randomly pairing you with someone new every month. </value>
     <comment>Part 2 of the install message when the name of the installer is known</comment>
   </data>
   <data name="InstallMessageInstruction" xml:space="preserve">
-    <value>**To meet new people, just hang tight. I'll send you an invite when a new month starts.**</value>
+    <value>**I will message you at the start of the month with your match.**</value>
     <comment>Part 3 of the install message with the name of the installer known</comment>
   </data>
   <data name="InstallMessageInstructionAdmin" xml:space="preserve">
@@ -182,11 +182,11 @@
     <comment>Install message and also the welcome message when the app installer is known - {0} is the placeholder for the name of the user that has installed the app to the team, and {1} is the placeholder for the name of the team that the app has been installed to</comment>
   </data>
   <data name="InstallMessageSuggestedNextStep" xml:space="preserve">
-    <value>In the meantime, edit your profile to ensure a good match. </value>
+    <value>In the meantime, edit your profile to ensure a good match, or you can pause matches at any time. </value>
     <comment>Ask the user to edit their profile</comment>
   </data>
   <data name="InstallMessageSuggestedNextStepAdmin" xml:space="preserve">
-    <value>1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away</value>
+    <value>1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away.</value>
   </data>
   <data name="InstallMessageUnknownInstaller" xml:space="preserve">
     <value>If you're reading this, it's because I was installed to **{0} Team.** </value>

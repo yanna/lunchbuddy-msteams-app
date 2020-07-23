@@ -169,7 +169,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to I get to help you meet more people around your organization by randomly pairing you with someone new every month. You get to make more friends and learn about the people you work with..
+        ///   Looks up a localized string similar to Do you eat lunch or take a rest break? Why not do it with a buddy? I can help you meet new friends or get to know your team by randomly pairing you with someone new every month. .
         /// </summary>
         internal static string InstallMessageBotDescription {
             get {
@@ -178,7 +178,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to **To meet new people, just hang tight. I&apos;ll send you an invite when a new month starts.**.
+        ///   Looks up a localized string similar to **I will message you at the start of the month with your match.**.
         /// </summary>
         internal static string InstallMessageInstruction {
             get {
@@ -205,7 +205,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In the meantime, edit your profile to ensure a good match. .
+        ///   Looks up a localized string similar to In the meantime, edit your profile to ensure a good match, or you can pause matches at any time. .
         /// </summary>
         internal static string InstallMessageSuggestedNextStep {
             get {
@@ -214,7 +214,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away.
+        ///   Looks up a localized string similar to 1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away..
         /// </summary>
         internal static string InstallMessageSuggestedNextStepAdmin {
             get {

@@ -45,7 +45,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 },
                 Actions = new List<AdaptiveAction>
                 {
-                    CreateTakeTourAction(),
                     AdaptiveCardHelper.CreateSubmitAction(Resources.EditProfileButtonText, MessageIds.EditProfile),
                     AdaptiveCardHelper.CreateSubmitAction(pauseOrResumeMatchesButtonText, pauseOrResumeMatchesMessage)
                 }
