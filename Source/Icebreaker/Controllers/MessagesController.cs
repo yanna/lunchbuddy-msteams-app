@@ -138,7 +138,7 @@ namespace Icebreaker
                     {
                         // Unknown input in a personal chat, not in the team channel
                         var replyActivity = activity.CreateReply();
-                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId, senderChannelAccountId);
+                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId);
                     }
                 }
             }
@@ -337,15 +337,25 @@ namespace Icebreaker
                                 var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id);
                                 var personName = personThatAddedBot?.Name;
                                 var personChannelAccountId = personThatAddedBot?.Id;
+                                var personAADId = personThatAddedBot?.GetUserId();
 
-                                await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, teamAdminChannelAccountId: personChannelAccountId);
+                                var addedSuccessfully = await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, adminUserAadId: personAADId, adminUserChannelAccountId: personChannelAccountId);
 
-                                // Welcome the admin. The team is manually welcomed by the admin through clicking on the "Admin: Send Welcome Card" button as they
-                                // need to edit the subteam names through "Admin: Edit Team Settings" first.
-                                if (personThatAddedBot != null)
+                                if (!addedSuccessfully)
                                 {
+                                    this.telemetryClient.TrackTrace($"Failed to save that the bot was added to team {teamId}", SeverityLevel.Error);
+                                }
+
+                                if (addedSuccessfully && personThatAddedBot != null)
+                                {
+                                    // Welcome the admin. The team is manually welcomed by the admin through clicking on the "Admin: Send Welcome Card" button as they
+                                    // need to edit the subteam names through "Admin: Edit Team Settings" first.
                                     var adminTeamContext = new TeamContext { TeamId = teamId, TeamName = teamsChannelData?.Team?.Name };
-                                    await this.bot.WelcomeUser(connectorClient, personChannelAccountId, tenantId, teamId, "you", showAdminActions: true, adminTeamContext);
+                                        await this.bot.WelcomeUser(connectorClient, personChannelAccountId, tenantId, teamId, "you", showAdminActions: true, adminTeamContext);
+                                }
+                                else if (!addedSuccessfully && personThatAddedBot != null)
+                                {
+                                    await this.bot.SendFailedToInstall(connectorClient, personThatAddedBot, tenantId);
                                 }
                             }
                             else

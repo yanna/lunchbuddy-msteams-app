@@ -57,14 +57,12 @@ namespace Icebreaker.Model
         public string InstallerName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the user ChannelAccount id of the person that can perform admin actions.
+        /// Gets or sets the user that can perform admin actions.
         /// Defaults to the person who installed the bot.
         /// Can be empty if the bot was installed via Graph.
-        /// Admin actions include manual generation of pair matches, notifying pairs of said matches, changing the notify mode etc.
-        /// We use the ChannelAccount id instead of the AAD id because this is the id necessary for proactive messages
         /// </summary>
-        [JsonProperty("adminUserChannelAccountId")]
-        public string AdminUserChannelAccountId { get; set; } = string.Empty;
+        [JsonProperty("adminUser")]
+        public User AdminUser { get; set; }
 
         /// <summary>
         /// Gets or sets the mode of how matches will be notified
@@ -84,7 +82,29 @@ namespace Icebreaker.Model
         public override string ToString()
         {
             return $"Team - Id = {this.TeamId},TenantId = {this.TenantId}, ServiceUrl = {this.ServiceUrl}, " +
-                $"InstallerName = {this.InstallerName}, AdminUserChannelAccountId = {this.AdminUserChannelAccountId}, NotifyMode = {this.NotifyMode}";
+                $"InstallerName = {this.InstallerName}, AdminUserChannelAccountId = {this.AdminUser?.ChannelAccountId}, " +
+                $"AdminUserId = {this.AdminUser?.UserId}, NotifyMode = {this.NotifyMode}";
+        }
+
+        /// <summary>
+        /// User definition
+        /// </summary>
+        public class User
+        {
+            /// <summary>
+            /// Gets or sets the user AAD id of the person.
+            /// This value is the same for the same person.
+            /// </summary>
+            [JsonProperty("userId")]
+            public string UserId { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets the ChannelAccount id of the person.
+            /// This id is dependent on the channel so the same person can have multiple ChannelAccount ids
+            /// Do not use this to check if the user is the same.
+            /// </summary>
+            [JsonProperty("channelAccountId")]
+            public string ChannelAccountId { get; set; } = string.Empty;
         }
     }
 }

@@ -106,12 +106,13 @@ namespace Icebreaker
         /// <returns>Task</returns>
         public async Task NotifyAdminPairings(TeamInstallInfo team, MatchResult matchResult)
         {
-            if (string.IsNullOrEmpty(team.AdminUserChannelAccountId))
+            if (team.AdminUser == null)
             {
+                this.telemetryClient.TrackTrace($"Trying to notify admin pairings for team {team.Id} but there is no admin user", SeverityLevel.Error);
                 return;
             }
 
-            this.telemetryClient.TrackTrace($"Notify admin {team.AdminUserChannelAccountId} for team {team.Id}");
+            this.telemetryClient.TrackTrace($"Notify admin {team.AdminUser?.UserId} for team {team.Id}");
 
             try
             {
@@ -123,14 +124,14 @@ namespace Icebreaker
                     var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
 
                     var matchAttachment = this.CreateMatchAttachment(matchResult, team.TeamId, teamName);
-                    var adminUser = new ChannelAccount { Id = team.AdminUserChannelAccountId };
+                    var adminUser = new ChannelAccount { Id = team.AdminUser?.ChannelAccountId };
 
                     await this.NotifyUser(connectorClient, matchAttachment, adminUser, team.TenantId);
                 }
             }
             catch (Exception ex)
             {
-                this.telemetryClient.TrackTrace($"Error notifying admin {team.AdminUserChannelAccountId} of pairing for team {team.Id}: {ex.Message}", SeverityLevel.Warning);
+                this.telemetryClient.TrackTrace($"Error notifying admin userId: {team.AdminUser?.UserId} channelAccountId: {team.AdminUser?.ChannelAccountId} of pairing for team {team.Id}: {ex.Message}", SeverityLevel.Warning);
                 this.telemetryClient.TrackException(ex);
             }
         }
@@ -180,12 +181,12 @@ namespace Icebreaker
         /// <summary>
         /// Return all teams where the specified user can perform admin actions
         /// </summary>
-        /// <param name="userChannelAccountId">user ChannelAccount id</param>
+        /// <param name="userAadId">user AAD id</param>
         /// <returns>a list of teams</returns>
-        public async Task<IList<TeamInstallInfo>> GetTeamsAllowingAdminActionsByUser(string userChannelAccountId)
+        public async Task<IList<TeamInstallInfo>> GetTeamsAllowingAdminActionsByUser(string userAadId)
         {
             var teams = await this.dataProvider.GetInstalledTeamsAsync();
-            return teams.Where(team => team.AdminUserChannelAccountId == userChannelAccountId).ToList();
+            return teams.Where(team => team.AdminUser?.UserId == userAadId).ToList();
         }
 
         /// <summary>
@@ -294,6 +295,23 @@ namespace Icebreaker
         }
 
         /// <summary>
+        /// Notify a user of failure to install the bot to the team
+        /// </summary>
+        /// <param name="connectorClient">Connector client</param>
+        /// <param name="userChannelAccount">User account to message</param>
+        /// <param name="tenantId">User tenant id</param>
+        /// <returns>Task</returns>
+        public async Task SendFailedToInstall(ConnectorClient connectorClient, ChannelAccount userChannelAccount, string tenantId)
+        {
+            var installFailedCard = new HeroCard()
+            {
+                Text = "Failed to install LunchBuddy"
+            };
+
+            await this.NotifyUser(connectorClient, installFailedCard.ToAttachment(), userChannelAccount, tenantId);
+        }
+
+        /// <summary>
         /// Sends a welcome message to the General channel of the team that this bot has been installed to
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
@@ -320,13 +338,12 @@ namespace Icebreaker
         /// <param name="replyActivity">The activity for replying to a message</param>
         /// <param name="tenantId">User tenant id</param>
         /// <param name="userAadId">User AAD id</param>
-        /// <param name="userChannelAccountId">User channel account id</param>
         /// <returns>Tracking task</returns>
-        public async Task SendUnrecognizedInputMessage(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, string userChannelAccountId)
+        public async Task SendUnrecognizedInputMessage(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
 
-            var teamsAllowingAdminActionsByUser = await this.GetTeamsAllowingAdminActionsByUser(userChannelAccountId);
+            var teamsAllowingAdminActionsByUser = await this.GetTeamsAllowingAdminActionsByUser(userAadId);
             var showAdminActions = teamsAllowingAdminActionsByUser.Count > 0;
             TeamContext teamContext = null;
             if (teamsAllowingAdminActionsByUser.Count == 1)
@@ -549,20 +566,31 @@ namespace Icebreaker
         /// <param name="teamId">The team id</param>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="botInstallerUserName">Name of the person that added the bot to the team</param>
-        /// <param name="teamAdminChannelAccountId">User ChannelAccount id of the person that is the admin for the bot for this team</param>
+        /// <param name="adminUserAadId">User AAD id of the bot admin for this team</param>
+        /// <param name="adminUserChannelAccountId">User ChannelAccount id of the bot admin for this team</param>
         /// <returns>Tracking task</returns>
-        public Task SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string teamAdminChannelAccountId)
+        public async Task<bool> SaveAddedToTeam(string serviceUrl, string teamId, string tenantId, string botInstallerUserName, string adminUserAadId, string adminUserChannelAccountId)
         {
-            var teamInstallInfo = new TeamInstallInfo
+            var adminUser = string.IsNullOrEmpty(adminUserAadId) ? null : new TeamInstallInfo.User { UserId = adminUserAadId, ChannelAccountId = adminUserChannelAccountId };
+            var newTeamInstallInfo = new TeamInstallInfo
             {
                 ServiceUrl = serviceUrl,
                 TeamId = teamId,
                 TenantId = tenantId,
                 InstallerName = botInstallerUserName,
-                AdminUserChannelAccountId = teamAdminChannelAccountId,
+                AdminUser = adminUser,
                 NotifyMode = TeamInstallInfo.NotifyModeNoApproval
             };
-            return this.dataProvider.UpdateTeamInstallStatusAsync(teamInstallInfo, true);
+
+            // Preserve old settings if we find them. This may happen when we have a debug and live app at the same time.
+            var alreadyInstalledTeamInfo = await this.dataProvider.GetInstalledTeamAsync(teamId);
+            if (alreadyInstalledTeamInfo != null)
+            {
+                newTeamInstallInfo.NotifyMode = alreadyInstalledTeamInfo.NotifyMode;
+                newTeamInstallInfo.SubteamNames = alreadyInstalledTeamInfo.SubteamNames;
+            }
+
+            return await this.dataProvider.UpdateTeamInstallStatusAsync(newTeamInstallInfo, true);
         }
 
         /// <summary>
@@ -652,7 +680,7 @@ namespace Icebreaker
         public async Task EditTeamSettings(ConnectorClient connectorClient, Activity replyActivity, string teamId, string teamName)
         {
             var teamInfo = await this.GetInstalledTeam(teamId);
-            var adminUserChannelAccount = await this.GetChannelAccountByChannelAccountId(teamInfo.AdminUserChannelAccountId, connectorClient, teamId);
+            var adminUserChannelAccount = await this.GetChannelAccountByChannelAccountId(teamInfo.AdminUser?.ChannelAccountId, connectorClient, teamId);
             var adminUserName = adminUserChannelAccount?.Name;
             var card = EditTeamSettingsAdaptiveCard.GetCardJson(teamId, teamName, adminUserName, teamInfo.NotifyMode, teamInfo.SubteamNames);
             replyActivity.Attachments = new List<Attachment>()

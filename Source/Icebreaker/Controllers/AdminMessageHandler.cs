@@ -74,7 +74,7 @@ namespace Icebreaker.Controllers
         {
             if (msgId == MessageIds.AdminMakePairs)
             {
-                await this.HandleAdminMakePairs(connectorClient, activity, senderAadId, senderChannelAccountId);
+                await this.HandleAdminMakePairs(connectorClient, activity, senderAadId);
             }
             else if (msgId == MessageIds.AdminNotifyPairs)
             {
@@ -85,23 +85,23 @@ namespace Icebreaker.Controllers
             }
             else if (msgId == MessageIds.AdminChangeNotifyModeNeedApproval)
             {
-                await this.HandleAdminNotifyNeedApproval(connectorClient, activity, senderAadId, senderChannelAccountId);
+                await this.HandleAdminNotifyNeedApproval(connectorClient, activity, senderAadId);
             }
             else if (msgId == MessageIds.AdminChangeNotifyModeNoApproval)
             {
-                await this.HandleAdminNotifyNoApproval(connectorClient, activity, senderAadId, senderChannelAccountId);
+                await this.HandleAdminNotifyNoApproval(connectorClient, activity, senderAadId);
             }
             else if (msgId == MessageIds.AdminEditTeamSettings)
             {
-                await this.HandleAdminEditTeamSettings(connectorClient, activity, senderAadId, senderChannelAccountId);
+                await this.HandleAdminEditTeamSettings(connectorClient, activity, senderAadId);
             }
             else if (msgId == MessageIds.AdminEditUser)
             {
-                await this.HandleAdminEditUser(connectorClient, activity, senderAadId, senderChannelAccountId);
+                await this.HandleAdminEditUser(connectorClient, activity, senderAadId);
             }
             else if (msgId == MessageIds.AdminWelcomeTeam)
             {
-                await this.HandleWelcomeTeam(connectorClient, activity, senderAadId, senderChannelAccountId);
+                await this.HandleWelcomeTeam(connectorClient, activity, senderAadId);
             }
         }
 
@@ -119,7 +119,7 @@ namespace Icebreaker.Controllers
             await this.bot.EditUserInfo(connectorClient, activity.CreateReply(), tenantId, userAadId, userName);
         }
 
-        private async Task HandleAdminEditUser(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        private async Task HandleAdminEditUser(ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -132,7 +132,6 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
-                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionEditUser,
                     adminActionMessageId: MessageIds.AdminEditUser,
                     this.HandleAdminEditUserForTeam);
@@ -151,7 +150,7 @@ namespace Icebreaker.Controllers
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
-        private async Task HandleAdminMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        private async Task HandleAdminMakePairs(ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -164,14 +163,13 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
-                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionGeneratePairs,
                     adminActionMessageId: MessageIds.AdminMakePairs,
                     this.HandleAdminMakePairsForTeam);
             }
         }
 
-        private async Task HandleAdminNotifyNoApproval(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        private async Task HandleAdminNotifyNoApproval(ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -184,14 +182,13 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
-                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionNotifyNoApproval,
                     adminActionMessageId: MessageIds.AdminChangeNotifyModeNoApproval,
                     this.HandleAdminNotifyNoApprovalForTeam);
             }
         }
 
-        private async Task HandleAdminNotifyNeedApproval(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        private async Task HandleAdminNotifyNeedApproval(ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -204,7 +201,6 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
-                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionNotifyNeedApproval,
                     adminActionMessageId: MessageIds.AdminChangeNotifyModeNeedApproval,
                     this.HandleAdminNotifyNeedApprovalForTeam);
@@ -233,14 +229,13 @@ namespace Icebreaker.Controllers
             ConnectorClient connectorClient,
             Activity activity,
             string senderAadId,
-            string senderChannelAccountId,
             string adminActionName,
             string adminActionMessageId,
             Func<ConnectorClient, Activity, string, TeamInstallInfo, string, Task> adminActionFcn)
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered {adminActionName} with no team specified");
 
-            var teamsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderChannelAccountId);
+            var teamsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderAadId);
 
             if (teamsAllowingAdminActionsByUser.Count == 0)
             {
@@ -333,7 +328,7 @@ namespace Icebreaker.Controllers
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }
 
-        private async Task HandleAdminEditTeamSettings(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        private async Task HandleAdminEditTeamSettings(ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -346,7 +341,6 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
-                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionEditTeamSettings,
                     adminActionMessageId: MessageIds.AdminEditTeamSettings,
                     this.HandleAdminEditTeamSettingsForTeam);
@@ -358,7 +352,7 @@ namespace Icebreaker.Controllers
             return this.bot.EditTeamSettings(connectorClient, activity.CreateReply(), team.TeamId, teamName);
         }
 
-        private async Task HandleWelcomeTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        private async Task HandleWelcomeTeam(ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
@@ -371,7 +365,6 @@ namespace Icebreaker.Controllers
                     connectorClient,
                     activity,
                     senderAadId,
-                    senderChannelAccountId,
                     adminActionName: Resources.AdminActionEditTeamSettings,
                     adminActionMessageId: MessageIds.AdminEditTeamSettings,
                     this.HandleAdminEditTeamSettingsForTeam);
