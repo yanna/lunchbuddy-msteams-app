@@ -13,6 +13,7 @@ namespace Icebreaker.Controllers
     using System.Web.UI.WebControls;
     using Icebreaker.Helpers;
     using Icebreaker.Helpers.AdaptiveCards;
+    using Icebreaker.Helpers.HeroCards;
     using Icebreaker.Model;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;

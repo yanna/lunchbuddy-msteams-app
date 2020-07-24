@@ -13,6 +13,7 @@ namespace Icebreaker
     using Helpers;
     using Helpers.AdaptiveCards;
     using Icebreaker.Controllers;
+    using Icebreaker.Helpers.HeroCards;
     using Icebreaker.Match;
     using Icebreaker.Model;
     using Icebreaker.Properties;

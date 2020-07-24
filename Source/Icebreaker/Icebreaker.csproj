@@ -196,8 +196,8 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AdminMessageHandler.cs" />
     <Compile Include="Controllers\DebugMessageHandler.cs" />
-    <Compile Include="Controllers\ChooseUserResult.cs" />
-    <Compile Include="Controllers\MakePairsResult.cs" />
+    <Compile Include="Helpers\AdaptiveCards\ChooseUserResult.cs" />
+    <Compile Include="Helpers\HeroCards\MakePairsResult.cs" />
     <Compile Include="Controllers\MessageIds.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Controllers\ProcessNowController.cs" />

@@ -4,9 +4,8 @@
 // </copyright>
 //----------------------------------------------------------------------------------------------
 
-namespace Icebreaker.Controllers
+namespace Icebreaker.Helpers.AdaptiveCards
 {
-    using Icebreaker.Helpers.AdaptiveCards;
     using Newtonsoft.Json;
 
     /// <summary>

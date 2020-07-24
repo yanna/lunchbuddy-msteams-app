@@ -4,7 +4,7 @@
 // </copyright>
 //----------------------------------------------------------------------------------------------
 
-namespace Icebreaker.Controllers
+namespace Icebreaker.Helpers.HeroCards
 {
     using System;
     using System.Collections.Generic;
