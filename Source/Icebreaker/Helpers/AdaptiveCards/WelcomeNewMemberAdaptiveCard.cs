@@ -80,7 +80,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             {
                 var card = AdaptiveCard.FromJson(cardBody).Card;
                 var adminActions = AdaptiveCardHelper.CreateAdminActions(adminTeamContext);
-                card.Actions.AddRange(adminActions);
+                card.Actions.InsertRange(0, adminActions);
                 cardBody = card.ToJson();
             }
 

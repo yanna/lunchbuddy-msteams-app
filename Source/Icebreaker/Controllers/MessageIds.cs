@@ -54,7 +54,12 @@ namespace Icebreaker.Controllers
         /// <summary>
         /// Edit user info which includes profile and opt in status
         /// </summary>
-        public const string AdminEditUser = "adminedituser";
+        public const string AdminEditUser = "edituser";
+
+        /// <summary>
+        /// Welcome team with an invite to chat with the bot
+        /// </summary>
+        public const string AdminWelcomeTeam = "welcometeam";
 
         /// <summary>
         /// Debug the notify user card
@@ -70,5 +75,10 @@ namespace Icebreaker.Controllers
         /// Debug the welcome card for an admin user
         /// </summary>
         public const string DebugWelcomeUserAdmin = "debugwelcomemeadmin";
+
+        /// <summary>
+        /// Debug the welcome card for a team
+        /// </summary>
+        public const string DebugWelcomeTeam = "debugwelcometeam";
     }
 }

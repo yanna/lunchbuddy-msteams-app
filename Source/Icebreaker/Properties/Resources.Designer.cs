@@ -133,6 +133,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Chat With Me.
+        /// </summary>
+        internal static string ChatWithMeButtonText {
+            get {
+                return ResourceManager.GetString("ChatWithMeButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Profile .
         /// </summary>
         internal static string EditProfileButtonText {
@@ -151,7 +160,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Admin: Edit User.
+        ///   Looks up a localized string similar to Admin: Edit Any User.
         /// </summary>
         internal static string EditUserButtonText {
             get {
@@ -196,7 +205,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s most likely because {0} added me to the **{1} Team.**.
+        ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s most likely because {0} added me to the **{1}** team..
         /// </summary>
         internal static string InstallMessageKnownInstaller {
             get {
@@ -214,7 +223,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away..
+        ///   Looks up a localized string similar to 1. Edit the team settings to setup the subteam names.\r2. Send the welcome team card to the team. (New members added to the team will get a welcome message automatically).\r3. Edit your profile to ensure a good match.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away (you will have the ability to review them before deciding to send it)..
         /// </summary>
         internal static string InstallMessageSuggestedNextStepAdmin {
             get {
@@ -223,7 +232,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s because I was installed to **{0} Team.** .
+        ///   Looks up a localized string similar to If you&apos;re reading this, it&apos;s because I was installed to **{0}** team..
         /// </summary>
         internal static string InstallMessageUnknownInstaller {
             get {
@@ -295,7 +304,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hey there, looks like we&apos;ve been matched by {0} this month. It&apos;d be great to meet up for a coffee or a lunch or a call if you&apos;ve got time..
+        ///   Looks up a localized string similar to Hey there, looks like we&apos;ve been matched by {0} this month. It would be great to meet up for a lunch or a chat if you&apos;ve got time..
         /// </summary>
         internal static string MeetupContent {
             get {
@@ -403,7 +412,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pause All Matches.
+        ///   Looks up a localized string similar to Pause Matches.
         /// </summary>
         internal static string PausePairingsButtonText {
             get {
@@ -489,6 +498,24 @@ namespace Icebreaker.Properties {
         internal static string UnrecognizedInput {
             get {
                 return ResourceManager.GetString("UnrecognizedInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Admin: Send Welcome Card.
+        /// </summary>
+        internal static string WelcomeTeamButtonText {
+            get {
+                return ResourceManager.GetString("WelcomeTeamButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In the meantime, chat with me to edit your profile to ensure a good match, or you can pause matches at any time..
+        /// </summary>
+        internal static string WelcomeTeamSuggestedNextStep {
+            get {
+                return ResourceManager.GetString("WelcomeTeamSuggestedNextStep", resourceCulture);
             }
         }
         

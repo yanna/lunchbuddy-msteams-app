@@ -36,7 +36,8 @@ namespace Icebreaker.Controllers
             {
                 MessageIds.DebugNotifyUser,
                 MessageIds.DebugWelcomeUser,
-                MessageIds.DebugWelcomeUserAdmin
+                MessageIds.DebugWelcomeUserAdmin,
+                MessageIds.DebugWelcomeTeam
             };
             return acceptedMsgs.Contains(msgId.ToLowerInvariant());
         }
@@ -64,6 +65,10 @@ namespace Icebreaker.Controllers
             {
                 await this.HandleDebugWelcomeUserAdmin(connectorClient, activity, activity.From.AsTeamsChannelAccount());
             }
+            else if (msgId == MessageIds.DebugWelcomeTeam)
+            {
+                await this.HandleDebugWelcomeTeam(connectorClient, activity, activity.From.AsTeamsChannelAccount());
+            }
         }
 
         private async Task HandleDebugNotifyUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
@@ -89,6 +94,16 @@ namespace Icebreaker.Controllers
         private async Task HandleDebugWelcomeUserAdmin(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
         {
             var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCardJson("TestTeam", "LunchBuddy", "you", true, null);
+
+            var replyActivity = activity.CreateReply();
+            replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };
+
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        private async Task HandleDebugWelcomeTeam(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
+        {
+            var welcomeCard = WelcomeTeamAdaptiveCard.GetCardJson("TestTeam", "LunchBuddy", "Rocky");
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };

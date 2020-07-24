@@ -340,16 +340,13 @@ namespace Icebreaker
 
                                 await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, teamAdminChannelAccountId: personChannelAccountId);
 
-                                // Welcome the admin
+                                // Welcome the admin. The team is manually welcomed by the admin through clicking on the "Admin: Send Welcome Card" button as they
+                                // need to edit the subteam names through "Admin: Edit Team Settings" first.
                                 if (personThatAddedBot != null)
                                 {
                                     var adminTeamContext = new TeamContext { TeamId = teamId, TeamName = teamsChannelData?.Team?.Name };
                                     await this.bot.WelcomeUser(connectorClient, personChannelAccountId, tenantId, teamId, "you", showAdminActions: true, adminTeamContext);
                                 }
-
-                                // Turn this off for now because constantly installing/uninstalling to try new version of the app.
-                                // TODO: not big deal to not have it. Perhaps turn it off permanently.
-                                // await this.bot.WelcomeTeam(connectorClient, teamId, personName);
                             }
                             else
                             {

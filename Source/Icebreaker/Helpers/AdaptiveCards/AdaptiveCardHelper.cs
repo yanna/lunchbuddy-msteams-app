@@ -116,6 +116,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var adminActions = new List<AdaptiveAction>()
             {
                 CreateSubmitAction(Resources.EditTeamSettingsButtonText, MessageIds.AdminEditTeamSettings, adminTeamContext),
+                CreateSubmitAction(Resources.WelcomeTeamButtonText, MessageIds.AdminWelcomeTeam, adminTeamContext),
                 CreateSubmitAction(Resources.EditUserButtonText, MessageIds.AdminEditUser, adminTeamContext),
                 CreateSubmitAction(Resources.MakePairsButtonText, MessageIds.AdminMakePairs, adminTeamContext)
             };

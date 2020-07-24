@@ -55,7 +55,8 @@ namespace Icebreaker.Controllers
                 MessageIds.AdminChangeNotifyModeNeedApproval,
                 MessageIds.AdminChangeNotifyModeNoApproval,
                 MessageIds.AdminEditTeamSettings,
-                MessageIds.AdminEditUser
+                MessageIds.AdminEditUser,
+                MessageIds.AdminWelcomeTeam
             };
             return acceptedMsgs.Contains(msgId.ToLowerInvariant());
         }
@@ -97,6 +98,10 @@ namespace Icebreaker.Controllers
             else if (msgId == MessageIds.AdminEditUser)
             {
                 await this.HandleAdminEditUser(connectorClient, activity, senderAadId, senderChannelAccountId);
+            }
+            else if (msgId == MessageIds.AdminWelcomeTeam)
+            {
+                await this.HandleWelcomeTeam(connectorClient, activity, senderAadId, senderChannelAccountId);
             }
         }
 
@@ -352,6 +357,31 @@ namespace Icebreaker.Controllers
         {
             var replyActivity = activity.CreateReply();
             return this.bot.EditTeamSettings(connectorClient, replyActivity, team.TeamId, teamName);
+        }
+
+        private async Task HandleWelcomeTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        {
+            if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
+            {
+                var team = await this.bot.GetInstalledTeam(request.TeamId);
+                await this.HandleWelcomeTeamForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+            }
+            else
+            {
+                await this.HandleAdminActionWithNoTeamSpecified(
+                    connectorClient,
+                    activity,
+                    senderAadId,
+                    senderChannelAccountId,
+                    adminActionName: Resources.AdminActionEditTeamSettings,
+                    adminActionMessageId: MessageIds.AdminEditTeamSettings,
+                    this.HandleAdminEditTeamSettingsForTeam);
+            }
+        }
+
+        private Task HandleWelcomeTeamForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        {
+            return this.bot.WelcomeTeam(connectorClient, team.TeamId, team.InstallerName);
         }
     }
 }

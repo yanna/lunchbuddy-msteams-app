@@ -149,6 +149,10 @@
     <value>Chat with {0}</value>
     <comment>Button text to initiate a chat with the person the user has been matched up with</comment>
   </data>
+  <data name="ChatWithMeButtonText" xml:space="preserve">
+    <value>Chat With Me</value>
+    <comment>Button text for chatting with the bot</comment>
+  </data>
   <data name="EditProfileButtonText" xml:space="preserve">
     <value>Edit Profile </value>
     <comment>Edit profile button text</comment>
@@ -158,7 +162,7 @@
     <comment>Button text for edit team settings</comment>
   </data>
   <data name="EditUserButtonText" xml:space="preserve">
-    <value>Admin: Edit User</value>
+    <value>Admin: Edit Any User</value>
     <comment>Admin action for editing user profile and opt in status of someone on the team they manage</comment>
   </data>
   <data name="ErrorOccured" xml:space="preserve">
@@ -178,7 +182,7 @@
     <comment>Admin instructions title</comment>
   </data>
   <data name="InstallMessageKnownInstaller" xml:space="preserve">
-    <value>If you're reading this, it's most likely because {0} added me to the **{1} Team.**</value>
+    <value>If you're reading this, it's most likely because {0} added me to the **{1}** team.</value>
     <comment>Install message and also the welcome message when the app installer is known - {0} is the placeholder for the name of the user that has installed the app to the team, and {1} is the placeholder for the name of the team that the app has been installed to</comment>
   </data>
   <data name="InstallMessageSuggestedNextStep" xml:space="preserve">
@@ -186,10 +190,10 @@
     <comment>Ask the user to edit their profile</comment>
   </data>
   <data name="InstallMessageSuggestedNextStepAdmin" xml:space="preserve">
-    <value>1. Edit the team settings.\r2. Edit your profile to ensure a good match.\r3. New team members will get a welcome message like this.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away.</value>
+    <value>1. Edit the team settings to setup the subteam names.\r2. Send the welcome team card to the team. (New members added to the team will get a welcome message automatically).\r3. Edit your profile to ensure a good match.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away (you will have the ability to review them before deciding to send it).</value>
   </data>
   <data name="InstallMessageUnknownInstaller" xml:space="preserve">
-    <value>If you're reading this, it's because I was installed to **{0} Team.** </value>
+    <value>If you're reading this, it's because I was installed to **{0}** team.</value>
     <comment>Install message and also the welcome message when the app installer is not known - {0} is the placeholder for the name of the team that the app has been installed to</comment>
   </data>
   <data name="MakePairsButtonText" xml:space="preserve">
@@ -221,7 +225,7 @@
     <comment>The title text for the pairup notification adaptive card</comment>
   </data>
   <data name="MeetupContent" xml:space="preserve">
-    <value>Hey there, looks like we've been matched by {0} this month. It'd be great to meet up for a coffee or a lunch or a call if you've got time.</value>
+    <value>Hey there, looks like we've been matched by {0} this month. It would be great to meet up for a lunch or a chat if you've got time.</value>
     <comment>Content of the Meetup for the propose meeting</comment>
   </data>
   <data name="MeetupTitle" xml:space="preserve">
@@ -269,7 +273,7 @@
     <comment>Show this text when the user opt out failed</comment>
   </data>
   <data name="PausePairingsButtonText" xml:space="preserve">
-    <value>Pause All Matches</value>
+    <value>Pause Matches</value>
     <comment>Button text to pause pairings</comment>
   </data>
   <data name="ProposeMeetupButtonText" xml:space="preserve">
@@ -307,6 +311,14 @@
   <data name="UnrecognizedInput" xml:space="preserve">
     <value>Hi! What would you like to do?</value>
     <comment>The text for the unrecognized input scenario</comment>
+  </data>
+  <data name="WelcomeTeamButtonText" xml:space="preserve">
+    <value>Admin: Send Welcome Card</value>
+    <comment>Sends the welcome card and invite user to chat with the bot</comment>
+  </data>
+  <data name="WelcomeTeamSuggestedNextStep" xml:space="preserve">
+    <value>In the meantime, chat with me to edit your profile to ensure a good match, or you can pause matches at any time.</value>
+    <comment>Suggested next step in the welcome team card</comment>
   </data>
   <data name="WelcomeTourTitle" xml:space="preserve">
     <value>Tour</value>

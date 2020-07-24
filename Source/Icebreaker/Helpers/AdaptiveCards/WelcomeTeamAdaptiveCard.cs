@@ -49,25 +49,25 @@ namespace Icebreaker.Helpers.AdaptiveCards
 
             teamIntroPart2 = Resources.InstallMessageBotDescription;
             teamIntroPart3 = Resources.InstallMessageInstruction;
+            var suggestedNextStep = Resources.WelcomeTeamSuggestedNextStep;
 
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
-            var htmlUrl = Uri.EscapeDataString($"https://{baseDomain}/Content/tour.html?theme={{theme}}");
-            var tourTitle = Resources.WelcomeTourTitle;
-            var appId = CloudConfigurationManager.GetSetting("ManifestAppId");
             var welcomeCardImageUrl = $"https://{baseDomain}/Content/welcome-card-image.png";
-            var tourUrl = $"https://teams.microsoft.com/l/task/{appId}?url={htmlUrl}&height=533px&width=600px&title={tourTitle}";
             var salutationText = Resources.SalutationTitleText;
-            var tourButtonText = Resources.TakeATourButtonText;
+            var chatWithMeButtonText = Resources.ChatWithMeButtonText;
 
+            // TODO: update this to deployed id
+            var botChatId = "28:a4295124-dbed-48c4-94c5-5450008cc553";
             var variablesToValues = new Dictionary<string, string>()
             {
                 { "teamIntroPart1", teamIntroPart1 },
                 { "teamIntroPart2", teamIntroPart2 },
                 { "teamIntroPart3", teamIntroPart3 },
+                { "suggestedNextStep", suggestedNextStep },
                 { "welcomeCardImageUrl", welcomeCardImageUrl },
-                { "tourUrl", tourUrl },
                 { "salutationText", salutationText },
-                { "tourButtonText", tourButtonText }
+                { "chatWithMeButtonText", chatWithMeButtonText },
+                { "botChatId", botChatId }
             };
 
             var cardBody = CardTemplate;
