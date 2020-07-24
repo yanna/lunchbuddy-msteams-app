@@ -297,16 +297,20 @@ namespace Icebreaker
         /// Sends a welcome message to the General channel of the team that this bot has been installed to
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
+        /// <param name="replyActivity">Activity to reply to the original message</param>
         /// <param name="teamId">The id of the team that the bot is installed to</param>
+        /// <param name="botChannelAccountId">The id of the bot so we can create a deeplink to chat with it</param>
         /// <param name="botInstaller">The installer of the application</param>
         /// <returns>Tracking task</returns>
-        public async Task WelcomeTeam(ConnectorClient connectorClient, string teamId, string botInstaller)
+        public async Task WelcomeTeam(ConnectorClient connectorClient, Activity replyActivity, string teamId, string botChannelAccountId, string botInstaller)
         {
             this.telemetryClient.TrackTrace($"Sending welcome message for team {teamId}");
 
             var teamName = await this.GetTeamNameAsync(connectorClient, teamId);
-            var welcomeTeamMessageCard = WelcomeTeamAdaptiveCard.GetCardJson(teamName, this.botDisplayName, botInstaller);
-            await this.NotifyTeam(connectorClient, welcomeTeamMessageCard, teamId);
+            var welcomeTeamMessageCard = WelcomeTeamAdaptiveCard.GetCardJson(teamName, botChannelAccountId, botInstaller);
+            var wasSuccessful = await this.NotifyTeam(connectorClient, welcomeTeamMessageCard, teamId);
+            replyActivity.Text = wasSuccessful ? string.Format(Resources.SendWelcomeCardSuccess, teamName) : string.Format(Resources.SendWelcomeCardFail, teamName);
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
         /// <summary>
@@ -806,9 +810,10 @@ namespace Icebreaker
         /// <param name="cardToSend">The actual welcome card (for the team)</param>
         /// <param name="teamId">The team id</param>
         /// <returns>A tracking task</returns>
-        private async Task NotifyTeam(ConnectorClient connectorClient, string cardToSend, string teamId)
+        private async Task<bool> NotifyTeam(ConnectorClient connectorClient, string cardToSend, string teamId)
         {
             this.telemetryClient.TrackTrace($"Sending notification to team {teamId}");
+            bool isSuccessful = false;
 
             try
             {
@@ -826,12 +831,15 @@ namespace Icebreaker
                 };
 
                 await connectorClient.Conversations.SendToConversationAsync(activity);
+                isSuccessful = true;
             }
             catch (Exception ex)
             {
                 this.telemetryClient.TrackTrace($"Error sending notification to team: {ex.Message}", SeverityLevel.Warning);
                 this.telemetryClient.TrackException(ex);
             }
+
+            return isSuccessful;
         }
 
         private async Task<List<ChannelAccount>> GetOptedInUsers(ConnectorClient connectorClient, TeamInstallInfo teamInfo)

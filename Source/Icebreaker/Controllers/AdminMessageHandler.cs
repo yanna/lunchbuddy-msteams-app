@@ -355,8 +355,7 @@ namespace Icebreaker.Controllers
 
         private Task HandleAdminEditTeamSettingsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
         {
-            var replyActivity = activity.CreateReply();
-            return this.bot.EditTeamSettings(connectorClient, replyActivity, team.TeamId, teamName);
+            return this.bot.EditTeamSettings(connectorClient, activity.CreateReply(), team.TeamId, teamName);
         }
 
         private async Task HandleWelcomeTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
@@ -381,7 +380,7 @@ namespace Icebreaker.Controllers
 
         private Task HandleWelcomeTeamForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
         {
-            return this.bot.WelcomeTeam(connectorClient, team.TeamId, team.InstallerName);
+            return this.bot.WelcomeTeam(connectorClient, activity.CreateReply(), team.TeamId, activity.Recipient.Id, team.InstallerName);
         }
     }
 }

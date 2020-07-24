@@ -304,6 +304,14 @@
     <value>Send Pairings</value>
     <comment>Button text to send pairings</comment>
   </data>
+  <data name="SendWelcomeCardFail" xml:space="preserve">
+    <value>I had trouble sending the welcome card to {0}. Retry?</value>
+    <comment>Response to failure to send the welcome card to the team. The input is the team name.</comment>
+  </data>
+  <data name="SendWelcomeCardSuccess" xml:space="preserve">
+    <value>Sent welcome card to {0}</value>
+    <comment>Response to successfully sending the welcome card to the team. The input is the team name.</comment>
+  </data>
   <data name="TakeATourButtonText" xml:space="preserve">
     <value>Take a Tour</value>
     <comment>The text for the button which launches a tour when clicked</comment>

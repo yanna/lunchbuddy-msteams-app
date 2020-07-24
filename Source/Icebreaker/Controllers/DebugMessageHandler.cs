@@ -103,7 +103,7 @@ namespace Icebreaker.Controllers
 
         private async Task HandleDebugWelcomeTeam(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
         {
-            var welcomeCard = WelcomeTeamAdaptiveCard.GetCardJson("TestTeam", "LunchBuddy", "Rocky");
+            var welcomeCard = WelcomeTeamAdaptiveCard.GetCardJson("TestTeam", activity.Recipient.Id, "Rocky");
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };

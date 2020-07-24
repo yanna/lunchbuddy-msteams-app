@@ -29,10 +29,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// Creates the adaptive card for the team welcome message
         /// </summary>
         /// <param name="teamName">The team name</param>
-        /// <param name="botDisplayName">The bot display name</param>
+        /// <param name="botChatId">Bot id that will allow deeplink to chat with the bot</param>
         /// <param name="botInstaller">The name of the person that installed the bot</param>
         /// <returns>The welcome team adaptive card</returns>
-        public static string GetCardJson(string teamName, string botDisplayName, string botInstaller)
+        public static string GetCardJson(string teamName, string botChatId, string botInstaller)
         {
             string teamIntroPart1 = string.Empty;
             string teamIntroPart2 = string.Empty;
@@ -56,8 +56,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var salutationText = Resources.SalutationTitleText;
             var chatWithMeButtonText = Resources.ChatWithMeButtonText;
 
-            // TODO: update this to deployed id
-            var botChatId = "28:a4295124-dbed-48c4-94c5-5450008cc553";
             var variablesToValues = new Dictionary<string, string>()
             {
                 { "teamIntroPart1", teamIntroPart1 },

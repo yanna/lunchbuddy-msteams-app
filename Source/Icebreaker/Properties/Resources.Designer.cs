@@ -484,6 +484,24 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to I had trouble sending the welcome card to {0}. Retry?.
+        /// </summary>
+        internal static string SendWelcomeCardFail {
+            get {
+                return ResourceManager.GetString("SendWelcomeCardFail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sent welcome card to {0}.
+        /// </summary>
+        internal static string SendWelcomeCardSuccess {
+            get {
+                return ResourceManager.GetString("SendWelcomeCardSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Take a Tour.
         /// </summary>
         internal static string TakeATourButtonText {
