@@ -51,23 +51,23 @@
     "actions": [
         {
             "type": "Action.Submit",
+            "title": "%statusActionText%",
+            "data": {
+                "msteams": {
+                    "type": "messageBack",
+                    "displayText": "%statusActionText%",
+                    "text": "%statusActionMessageId%"
+                }
+            }
+        },
+        {
+            "type": "Action.Submit",
             "title": "%editProfileText%",
             "data": {
                 "msteams": {
                     "type": "messageBack",
                     "displayText": "%editProfileText%",
                     "text": "editprofile"
-                }
-            }
-        },
-        {
-            "type": "Action.Submit",
-            "title": "%pauseMatchesText%",
-            "data": {
-                "msteams": {
-                    "type": "messageBack",
-                    "displayText": "%pauseMatchesText%",
-                    "text": "optout"
                 }
             }
         }

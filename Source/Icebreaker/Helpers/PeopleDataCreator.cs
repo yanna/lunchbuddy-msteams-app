@@ -44,7 +44,7 @@ namespace Icebreaker.Helpers
 
             var peopleData = validUserInfos.ToDictionary(
                 userInfo => userInfo.UserId,
-                userInfo => new PersonData(this.ToPastMatches(userInfo.Matches), userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Teams));
+                userInfo => new PersonData(this.ToPastMatches(userInfo.Matches), userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams));
 
             return peopleData;
         }

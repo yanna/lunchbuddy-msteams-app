@@ -60,6 +60,7 @@ namespace Icebreaker.Model
         /// Gets or sets the user that can perform admin actions.
         /// Defaults to the person who installed the bot.
         /// Can be empty if the bot was installed via Graph.
+        /// Note: This is duplicated in UserInfo:AdminForTeams
         /// </summary>
         [JsonProperty("adminUser")]
         public User AdminUser { get; set; }

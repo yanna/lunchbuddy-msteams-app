@@ -11,6 +11,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.IO;
     using System.Web.Hosting;
     using global::AdaptiveCards;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Builder class for the edit user profile card
@@ -92,7 +93,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             return new List<Tuple<string, string>>
             {
                 new Tuple<string, string>("Discipline", GetUIText(discipline)),
-                new Tuple<string, string>("Teams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams)),
+                new Tuple<string, string>("Subteams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams)),
                 new Tuple<string, string>("Seniority", GetUIText(seniority)),
                 new Tuple<string, string>("Gender", GetUIText(gender))
             };
@@ -107,5 +108,37 @@ namespace Icebreaker.Helpers.AdaptiveCards
         private static string GetUIText(string value) => string.IsNullOrEmpty(value) ? "<empty>" : value;
 
         private static string GetValueOrDefault(string value, string defaultValue) => string.IsNullOrEmpty(value) ? defaultValue : value;
+
+        /// <summary>
+        /// Class to encapsulate the data returned by the adaptive card.
+        /// The member name need match the "Id" attribute and any data in the Submit action in the adaptive card.
+        /// See EditUserProfileAdaptiveCard.json
+        /// </summary>
+        public class UserProfile
+        {
+            /// <summary>
+            /// Gets or sets User discipline
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Discipline { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets User seniority
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Seniority { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets User gender
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Gender { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets Names of subteams separated by commas
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Subteams { get; set; } = string.Empty;
+        }
     }
 }

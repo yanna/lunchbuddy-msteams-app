@@ -34,10 +34,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <returns>The welcome team adaptive card</returns>
         public static string GetCardJson(string teamName, string botChatId, string botInstaller)
         {
-            string teamIntroPart1 = string.Empty;
-            string teamIntroPart2 = string.Empty;
-            string teamIntroPart3 = string.Empty;
-
+            string teamIntroPart1;
             if (string.IsNullOrEmpty(botInstaller))
             {
                 teamIntroPart1 = string.Format(Resources.InstallMessageUnknownInstaller, teamName);
@@ -47,8 +44,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 teamIntroPart1 = string.Format(Resources.InstallMessageKnownInstaller, botInstaller, teamName);
             }
 
-            teamIntroPart2 = Resources.InstallMessageBotDescription;
-            teamIntroPart3 = Resources.InstallMessageInstruction;
+            string teamIntroPart2 = Resources.InstallMessageBotDescription;
+            string teamIntroPart3 = Resources.InstallMessageInstruction;
             var suggestedNextStep = Resources.WelcomeTeamSuggestedNextStep;
 
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");

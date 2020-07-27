@@ -124,8 +124,7 @@ namespace Icebreaker.Controllers
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
-                var team = await this.bot.GetInstalledTeam(request.TeamId);
-                await this.HandleAdminEditUserForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+                await this.HandleAdminEditUserForTeam(connectorClient, activity, senderAadId, request.TeamId, request.TeamName);
             }
             else
             {
@@ -139,9 +138,9 @@ namespace Icebreaker.Controllers
             }
         }
 
-        private async Task HandleAdminEditUserForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        private async Task HandleAdminEditUserForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId, string teamName)
         {
-            var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(team.Id);
+            var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
             var users = allMembers.Select(account => new ChooseUserAdaptiveCard.User { AadId = account.GetUserId(), Name = account.Name }).OrderBy(t => t.Name);
             var pickUser = ChooseUserAdaptiveCard.GetCard(users.ToList(), MessageIds.AdminEditUser);
 
@@ -155,8 +154,7 @@ namespace Icebreaker.Controllers
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
-                var team = await this.bot.GetInstalledTeam(request.TeamId);
-                await this.HandleAdminMakePairsForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+                await this.HandleAdminMakePairsForTeam(connectorClient, activity, senderAadId, request.TeamId, request.TeamName);
             }
             else
             {
@@ -174,8 +172,7 @@ namespace Icebreaker.Controllers
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
-                var team = await this.bot.GetInstalledTeam(request.TeamId);
-                await this.HandleAdminNotifyNoApprovalForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+                await this.HandleAdminNotifyNoApprovalForTeam(connectorClient, activity, senderAadId, request.TeamId, request.TeamName);
             }
             else
             {
@@ -193,8 +190,7 @@ namespace Icebreaker.Controllers
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
-                var team = await this.bot.GetInstalledTeam(request.TeamId);
-                await this.HandleAdminNotifyNeedApprovalForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+                await this.HandleAdminNotifyNeedApprovalForTeam(connectorClient, activity, senderAadId, request.TeamId, request.TeamName);
             }
             else
             {
@@ -208,8 +204,9 @@ namespace Icebreaker.Controllers
             }
         }
 
-        private async Task HandleAdminNotifyNoApprovalForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        private async Task HandleAdminNotifyNoApprovalForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId, string teamName)
         {
+            var team = await this.bot.GetInstalledTeam(teamId);
             var isSuccess = await this.bot.ChangeTeamNotifyPairsMode(needApproval: false, team);
 
             Activity reply = activity.CreateReply();
@@ -217,8 +214,9 @@ namespace Icebreaker.Controllers
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }
 
-        private async Task HandleAdminNotifyNeedApprovalForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        private async Task HandleAdminNotifyNeedApprovalForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId, string teamName)
         {
+            var team = await this.bot.GetInstalledTeam(teamId);
             var isSuccess = await this.bot.ChangeTeamNotifyPairsMode(needApproval: true, team);
 
             Activity reply = activity.CreateReply();
@@ -232,38 +230,38 @@ namespace Icebreaker.Controllers
             string senderAadId,
             string adminActionName,
             string adminActionMessageId,
-            Func<ConnectorClient, Activity, string, TeamInstallInfo, string, Task> adminActionFcn)
+            Func<ConnectorClient, Activity, string, string, string, Task> adminActionFcn)
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered {adminActionName} with no team specified");
 
-            var teamsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderAadId);
+            var teamIdsAllowingAdminActionsByUser = await this.bot.GetTeamsAllowingAdminActionsByUser(senderAadId);
 
-            if (teamsAllowingAdminActionsByUser.Count == 0)
+            if (teamIdsAllowingAdminActionsByUser.Count == 0)
             {
                 var noTeamMsg = string.Format(Resources.AdminActionNoTeamMsg, adminActionName);
                 var noTeamReply = activity.CreateReply(noTeamMsg);
                 await connectorClient.Conversations.ReplyToActivityAsync(noTeamReply);
             }
-            else if (teamsAllowingAdminActionsByUser.Count == 1)
+            else if (teamIdsAllowingAdminActionsByUser.Count == 1)
             {
-                var team = teamsAllowingAdminActionsByUser.First();
-                var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
-                await adminActionFcn.Invoke(connectorClient, activity, senderAadId, team, teamName);
+                var teamId = teamIdsAllowingAdminActionsByUser.First();
+                var teamName = await this.bot.GetTeamNameAsync(connectorClient, teamId);
+                await adminActionFcn.Invoke(connectorClient, activity, senderAadId, teamId, teamName);
             }
             else
             {
                 var teamActions = new List<CardAction>();
 
-                foreach (var team in teamsAllowingAdminActionsByUser)
+                foreach (var teamId in teamIdsAllowingAdminActionsByUser)
                 {
-                    var teamName = await this.bot.GetTeamNameAsync(connectorClient, team.Id);
+                    var teamName = await this.bot.GetTeamNameAsync(connectorClient, teamId);
                     var teamCardAction = new CardAction()
                     {
                         Title = teamName,
                         DisplayText = teamName,
                         Type = ActionTypes.MessageBack,
                         Text = adminActionMessageId,
-                        Value = JsonConvert.SerializeObject(new TeamContext { TeamId = team.Id, TeamName = teamName })
+                        Value = JsonConvert.SerializeObject(new TeamContext { TeamId = teamId, TeamName = teamName })
                     };
                     teamActions.Add(teamCardAction);
                 }
@@ -282,17 +280,27 @@ namespace Icebreaker.Controllers
             }
         }
 
-        private async Task HandleAdminMakePairsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        private async Task HandleAdminMakePairsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId, string teamName)
         {
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs");
 
+            var team = await this.bot.GetInstalledTeam(teamId);
             var matchResult = await this.bot.MakePairsForTeam(team);
 
             Activity reply = activity.CreateReply();
-            reply.Attachments = new List<Attachment>
+
+            if (matchResult.Pairs.Any())
             {
-                this.bot.CreateMatchAttachment(matchResult, team.Id, teamName)
-            };
+                reply.Attachments = new List<Attachment>
+                {
+                    this.bot.CreateMatchAttachment(matchResult, team.Id, teamName)
+                };
+            }
+            else
+            {
+                reply.Text = Resources.NewPairingsNotEnoughUsers;
+            }
+
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }
 
@@ -333,8 +341,7 @@ namespace Icebreaker.Controllers
         {
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
-                var team = await this.bot.GetInstalledTeam(request.TeamId);
-                await this.HandleAdminEditTeamSettingsForTeam(connectorClient, activity, senderAadId, team, request.TeamName);
+                await this.HandleAdminEditTeamSettingsForTeam(connectorClient, activity, senderAadId, request.TeamId, request.TeamName);
             }
             else
             {
@@ -348,9 +355,9 @@ namespace Icebreaker.Controllers
             }
         }
 
-        private Task HandleAdminEditTeamSettingsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, TeamInstallInfo team, string teamName)
+        private Task HandleAdminEditTeamSettingsForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId, string teamName)
         {
-            return this.bot.EditTeamSettings(connectorClient, activity.CreateReply(), team.TeamId, teamName);
+            return this.bot.EditTeamSettings(connectorClient, activity.CreateReply(), teamId, teamName);
         }
 
         private async Task HandleWelcomeTeam(ConnectorClient connectorClient, Activity activity, string senderAadId)

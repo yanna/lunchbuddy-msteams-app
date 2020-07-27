@@ -17,11 +17,11 @@ namespace Icebreaker
     using Icebreaker.Controllers;
     using Icebreaker.Helpers;
     using Icebreaker.Helpers.AdaptiveCards;
+    using Icebreaker.Model;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams.Models;
-    using Newtonsoft.Json;
     using Properties;
 
     /// <summary>
@@ -86,15 +86,15 @@ namespace Icebreaker
                 // Submit action from an adaptive card results in no text and hopefully some value.
                 if (activity.Text == null && activity.Value != null)
                 {
-                    if (activity.Value.ToString().TryParseJson(out UserInfo userInfo))
+                    if (activity.Value.ToString().TryParseJson(out EditUserInfoAdaptiveCard.UserInfo userInfo))
                     {
-                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, userInfo.UserAadId, userInfo, userInfo.OptedIn);
+                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, userInfo.UserAadId, userInfo, userInfo.GetStatus());
                     }
-                    else if (activity.Value.ToString().TryParseJson(out UserProfile userProfile))
+                    else if (activity.Value.ToString().TryParseJson(out EditUserProfileAdaptiveCard.UserProfile userProfile))
                     {
-                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, senderAadId, userProfile, optedIn: null);
+                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, senderAadId, userProfile, userStatus: null);
                     }
-                    else if (activity.Value.ToString().TryParseJson(out TeamSettings teamSettings))
+                    else if (activity.Value.ToString().TryParseJson(out EditTeamSettingsAdaptiveCard.TeamSettings teamSettings))
                     {
                         await this.HandleSaveTeamSettings(connectorClient, activity, teamSettings);
                     }
@@ -136,9 +136,7 @@ namespace Icebreaker
                 {
                     if (!hasTeamContext)
                     {
-                        // Unknown input in a personal chat, not in the team channel
-                        var replyActivity = activity.CreateReply();
-                        await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId);
+                        await this.HandleUnrecognizedMsgInOneOnOneChat(connectorClient, activity, tenantId, activity.From);
                     }
                 }
             }
@@ -146,6 +144,33 @@ namespace Icebreaker
             {
                 this.telemetryClient.TrackTrace($"Error while handling message activity: {ex.Message}", SeverityLevel.Warning);
                 this.telemetryClient.TrackException(ex);
+            }
+        }
+
+        private async Task HandleUnrecognizedMsgInOneOnOneChat(ConnectorClient connectorClient, Activity activity, string tenantId, ChannelAccount sender)
+        {
+            var senderAadId = sender.GetUserId();
+            var userInfo = await this.bot.GetOrCreateUnpersistedUserInfo(tenantId, senderAadId);
+
+            var hasJoinedBefore = userInfo.Status != EnrollmentStatus.NotJoined;
+            var isAdminOfMoreThanOneTeam = userInfo.AdminForTeams.Count > 1;
+
+            if (hasJoinedBefore || isAdminOfMoreThanOneTeam)
+            {
+                var replyActivity = activity.CreateReply();
+                await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId, userInfo.AdminForTeams, userInfo.Status);
+            }
+            else
+            {
+                TeamContext teamContext = null;
+                if (userInfo.AdminForTeams.Count == 1)
+                {
+                    var firstTeamId = userInfo.AdminForTeams.First();
+                    teamContext.TeamId = firstTeamId;
+                    teamContext.TeamName = await this.bot.GetTeamNameAsync(connectorClient, firstTeamId);
+                }
+
+                await this.bot.WelcomeUser(connectorClient, sender, tenantId, teamId: string.Empty, botInstaller: string.Empty, teamContext);
             }
         }
 
@@ -247,15 +272,15 @@ namespace Icebreaker
             Activity activity,
             string tenantId,
             string senderAadId,
-            UserProfile userProfile,
-            bool? optedIn)
+            EditUserProfileAdaptiveCard.UserProfile userProfile,
+            EnrollmentStatus? userStatus)
         {
             // Who knows whether users will enter the separator and a space, so split without the space and trim.
             string[] teamsSeparator = { AdaptiveCardHelper.TeamsSeparatorWithSpace.Trim() };
-            var splitTeams = userProfile.Teams.Split(teamsSeparator, StringSplitOptions.RemoveEmptyEntries);
-            var teams = splitTeams.Select(team => team.Trim().ToLowerInvariant()).ToList();
+            var splitTeams = userProfile.Subteams.Split(teamsSeparator, StringSplitOptions.RemoveEmptyEntries);
+            var subteams = splitTeams.Select(team => team.Trim().ToLowerInvariant()).ToList();
 
-            if (optedIn == null)
+            if (userStatus == null)
             {
                 await this.bot.SaveUserProfile(
                     connectorClient,
@@ -265,7 +290,7 @@ namespace Icebreaker
                     userProfile.Discipline,
                     userProfile.Gender,
                     userProfile.Seniority,
-                    teams);
+                    subteams);
             }
             else
             {
@@ -277,12 +302,12 @@ namespace Icebreaker
                     userProfile.Discipline,
                     userProfile.Gender,
                     userProfile.Seniority,
-                    teams,
-                    (bool)optedIn);
+                    subteams,
+                    (EnrollmentStatus)userStatus);
             }
         }
 
-        private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, TeamSettings teamSettings)
+        private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, EditTeamSettingsAdaptiveCard.TeamSettings teamSettings)
         {
             return this.bot.SaveTeamSettings(
                 connectorClient,
@@ -303,7 +328,7 @@ namespace Icebreaker
 
                 if (message.Type == ActivityTypes.ConversationUpdate)
                 {
-                    // conversation-update fires whenever a new 1:1 gets created between us and someone else as well
+                    // conversation-update fires whenever a new 1:1 gets created between us and someone else
                     // only process the Teams ones.
                     if (string.IsNullOrEmpty(teamsChannelData?.Team?.Id))
                     {
@@ -312,7 +337,7 @@ namespace Icebreaker
                     }
 
                     string myBotId = message.Recipient.Id;
-                    string teamId = message.Conversation.Id;
+                    string teamId = teamsChannelData.Team.Id;
 
                     if (message.MembersAdded?.Count() > 0)
                     {
@@ -320,68 +345,31 @@ namespace Icebreaker
                         {
                             if (member.Id == myBotId)
                             {
-                                this.telemetryClient.TrackTrace($"Bot installed to team {teamId}");
-
-                                var properties = new Dictionary<string, string>
-                                {
-                                    { "Scope", message.Conversation?.ConversationType },
-                                    { "TeamId", teamId },
-                                    { "InstallerId", message.From.Id },
-                                };
-                                this.telemetryClient.TrackEvent("AppInstalled", properties);
-
-                                // Try to determine the name of the person that installed the app, which is usually the sender of the message (From.Id)
-                                // Note that in some cases we cannot resolve it to a team member, because the app was installed to the team programmatically via Graph
-                                var teamMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
-
-                                var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id);
-                                var personName = personThatAddedBot?.Name;
-                                var personChannelAccountId = personThatAddedBot?.Id;
-                                var personAADId = personThatAddedBot?.GetUserId();
-
-                                var addedSuccessfully = await this.bot.SaveAddedToTeam(message.ServiceUrl, teamId, tenantId, personName, adminUserAadId: personAADId, adminUserChannelAccountId: personChannelAccountId);
-
-                                if (!addedSuccessfully)
-                                {
-                                    this.telemetryClient.TrackTrace($"Failed to save that the bot was added to team {teamId}", SeverityLevel.Error);
-                                }
-
-                                if (addedSuccessfully && personThatAddedBot != null)
-                                {
-                                    // Welcome the admin. The team is manually welcomed by the admin through clicking on the "Admin: Send Welcome Card" button as they
-                                    // need to edit the subteam names through "Admin: Edit Team Settings" first.
-                                    var adminTeamContext = new TeamContext { TeamId = teamId, TeamName = teamsChannelData?.Team?.Name };
-                                        await this.bot.WelcomeUser(connectorClient, personChannelAccountId, tenantId, teamId, "you", showAdminActions: true, adminTeamContext);
-                                }
-                                else if (!addedSuccessfully && personThatAddedBot != null)
-                                {
-                                    await this.bot.SendFailedToInstall(connectorClient, personThatAddedBot, tenantId);
-                                }
+                                await this.HandleAddedBot(connectorClient, message, teamId, tenantId, teamsChannelData?.Team?.Name);
                             }
                             else
                             {
-                                this.telemetryClient.TrackTrace($"New member {member.Id} added to team {teamsChannelData.Team.Id}");
+                                await this.bot.SaveAddedUserToTeam(member.GetUserId(), teamId);
 
-                                var installedTeam = await this.bot.GetInstalledTeam(teamsChannelData.Team.Id);
-                                await this.bot.WelcomeUser(connectorClient, member.Id, tenantId, teamsChannelData.Team.Id, installedTeam.InstallerName);
+                                var installedTeam = await this.bot.GetInstalledTeam(teamId);
+                                await this.bot.WelcomeUser(connectorClient, member, tenantId, teamId, installedTeam.InstallerName);
                             }
                         }
                     }
 
-                    if (message.MembersRemoved?.Any(x => x.Id == myBotId) == true)
+                    if (message.MembersRemoved?.Count() > 0)
                     {
-                        this.telemetryClient.TrackTrace($"Bot removed from team {teamId}");
-
-                        var properties = new Dictionary<string, string>
+                        foreach (var member in message.MembersRemoved)
                         {
-                            { "Scope", message.Conversation?.ConversationType },
-                            { "TeamId", teamId },
-                            { "UninstallerId", message.From.Id },
-                        };
-                        this.telemetryClient.TrackEvent("AppUninstalled", properties);
-
-                        // we were just removed from a team
-                        await this.bot.SaveRemoveFromTeam(message.ServiceUrl, teamId, tenantId);
+                            if (member.Id == myBotId)
+                            {
+                                await this.HandleRemovedBot(message, teamId, tenantId);
+                            }
+                            else
+                            {
+                                await this.bot.SaveRemovedUserFromTeam(member.GetUserId(), teamId);
+                            }
+                        }
                     }
                 }
             }
@@ -391,6 +379,62 @@ namespace Icebreaker
                 this.telemetryClient.TrackException(ex);
                 throw;
             }
+        }
+
+        private async Task HandleAddedBot(ConnectorClient connectorClient, Activity message, string teamId, string tenantId, string teamName)
+        {
+            this.telemetryClient.TrackTrace($"Bot installed to team {teamId}");
+
+            var properties = new Dictionary<string, string>
+            {
+                { "Scope", message.Conversation?.ConversationType },
+                { "TeamId", teamId },
+                { "InstallerId", message.From.Id },
+            };
+            this.telemetryClient.TrackEvent("AppInstalled", properties);
+
+            // Try to determine the name of the person that installed the app, which is usually the sender of the message (From.Id)
+            // Note that in some cases we cannot resolve it to a team member, because the app was installed to the team programmatically via Graph
+            var teamMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
+
+            var personThatAddedBot = teamMembers.FirstOrDefault(x => x.Id == message.From.Id);
+            var personName = personThatAddedBot?.Name;
+            var personChannelAccountId = personThatAddedBot?.Id;
+            var personAADId = personThatAddedBot?.GetUserId();
+
+            var addedSuccessfully = await this.bot.SaveAddedBotToTeam(message.ServiceUrl, teamId, tenantId, personName, adminUserAadId: personAADId, adminUserChannelAccountId: personChannelAccountId);
+
+            if (!addedSuccessfully)
+            {
+                this.telemetryClient.TrackTrace($"Failed to save that the bot was added to team {teamId}", SeverityLevel.Error);
+            }
+
+            if (addedSuccessfully && personThatAddedBot != null)
+            {
+                // Welcome the admin. The team is manually welcomed by the admin through clicking on the "Admin: Send Welcome Card" button as the
+                // admin need to edit the subteam names through "Admin: Edit Team Settings" first.
+                var adminTeamContext = new TeamContext { TeamId = teamId, TeamName = teamName };
+                await this.bot.WelcomeUser(connectorClient, personThatAddedBot, tenantId, teamId, "you", adminTeamContext);
+            }
+            else if (!addedSuccessfully && personThatAddedBot != null)
+            {
+                await this.bot.SendFailedToInstall(connectorClient, personThatAddedBot, tenantId);
+            }
+        }
+
+        private async Task HandleRemovedBot(Activity message, string teamId, string tenantId)
+        {
+            this.telemetryClient.TrackTrace($"Bot removed from team {teamId}");
+
+            var properties = new Dictionary<string, string>
+            {
+                { "Scope", message.Conversation?.ConversationType },
+                { "TeamId", teamId },
+                { "UninstallerId", message.From.Id },
+            };
+            this.telemetryClient.TrackEvent("AppUninstalled", properties);
+
+            await this.bot.SaveRemoveBotFromTeam(teamId, tenantId);
         }
 
         /// <summary>
@@ -418,42 +462,6 @@ namespace Icebreaker
                 { "Platform", clientInfoEntity?.Properties["platform"]?.ToString() }
             };
             this.telemetryClient.TrackEvent("UserActivity", properties);
-        }
-
-        private class UserProfile
-        {
-            [JsonProperty(Required = Required.Always)]
-            public string Discipline { get; set; } = string.Empty;
-
-            [JsonProperty(Required = Required.Always)]
-            public string Seniority { get; set; } = string.Empty;
-
-            [JsonProperty(Required = Required.Always)]
-            public string Gender { get; set; } = string.Empty;
-
-            [JsonProperty(Required = Required.Always)]
-            public string Teams { get; set; } = string.Empty;
-        }
-
-        private class UserInfo : UserProfile
-        {
-            [JsonProperty(Required = Required.Always)]
-            public bool OptedIn { get; set; } = false;
-
-            [JsonProperty(Required = Required.Always)]
-            public string UserAadId { get; set; } = string.Empty;
-        }
-
-        private class TeamSettings
-        {
-            [JsonProperty(Required = Required.Always)]
-            public string TeamId { get; set; } = string.Empty;
-
-            [JsonProperty(Required = Required.Always)]
-            public string NotifyMode { get; set; } = string.Empty;
-
-            [JsonProperty(Required = Required.Always)]
-            public string SubteamNames { get; set; } = string.Empty;
         }
     }
 }

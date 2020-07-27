@@ -187,7 +187,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to **I will message you at the start of the month with your match.**.
+        ///   Looks up a localized string similar to **Join in and I will message you at the start of the month with your match.**.
         /// </summary>
         internal static string InstallMessageInstruction {
             get {
@@ -214,7 +214,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In the meantime, edit your profile to ensure a good match, or you can pause matches at any time. .
+        ///   Looks up a localized string similar to Edit your profile to ensure a good match. You can always pause matches at any time. .
         /// </summary>
         internal static string InstallMessageSuggestedNextStep {
             get {
@@ -223,7 +223,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1. Edit the team settings to setup the subteam names.\r2. Send the welcome team card to the team. (New members added to the team will get a welcome message automatically).\r3. Edit your profile to ensure a good match.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away (you will have the ability to review them before deciding to send it)..
+        ///   Looks up a localized string similar to 1. Edit the team settings to setup the subteam names.\r2. Send the welcome team card to the team. (New members added to the team will get a welcome message automatically).\r3. Join LunchBuddy and edit your profile to ensure a good match.\r4. Wait for a match at the beginning of the month or you can click {0} to create matches right away (you will have the ability to review them before deciding to send it)..
         /// </summary>
         internal static string InstallMessageSuggestedNextStepAdmin {
             get {
@@ -237,6 +237,15 @@ namespace Icebreaker.Properties {
         internal static string InstallMessageUnknownInstaller {
             get {
                 return ResourceManager.GetString("InstallMessageUnknownInstaller", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Join LunchBuddy.
+        /// </summary>
+        internal static string JoinButtonText {
+            get {
+                return ResourceManager.GetString("JoinButtonText", resourceCulture);
             }
         }
         
@@ -331,6 +340,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There are not enough active users to make pairs. You need at least two. .
+        /// </summary>
+        internal static string NewPairingsNotEnoughUsers {
+            get {
+                return ResourceManager.GetString("NewPairingsNotEnoughUsers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Odd Person.
         /// </summary>
         internal static string NewPairingsOddPerson {
@@ -376,7 +394,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Welcome back! You&apos;ve been missed. I&apos;ve restarted your matches. Have fun!.
+        ///   Looks up a localized string similar to Welcome! You are all set to receive matches. Have fun!.
         /// </summary>
         internal static string OptInConfirmation {
             get {
@@ -394,7 +412,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All set. I&apos;ve paused your matches. You can turn them back on whenever you like..
+        ///   Looks up a localized string similar to I&apos;ve paused your matches. You can turn them back on whenever you like..
         /// </summary>
         internal static string OptOutConfirmation {
             get {
@@ -529,7 +547,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In the meantime, chat with me to edit your profile to ensure a good match, or you can pause matches at any time..
+        ///   Looks up a localized string similar to Chat with me to join in. You can always pause matches at any time..
         /// </summary>
         internal static string WelcomeTeamSuggestedNextStep {
             get {

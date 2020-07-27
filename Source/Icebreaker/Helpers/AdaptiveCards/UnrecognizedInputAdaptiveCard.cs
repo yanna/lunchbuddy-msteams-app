@@ -5,10 +5,10 @@
 //----------------------------------------------------------------------------------------------
 namespace Icebreaker.Helpers.AdaptiveCards
 {
-    using System;
     using System.Collections.Generic;
     using global::AdaptiveCards;
     using Icebreaker.Controllers;
+    using Icebreaker.Model;
     using Icebreaker.Properties;
 
     /// <summary>
@@ -23,15 +23,13 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <summary>
         /// Generates the adaptive card string for the unrecognized input.
         /// </summary>
-        /// <param name="isOptedIn">Whether the user is opted in to being matched</param>
+        /// <param name="userStatus">User status</param>
         /// <param name="showAdminActions">Whether to show the admin actions</param>
         /// <param name="adminTeamContext">Can be null. The admin team context for the admin actions</param>
         /// <returns>The adaptive card for the unrecognized input</returns>
-        public static string GetCardJson(bool isOptedIn, bool showAdminActions, TeamContext adminTeamContext)
+        public static string GetCardJson(EnrollmentStatus userStatus, bool showAdminActions, TeamContext adminTeamContext)
         {
             var messageContent = Resources.UnrecognizedInput;
-            var pauseOrResumeMatchesButtonText = isOptedIn ? Resources.PausePairingsButtonText : Resources.ResumePairingsButtonText;
-            var pauseOrResumeMatchesMessage = isOptedIn ? MessageIds.OptOut : MessageIds.OptIn;
 
             var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 0))
             {
@@ -45,8 +43,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 },
                 Actions = new List<AdaptiveAction>
                 {
+                    AdaptiveCardHelper.CreateStatusSubmitAction(userStatus),
                     AdaptiveCardHelper.CreateSubmitAction(Resources.EditProfileButtonText, MessageIds.EditProfile),
-                    AdaptiveCardHelper.CreateSubmitAction(pauseOrResumeMatchesButtonText, pauseOrResumeMatchesMessage)
                 }
             };
 
@@ -57,18 +55,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
             }
 
             return card.ToJson();
-        }
-
-        private static AdaptiveOpenUrlAction CreateTakeTourAction()
-        {
-            var tourButtonText = Resources.TakeATourButtonText;
-            var tourUrl = AdaptiveCardHelper.CreateTourUrl();
-
-            return new AdaptiveOpenUrlAction
-            {
-                Title = tourButtonText,
-                Url = new Uri(tourUrl)
-            };
         }
     }
 }

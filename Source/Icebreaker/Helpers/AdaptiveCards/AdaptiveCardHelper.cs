@@ -11,6 +11,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Linq;
     using global::AdaptiveCards;
     using Icebreaker.Controllers;
+    using Icebreaker.Model;
     using Icebreaker.Properties;
     using Microsoft.Azure;
     using Microsoft.Bot.Connector;
@@ -165,6 +166,46 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 }
             };
             return card;
+        }
+
+        /// <summary>
+        /// Determine what the status button should say and the corresponding message id based on the current user status
+        /// </summary>
+        /// <param name="userStatus">User status</param>
+        /// <returns>Button text and message id</returns>
+        public static Tuple<string, string> GetButtonTextAndMsgIdForStatusButton(EnrollmentStatus userStatus)
+        {
+            string buttonText = string.Empty;
+            string messageId = string.Empty;
+
+            switch (userStatus)
+            {
+                case EnrollmentStatus.NotJoined:
+                    buttonText = Resources.JoinButtonText;
+                    messageId = MessageIds.OptIn;
+                    break;
+                case EnrollmentStatus.Active:
+                    buttonText = Resources.PausePairingsButtonText;
+                    messageId = MessageIds.OptOut;
+                    break;
+                case EnrollmentStatus.Inactive:
+                    buttonText = Resources.ResumePairingsButtonText;
+                    messageId = MessageIds.OptIn;
+                    break;
+            }
+
+            return new Tuple<string, string>(buttonText, messageId);
+        }
+
+        /// <summary>
+        /// Create the adaptive card submit action corresponding to the current status.
+        /// </summary>
+        /// <param name="userStatus">user status</param>
+        /// <returns>submit action</returns>
+        public static AdaptiveSubmitAction CreateStatusSubmitAction(EnrollmentStatus userStatus)
+        {
+            var textAndMsg = GetButtonTextAndMsgIdForStatusButton(userStatus);
+            return CreateSubmitAction(textAndMsg.Item1, textAndMsg.Item2);
         }
     }
 }

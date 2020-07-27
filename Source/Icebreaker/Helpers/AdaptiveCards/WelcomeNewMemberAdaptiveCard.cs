@@ -11,6 +11,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Web.Hosting;
     using global::AdaptiveCards;
     using Icebreaker.Controllers;
+    using Icebreaker.Model;
     using Icebreaker.Properties;
     using Microsoft.Azure;
 
@@ -30,23 +31,28 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <summary>
         /// Creates the welcome new member card.
         /// </summary>
-        /// <param name="teamName">The team name</param>
+        /// <param name="userStatus">User status</param>
+        /// <param name="teamName">The team name. Can be empty</param>
         /// <param name="botDisplayName">The bot name</param>
-        /// <param name="botInstaller">The name of the person that installed the bot to the team</param>
-        /// <param name="showAdminActions">Show admin actions</param>
-        /// <param name="adminTeamContext">Team context for the admin actions</param>
+        /// <param name="botInstaller">The name of the person that installed the bot to the team. Can be empty.</param>
+        /// <param name="adminTeamContext">Team context for the admin actions. If this is not null the admin version of the card is shown</param>
         /// <returns>The welcome new member card</returns>
-        public static string GetCardJson(string teamName, string botDisplayName, string botInstaller, bool showAdminActions, TeamContext adminTeamContext)
+        public static string GetCardJson(EnrollmentStatus userStatus, string teamName, string botDisplayName, string botInstaller, TeamContext adminTeamContext)
         {
             string introMessagePart1 = string.Empty;
-            if (string.IsNullOrEmpty(botInstaller))
+            if (!string.IsNullOrEmpty(teamName))
             {
-                introMessagePart1 = string.Format(Resources.InstallMessageUnknownInstaller, teamName);
+                if (string.IsNullOrEmpty(botInstaller))
+                {
+                    introMessagePart1 = string.Format(Resources.InstallMessageUnknownInstaller, teamName);
+                }
+                else
+                {
+                    introMessagePart1 = string.Format(Resources.InstallMessageKnownInstaller, botInstaller, teamName);
+                }
             }
-            else
-            {
-                introMessagePart1 = string.Format(Resources.InstallMessageKnownInstaller, botInstaller, teamName);
-            }
+
+            var showAdminActions = adminTeamContext != null;
 
             var introMessagePart2 = Resources.InstallMessageBotDescription;
             var introMessagePart3 = showAdminActions ? Resources.InstallMessageInstructionAdmin : Resources.InstallMessageInstruction;
@@ -56,13 +62,15 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
             var welcomeCardImageUrl = $"https://{baseDomain}/Content/welcome-card-image.png";
 
-            var pauseMatchesText = Resources.PausePairingsButtonText;
+            var statusAction = AdaptiveCardHelper.GetButtonTextAndMsgIdForStatusButton(userStatus);
+            var statusActionText = statusAction.Item1;
+            var statusActionMsgId = statusAction.Item2;
+
             var salutationText = Resources.SalutationTitleText;
             var editProfileText = Resources.EditProfileButtonText;
 
             var variablesToValues = new Dictionary<string, string>()
             {
-                { "team", teamName },
                 { "botDisplayName", botDisplayName },
                 { "introMessagePart1", introMessagePart1 },
                 { "introMessagePart2", introMessagePart2 },
@@ -70,7 +78,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "suggestedNextStep", suggestedNextStep },
                 { "welcomeCardImageUrl", welcomeCardImageUrl },
                 { "editProfileText", editProfileText },
-                { "pauseMatchesText", pauseMatchesText },
+                { "statusActionText", statusActionText },
+                { "statusActionMessageId", statusActionMsgId },
                 { "salutationText", salutationText }
             };
 

@@ -21,7 +21,13 @@ namespace Icebreaker.Helpers
         /// <returns>the id</returns>
         public static string GetUserId(this ChannelAccount @this)
         {
-            return @this.AsTeamsChannelAccount().ObjectId;
+            var teamsChannelAccount = @this.AsTeamsChannelAccount();
+
+            // ObjectId == null when the ChannelAccount is from the activity
+            // and not from Conversations.GetConversationMembersAsync
+            return string.IsNullOrEmpty(teamsChannelAccount.ObjectId) ?
+                teamsChannelAccount.Properties["aadObjectId"].ToString() :
+                teamsChannelAccount.ObjectId;
         }
     }
 }

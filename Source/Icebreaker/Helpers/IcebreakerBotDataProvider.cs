@@ -43,31 +43,24 @@ namespace Icebreaker.Helpers
         }
 
         /// <summary>
-        /// Updates team installation status in store. If the bot is installed, the info is saved, otherwise info for the team is deleted.
+        /// Remove the team installation status in store.
         /// </summary>
-        /// <param name="team">The team installation info</param>
-        /// <param name="installed">Value that indicates if bot is installed</param>
-        /// <returns>Whether update succeeded</returns>
-        public async Task<bool> UpdateTeamInstallStatusAsync(TeamInstallInfo team, bool installed)
+        /// <param name="teamId">The team id</param>
+        /// <returns>Whether delete succeeded</returns>
+        public async Task<bool> RemoveTeamInstallInfoAsync(string teamId)
         {
             await this.EnsureInitializedAsync();
 
             try
             {
-                if (installed)
-                {
-                    var result = await this.documentClient.UpsertDocumentAsync(this.teamsCollection.SelfLink, team);
-                }
-                else
-                {
-                    var documentUri = UriFactory.CreateDocumentUri(this.database.Id, this.teamsCollection.Id, team.Id);
-                    await this.documentClient.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(team.Id) });
-                }
+                var documentUri = UriFactory.CreateDocumentUri(this.database.Id, this.teamsCollection.Id, teamId);
+                await this.documentClient.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(teamId) });
 
                 return true;
             }
             catch (Exception ex)
             {
+                this.telemetryClient.TrackTrace("Error deleting team info", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
             }
 
@@ -90,6 +83,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
+                this.telemetryClient.TrackTrace("Error updating team install info", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
             }
 
@@ -121,6 +115,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
+                this.telemetryClient.TrackTrace("Error getting all installed teams", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
             }
 
@@ -144,6 +139,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
+                this.telemetryClient.TrackTrace("Error getting team info", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
                 return null;
             }
@@ -165,6 +161,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
+                this.telemetryClient.TrackTrace("Error getting user info", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
                 return null;
             }
@@ -185,6 +182,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
+                this.telemetryClient.TrackTrace("Error setting user info", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
                 return false;
             }

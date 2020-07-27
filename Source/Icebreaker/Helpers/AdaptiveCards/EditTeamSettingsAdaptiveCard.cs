@@ -10,6 +10,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System.Web.Hosting;
     using global::AdaptiveCards;
     using Icebreaker.Model;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Card for editing the team settings
@@ -85,5 +86,31 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="value">value to display</param>
         /// <returns>Value for the user</returns>
         private static string GetUIText(string value) => string.IsNullOrEmpty(value) ? "<empty>" : value;
+
+        /// <summary>
+        /// Class to encapsulate the data returned by the adaptive card.
+        /// The member name need match the "Id" attribute and any data in the Submit action in the adaptive card.
+        /// See EditTeamSettingsAdaptiveCard.json
+        /// </summary>
+        public class TeamSettings
+        {
+            /// <summary>
+            /// Gets or sets the Team id
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string TeamId { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets the notify mode
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string NotifyMode { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets the subteam names
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string SubteamNames { get; set; } = string.Empty;
+        }
     }
 }

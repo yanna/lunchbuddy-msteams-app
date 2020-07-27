@@ -9,6 +9,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System;
     using System.Collections.Generic;
     using global::AdaptiveCards;
+    using Icebreaker.Model;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
@@ -27,7 +29,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// </summary>
         /// <param name="userId">User AAD id</param>
         /// <param name="userName">User display name</param>
-        /// <param name="optedIn">whether user is opted in to matches</param>
+        /// <param name="userStatus">whether user is opted in to matches</param>
         /// <param name="discipline">User discipline</param>
         /// <param name="gender">User gender</param>
         /// <param name="seniority">User seniority</param>
@@ -37,7 +39,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         public static AdaptiveCard GetCard(
             string userId,
             string userName,
-            bool optedIn,
+            EnrollmentStatus userStatus,
             string discipline,
             string gender,
             string seniority,
@@ -61,28 +63,33 @@ namespace Icebreaker.Helpers.AdaptiveCards
                     },
                     new AdaptiveTextBlock()
                     {
-                        Text = "Enrollment",
+                        Text = "Status",
                         Size = AdaptiveTextSize.Medium,
                         Weight = AdaptiveTextWeight.Bolder,
                     },
                     new AdaptiveChoiceSetInput()
                     {
-                        Id = "OptedIn",
+                        Id = "Status",
                         Style = AdaptiveChoiceInputStyle.Expanded,
                         Choices = new List<AdaptiveChoice>
                         {
                             new AdaptiveChoice
                             {
-                                Title = "Opt In",
-                                Value = "True"
+                                Title = "Not Joined",
+                                Value = Enum.GetName(typeof(EnrollmentStatus), EnrollmentStatus.NotJoined)
                             },
                             new AdaptiveChoice
                             {
-                                Title = "Opt Out",
-                                Value = "False"
+                                Title = "Active",
+                                Value = Enum.GetName(typeof(EnrollmentStatus), EnrollmentStatus.Active)
+                            },
+                            new AdaptiveChoice
+                            {
+                                Title = "Inactive",
+                                Value = Enum.GetName(typeof(EnrollmentStatus), EnrollmentStatus.Inactive)
                             }
                         },
-                        Value = optedIn.ToString()
+                        Value = Enum.GetName(typeof(EnrollmentStatus), userStatus)
                     }
                 },
                 Actions = new List<AdaptiveAction>
@@ -103,20 +110,56 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <summary>
         /// Creates the read only user info card
         /// </summary>
-        /// <param name="optedIn">Whether opted in to matches</param>
+        /// <param name="userStatus">Whether opted in to matches</param>
         /// <param name="discipline">User discipline</param>
         /// <param name="gender">User gender</param>
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
         /// <returns>user profile card</returns>
-        public static AdaptiveCard GetResultCard(bool optedIn, string discipline, string gender, string seniority, List<string> teams)
+        public static AdaptiveCard GetResultCard(EnrollmentStatus userStatus, string discipline, string gender, string seniority, List<string> teams)
         {
             var pairs = new List<Tuple<string, string>>
             {
-                new Tuple<string, string>("Opted In", optedIn.ToString())
+                new Tuple<string, string>("Status", Enum.GetName(typeof(EnrollmentStatus), userStatus))
             };
             pairs.AddRange(EditUserProfileAdaptiveCard.GetDataForResultCard(discipline, gender, seniority, teams));
             return AdaptiveCardHelper.CreateSubmitResultCard("Saved User Info", pairs);
+        }
+
+        /// <summary>
+        /// Class to encapsulate the data returned by the adaptive card.
+        /// The member name need match the "Id" attribute in the adaptive card.
+        /// </summary>
+        public class UserInfo : EditUserProfileAdaptiveCard.UserProfile
+        {
+            /// <summary>
+            /// Gets or sets User status as a string. User GetStatus() to get the enum.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Status { get; set; } = Enum.GetName(typeof(EnrollmentStatus), EnrollmentStatus.NotJoined);
+
+            /// <summary>
+            /// Gets or sets User AAD id
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string UserAadId { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Return the status enum
+            /// </summary>
+            /// <returns>Enrollment status</returns>
+            public EnrollmentStatus GetStatus()
+            {
+                try
+                {
+                    return (EnrollmentStatus)Enum.Parse(typeof(EnrollmentStatus), this.Status);
+                }
+                catch (Exception)
+                {
+                }
+
+                return EnrollmentStatus.NotJoined;
+            }
         }
     }
 }
