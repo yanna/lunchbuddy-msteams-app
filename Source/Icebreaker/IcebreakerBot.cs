@@ -506,22 +506,53 @@ namespace Icebreaker
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
         /// <param name="activity">Activity of the user data submission</param>
+        /// <param name="tenantId">tenant id</param>
         /// <param name="teamId">Team id</param>
+        /// <param name="adminUserId">Admin user id. Can be empty.</param>
         /// <param name="notifyMode">How the pairs will be notified</param>
         /// <param name="subteamNames">Subteam names to show in EditProfile page</param>
         /// <returns>Empty task</returns>
         public async Task SaveTeamSettings(
             ConnectorClient connectorClient,
             Activity activity,
+            string tenantId,
             string teamId,
+            string adminUserId,
             string notifyMode,
             string subteamNames)
         {
             var team = await this.GetInstalledTeam(teamId);
+            var oldAdminUserId = team.AdminUser?.UserId;
+
             team.NotifyMode = notifyMode;
             team.SubteamNames = subteamNames;
+            team.AdminUser = null;
+
+            var adminUserName = string.Empty;
+            var newAdminUserId = string.Empty;
+            if (!string.IsNullOrEmpty(adminUserId))
+            {
+                var adminChannelAccount = await this.GetChannelAccountByAadId(adminUserId, connectorClient, teamId);
+                if (adminChannelAccount != null)
+                {
+                    newAdminUserId = adminChannelAccount.GetUserId();
+
+                    team.AdminUser = new TeamInstallInfo.User { ChannelAccountId = adminChannelAccount.Id, UserId = newAdminUserId };
+                    adminUserName = adminChannelAccount.Name;
+                }
+            }
 
             var isSuccess = await this.dataProvider.UpdateTeamInstallInfoAsync(team);
+
+            if (!string.IsNullOrEmpty(oldAdminUserId) && oldAdminUserId != newAdminUserId)
+            {
+                isSuccess = isSuccess && await this.RemoveTeamUserIsAdminFor(teamId, oldAdminUserId);
+            }
+
+            if (!string.IsNullOrEmpty(newAdminUserId) && oldAdminUserId != newAdminUserId)
+            {
+                isSuccess = isSuccess && await this.AddNewTeamUserIsAdminFor(tenantId, teamId, newAdminUserId);
+            }
 
             // After you do the card submission, the card resets to the old values even though the new values are saved.
             // This is just the default behaviour of Adaptive Cards.
@@ -536,7 +567,7 @@ namespace Icebreaker
                 replyActivity.Attachments = new List<Attachment>
                 {
                     AdaptiveCardHelper.CreateAdaptiveCardAttachment(EditTeamSettingsAdaptiveCard.GetResultCard(
-                        notifyMode, subteamNames))
+                        adminUserName, notifyMode, subteamNames))
                 };
             }
             else
@@ -578,43 +609,31 @@ namespace Icebreaker
                 newTeamInstallInfo.SubteamNames = alreadyInstalledTeamInfo.SubteamNames;
             }
 
-            var isUpdateTeamSuccessful = await this.dataProvider.UpdateTeamInstallInfoAsync(newTeamInstallInfo);
+            var isSuccess = await this.dataProvider.UpdateTeamInstallInfoAsync(newTeamInstallInfo);
 
             // Create admin user so we can add the adminForTeams attribute.
-            var isUpdateUserSuccessful = true;
-            if (!string.IsNullOrEmpty(adminUserAadId))
+            if (isSuccess && !string.IsNullOrEmpty(adminUserAadId))
             {
-                var adminUserInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, adminUserAadId);
-                if (!adminUserInfo.AdminForTeams.Any(id => id == teamId))
-                {
-                    adminUserInfo.AdminForTeams.Add(teamId);
-                    isUpdateUserSuccessful = await this.dataProvider.SetUserInfoAsync(adminUserInfo);
-                }
+                isSuccess = isSuccess && await this.AddNewTeamUserIsAdminFor(tenantId, teamId, adminUserAadId);
             }
 
-            return isUpdateTeamSuccessful && isUpdateUserSuccessful;
+            return isSuccess;
         }
 
         /// <summary>
         /// Save information about the team from which the bot was removed.
         /// </summary>
         /// <param name="teamId">The team id</param>
-        /// <param name="tenantId">The tenant id</param>
         /// <returns>Tracking task</returns>
-        public async Task SaveRemoveBotFromTeam(string teamId, string tenantId)
+        public async Task SaveRemoveBotFromTeam(string teamId)
         {
             var teamInfo = await this.dataProvider.GetInstalledTeamAsync(teamId);
 
             await this.dataProvider.RemoveTeamInstallInfoAsync(teamId);
 
-            if (teamInfo != null)
+            if (teamInfo != null && teamInfo.AdminUser != null)
             {
-                var userInfo = await this.dataProvider.GetUserInfoAsync(teamInfo.AdminUser.UserId);
-                var removedTeamId = userInfo?.AdminForTeams.Remove(teamId);
-                if (removedTeamId == true)
-                {
-                    await this.dataProvider.SetUserInfoAsync(userInfo);
-                }
+                await this.RemoveTeamUserIsAdminFor(teamId, teamInfo.AdminUser?.UserId);
             }
         }
 
@@ -733,9 +752,21 @@ namespace Icebreaker
         public async Task EditTeamSettings(ConnectorClient connectorClient, Activity replyActivity, string teamId, string teamName)
         {
             var teamInfo = await this.GetInstalledTeam(teamId);
-            var adminUserChannelAccount = await this.GetChannelAccountByChannelAccountId(teamInfo.AdminUser?.ChannelAccountId, connectorClient, teamId);
-            var adminUserName = adminUserChannelAccount?.Name;
-            var card = EditTeamSettingsAdaptiveCard.GetCardJson(teamId, teamName, adminUserName, teamInfo.NotifyMode, teamInfo.SubteamNames);
+
+            var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
+            var users = allMembers.Select(account => new EditTeamSettingsAdaptiveCard.User { AadId = account.GetUserId(), Name = account.Name }).OrderBy(t => t.Name);
+
+            EditTeamSettingsAdaptiveCard.User adminUser = null;
+            if (teamInfo.AdminUser != null)
+            {
+                var adminUserChannelAccount = allMembers.FirstOrDefault(account => account.Id == teamInfo.AdminUser.ChannelAccountId);
+                if (adminUserChannelAccount != null)
+                {
+                    adminUser = new EditTeamSettingsAdaptiveCard.User { AadId = adminUserChannelAccount?.GetUserId(), Name = adminUserChannelAccount?.Name };
+                }
+            }
+
+            var card = EditTeamSettingsAdaptiveCard.GetCard(teamId, teamName, users.ToList(), adminUser, teamInfo.NotifyMode, teamInfo.SubteamNames);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
@@ -753,6 +784,37 @@ namespace Icebreaker
         {
             var userInfo = await this.dataProvider.GetUserInfoAsync(userAadId);
             return userInfo ?? new UserInfo { TenantId = tenantId, UserId = userAadId, Status = EnrollmentStatus.NotJoined };
+        }
+
+        private async Task<bool> RemoveTeamUserIsAdminFor(string teamIdToRemove, string userId)
+        {
+            bool isSuccess = true;
+            var userInfo = await this.dataProvider.GetUserInfoAsync(userId);
+            if (userInfo == null)
+            {
+                return true;
+            }
+
+            var numRemoved = userInfo.AdminForTeams.RemoveAll(id => id == teamIdToRemove);
+            if (numRemoved > 0)
+            {
+                isSuccess = isSuccess && await this.dataProvider.SetUserInfoAsync(userInfo);
+            }
+
+            return isSuccess;
+        }
+
+        private async Task<bool> AddNewTeamUserIsAdminFor(string tenantId, string newTeamId, string userId)
+        {
+            bool isSuccess = true;
+            var newAdminUserInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userId);
+            if (!newAdminUserInfo.AdminForTeams.Any(id => id == newTeamId))
+            {
+                newAdminUserInfo.AdminForTeams.Add(newTeamId);
+                isSuccess = isSuccess && await this.dataProvider.SetUserInfoAsync(newAdminUserInfo);
+            }
+
+            return isSuccess;
         }
 
         private async Task<bool> SaveUserInfo(
@@ -778,17 +840,10 @@ namespace Icebreaker
             return isSuccess;
         }
 
-        /// <summary>
-        /// Get the user name by a ChannelAccount id. May return null if the id does not exist within the team.
-        /// </summary>
-        /// <param name="channelAccountId">channel acccount id</param>
-        /// <param name="connectorClient">connector client</param>
-        /// <param name="teamId">team id</param>
-        /// <returns>Channel Account for the user</returns>
-        private async Task<ChannelAccount> GetChannelAccountByChannelAccountId(string channelAccountId, ConnectorClient connectorClient, string teamId)
+        private async Task<ChannelAccount> GetChannelAccountByAadId(string aadId, ConnectorClient connectorClient, string teamId)
         {
             var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
-            return allMembers.FirstOrDefault(m => m.Id == channelAccountId);
+            return allMembers.FirstOrDefault(m => m.GetUserId() == aadId);
         }
 
         /// <summary>

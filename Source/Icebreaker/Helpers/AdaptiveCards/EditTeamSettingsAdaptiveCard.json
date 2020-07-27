@@ -15,8 +15,10 @@
             "weight": "Bolder"
         },
         {
-            "type": "TextBlock",
-            "text": "%adminUserName%"
+            "type": "Input.ChoiceSet",
+            "choices": [],
+            "style": "compact",
+            "id": "AdminUserJson"
         },
         {
             "type": "TextBlock",

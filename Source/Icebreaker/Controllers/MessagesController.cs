@@ -96,7 +96,7 @@ namespace Icebreaker
                     }
                     else if (activity.Value.ToString().TryParseJson(out EditTeamSettingsAdaptiveCard.TeamSettings teamSettings))
                     {
-                        await this.HandleSaveTeamSettings(connectorClient, activity, teamSettings);
+                        await this.HandleSaveTeamSettings(connectorClient, activity, teamSettings, tenantId);
                     }
                     else if (activity.Value.ToString().TryParseJson(out ChooseUserResult chooseUser))
                     {
@@ -307,12 +307,14 @@ namespace Icebreaker
             }
         }
 
-        private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, EditTeamSettingsAdaptiveCard.TeamSettings teamSettings)
+        private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, EditTeamSettingsAdaptiveCard.TeamSettings teamSettings, string tenantId)
         {
             return this.bot.SaveTeamSettings(
                 connectorClient,
                 activity,
+                tenantId,
                 teamSettings.TeamId,
+                teamSettings.GetUserId(),
                 teamSettings.NotifyMode,
                 teamSettings.SubteamNames);
         }
@@ -363,7 +365,7 @@ namespace Icebreaker
                         {
                             if (member.Id == myBotId)
                             {
-                                await this.HandleRemovedBot(message, teamId, tenantId);
+                                await this.HandleRemovedBot(message, teamId);
                             }
                             else
                             {
@@ -422,7 +424,7 @@ namespace Icebreaker
             }
         }
 
-        private async Task HandleRemovedBot(Activity message, string teamId, string tenantId)
+        private async Task HandleRemovedBot(Activity message, string teamId)
         {
             this.telemetryClient.TrackTrace($"Bot removed from team {teamId}");
 
@@ -434,7 +436,7 @@ namespace Icebreaker
             };
             this.telemetryClient.TrackEvent("AppUninstalled", properties);
 
-            await this.bot.SaveRemoveBotFromTeam(teamId, tenantId);
+            await this.bot.SaveRemoveBotFromTeam(teamId);
         }
 
         /// <summary>
