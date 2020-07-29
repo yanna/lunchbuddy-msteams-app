@@ -178,7 +178,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do you eat lunch or take a rest break? Why not do it with a buddy? I can help you meet new friends or get to know your team by randomly pairing you with someone new every month. .
+        ///   Looks up a localized string similar to Do you eat lunch? Why not do it with a buddy? I can match you with someone new each month so you can meet new friends or just get to know your team better..
         /// </summary>
         internal static string InstallMessageBotDescription {
             get {

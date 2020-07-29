@@ -24,11 +24,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
     public static class AdaptiveCardHelper
     {
         /// <summary>
-        /// What team names from the database are separated with when displayed to the user
-        /// </summary>
-        public const string TeamsSeparatorWithSpace = ", ";
-
-        /// <summary>
         /// Replace the template keys with the provided values
         /// </summary>
         /// <param name="cardTemplate">Card template JSON</param>

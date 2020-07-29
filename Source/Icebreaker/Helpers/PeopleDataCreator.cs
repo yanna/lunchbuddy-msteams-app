@@ -40,13 +40,25 @@ namespace Icebreaker.Helpers
         {
             var tasks = this.users.Select(m => this.dataProvider.GetUserInfoAsync(m.GetUserId()));
             var userInfos = await Task.WhenAll(tasks);
-            var validUserInfos = userInfos.Where(userInfo => userInfo != null);
 
-            var peopleData = validUserInfos.ToDictionary(
-                userInfo => userInfo.UserId,
-                userInfo => new PersonData(this.ToPastMatches(userInfo.Matches), userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams));
+            var peopleDataList = this.users.Zip(userInfos, (userChannelAccount, userInfo) => (userInfo != null) ?
+                    new PersonData(
+                        userChannelAccount.GetUserId(),
+                        userChannelAccount.Name,
+                        this.ToPastMatches(userInfo.Matches),
+                        userInfo.Discipline,
+                        userInfo.Gender,
+                        userInfo.Seniority,
+                        userInfo.Subteams,
+                        userInfo.LowPreferences) :
+                    new PersonData (
+                        userChannelAccount.GetUserId(),
+                        userChannelAccount.Name))
+                .ToList();
 
-            return peopleData;
+            return peopleDataList.ToDictionary(
+                personData => personData.UserId,
+                personData => personData);
         }
 
         private List<PastMatch> ToPastMatches(List<UserMatch> userMatches) => userMatches.Select(m => new PastMatch(m.UserId, m.MatchDateUtc)).ToList();

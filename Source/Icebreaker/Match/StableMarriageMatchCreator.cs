@@ -19,7 +19,7 @@ namespace Icebreaker.Match
     /// would both rather have each other than their current partners.
     /// If there are no such people, all the marriages are “stable”.
     ///
-    ///  Note that the two groups are called male and female for the purposes of the algorithm only.
+    /// Note that the two groups are called male and female for the purposes of the algorithm only.
     /// It is not necessarily the case that everyone in female group is a female etc.
     /// </summary>
     public class StableMarriageMatchCreator : IMatchCreator
@@ -32,7 +32,7 @@ namespace Icebreaker.Match
         /// Initializes a new instance of the <see cref="StableMarriageMatchCreator"/> class.
         /// </summary>
         /// <param name="random">random generator</param>
-        /// <param name="peopleData">userId to PersonData objects</param>
+        /// <param name="peopleData">userId to PersonData objects. This should contain all entries given in CreateMatches</param>
         /// <param name="numRetryOnPreviouslyMatchedPair">number of times to reshuffle and try again if a matched pair is found</param>
         public StableMarriageMatchCreator(Random random, IDictionary<string, PersonData> peopleData, int numRetryOnPreviouslyMatchedPair)
         {
@@ -44,7 +44,7 @@ namespace Icebreaker.Match
         /// <summary>
         /// Create pairs from the set of users
         /// </summary>
-        /// <param name="channelAccounts">users to make pairs. order will be shuffled.</param>
+        /// <param name="channelAccounts">users to make pairs</param>
         /// <returns>a list of pairs</returns>
         public MatchResult CreateMatches(List<ChannelAccount> channelAccounts)
         {

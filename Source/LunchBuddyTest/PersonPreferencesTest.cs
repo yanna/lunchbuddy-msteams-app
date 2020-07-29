@@ -83,8 +83,8 @@ namespace LunchBuddyTest
                     {
                         Teams = new List<string>{ "dc" },
                         PastMatches = new List<PastMatch>{
-                            new PastMatch("1", DateTime.Today.AddDays(-2)), 
-                            new PastMatch("3", DateTime.Today.AddDays(-1)), 
+                            new PastMatch("1", DateTime.Today.AddDays(-2)),
+                            new PastMatch("3", DateTime.Today.AddDays(-1)),
                             new PastMatch("1", DateTime.Today) }
                     }
                 },
@@ -107,6 +107,52 @@ namespace LunchBuddyTest
 
             // No match first, then oldest match
             var expectedNames = new List<string> { "2Spiderman", "3Batman", "1Catwoman" };
+
+            CollectionAssert.AreEqual(expectedNames, actualNames);
+        }
+
+        [TestMethod]
+        public void TestLowPreferences()
+        {
+            var sameTeamPeopleData = new Dictionary<string, PersonData>
+            {
+                { "0", new PersonData
+                    {
+                        Teams = new List<string>{ "dc" },
+                        PastMatches = new List<PastMatch>{
+                            new PastMatch("3", DateTime.Today)
+                        },
+                        LowPreferenceNames = new List<string>
+                        {
+                            "2Spiderman"
+                        }
+                    }
+                },
+                { "1", new PersonData
+                    {
+                        Name = "1Catwoman",
+                        Teams = new List<string>{ "dc", "gotham" },
+                        Seniority = "principal"
+                    }
+                },
+                { "2", new PersonData
+                    {
+                        Name = "2Spiderman"
+                    }
+                },
+                { "3", new PersonData
+                    {
+                        Name = "3Batman"
+                    }
+                }
+            };
+
+            var prefs = new PersonPreferences("0", this.group, this.userIdToPerson, sameTeamPeopleData).Get();
+
+            var actualNames = prefs.Select(person => person.Data.Name).ToList();
+
+            // No matches, previous matches, low preference
+            var expectedNames = new List<string> { "1Catwoman", "3Batman", "2Spiderman" };
 
             CollectionAssert.AreEqual(expectedNames, actualNames);
         }

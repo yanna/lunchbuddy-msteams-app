@@ -366,7 +366,7 @@ namespace Icebreaker
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             var subteamsHint = await this.GetSubteamNamesHintForUser(connectorClient, userAadId);
 
-            var card = EditUserProfileAdaptiveCard.GetCardJson(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint);
+            var card = EditUserProfileAdaptiveCard.GetCardJson(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint, userInfo.LowPreferences);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
@@ -388,7 +388,7 @@ namespace Icebreaker
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             var subteamsHint = await this.GetSubteamNamesHintForUser(connectorClient, userAadId);
 
-            var card = EditUserInfoAdaptiveCard.GetCard(userInfo.UserId, userName, userInfo.Status, userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint);
+            var card = EditUserInfoAdaptiveCard.GetCard(userInfo.UserId, userName, userInfo.Status, userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint, userInfo.LowPreferences);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
@@ -406,7 +406,8 @@ namespace Icebreaker
         /// <param name="discipline">Discipline of the user to store in the database. Can be empty string.</param>
         /// <param name="gender">Gender of the user to store in the database. Can be empty string.</param>
         /// <param name="seniority">Seniority of the user to store in the database. Can be empty string.</param>
-        /// <param name="subteams">Teams of the user to store in the database. Can be empty list.</param>
+        /// <param name="subteams">Subteam names of the user to store in the database. Can be empty list.</param>
+        /// <param name="lowPreferenceNames">Full names of low preference matches. Can be empty list.</param>
         /// <returns>Empty task</returns>
         public async Task SaveUserProfile(
             ConnectorClient connectorClient,
@@ -416,9 +417,10 @@ namespace Icebreaker
             string discipline,
             string gender,
             string seniority,
-            List<string> subteams)
+            List<string> subteams,
+            List<string> lowPreferenceNames)
         {
-            var isSuccess = await this.SaveUserInfo(tenantId, userAadId, discipline, gender, seniority, subteams, userStatus: null);
+            var isSuccess = await this.SaveUserInfo(tenantId, userAadId, discipline, gender, seniority, subteams, lowPreferenceNames, userStatus: null);
 
             // After you do the card submission, the card resets to the old values even though the new values are saved.
             // This is just the default behaviour of Adaptive Cards.
@@ -436,7 +438,8 @@ namespace Icebreaker
                         this.GetUITextForProfileData(discipline),
                         this.GetUITextForProfileData(gender),
                         this.GetUITextForProfileData(seniority),
-                        subteams))
+                        subteams,
+                        lowPreferenceNames))
                 };
             }
             else
@@ -458,6 +461,7 @@ namespace Icebreaker
         /// <param name="gender">Gender of the user to store in the database. Can be empty string.</param>
         /// <param name="seniority">Seniority of the user to store in the database. Can be empty string.</param>
         /// <param name="teams">Teams of the user to store in the database. Can be empty list.</param>
+        /// <param name="lowPreferenceNames">Full names of people the user has low preference for. Can be empty.</param>
         /// <param name="userStatus">Whether the user is opted into matches</param>
         /// <returns>Empty task</returns>
         public async Task SaveUserInfo(
@@ -469,9 +473,10 @@ namespace Icebreaker
             string gender,
             string seniority,
             List<string> teams,
+            List<string> lowPreferenceNames,
             EnrollmentStatus userStatus)
         {
-            var isSuccess = await this.SaveUserInfo(tenantId, userAadId, discipline, gender, seniority, teams, userStatus);
+            var isSuccess = await this.SaveUserInfo(tenantId, userAadId, discipline, gender, seniority, teams, lowPreferenceNames, userStatus);
 
             // After you do the card submission, the card resets to the old values even though the new values are saved.
             // This is just the default behaviour of Adaptive Cards.
@@ -490,7 +495,8 @@ namespace Icebreaker
                         this.GetUITextForProfileData(discipline),
                         this.GetUITextForProfileData(gender),
                         this.GetUITextForProfileData(seniority),
-                        teams))
+                        teams,
+                        lowPreferenceNames))
                 };
             }
             else
@@ -824,6 +830,7 @@ namespace Icebreaker
            string gender,
            string seniority,
            List<string> subteams,
+           List<string> lowPreferenceNames,
            EnrollmentStatus? userStatus)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
@@ -831,6 +838,7 @@ namespace Icebreaker
             userInfo.Gender = gender;
             userInfo.Seniority = seniority;
             userInfo.Subteams = subteams;
+            userInfo.LowPreferences = lowPreferenceNames;
             if (userStatus != null)
             {
                 userInfo.Status = (EnrollmentStatus)userStatus;

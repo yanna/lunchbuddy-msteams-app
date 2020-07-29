@@ -55,7 +55,7 @@
         },
         {
             "type": "TextBlock",
-            "text": "What are the sub teams you've been on? (separate multiple ones with a comma)",
+            "text": "What are the sub teams you've been on (separated by commas)?",
             "wrap": true,
             "weight": "Bolder"
         },
@@ -67,7 +67,8 @@
         {
             "type": "Input.Text",
             "id": "Subteams",
-            "value": "%defaultTeams%"
+            "value": "%defaultTeams%",
+            "wrap": true
         },
         {
             "type": "TextBlock",
@@ -134,6 +135,23 @@
             "style": "expanded",
             "value": "%defaultGender%",
             "id": "Gender"
+        },
+        {
+            "type": "TextBlock",
+            "text": "What are the full names of people you have a low preference for matches (separated by commas)?",
+            "weight": "Bolder",
+            "wrap": true
+        },
+        {
+            "type": "TextBlock",
+            "text": "You will be matched with them as a last resort.",
+            "wrap": true
+        },
+        {
+            "type": "Input.Text",
+            "id": "LowPreferenceNames",
+            "value": "%defaultLowPreferenceNames%",
+            "wrap": true
         }
     ],
     "actions": [

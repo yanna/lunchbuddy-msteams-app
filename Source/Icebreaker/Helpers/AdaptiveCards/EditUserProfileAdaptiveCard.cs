@@ -9,6 +9,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Web.Hosting;
     using global::AdaptiveCards;
     using Newtonsoft.Json;
@@ -21,6 +22,12 @@ namespace Icebreaker.Helpers.AdaptiveCards
         private static readonly string DEFAULTDISCIPLINE = "data";
         private static readonly string DEFAULTGENDER = "female";
         private static readonly string DEFAULTSENIORITY = "intern";
+
+        /// <summary>
+        /// When displaying the list of values from the database to the user, use this to separate them.
+        /// </summary>
+        private static readonly string TeamsSeparatorWithSpace = ", ";
+        private static readonly string NamesSeparatorWithSpace = ", ";
 
         private static readonly string CardTemplate;
 
@@ -38,6 +45,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
         /// <param name="subteamNamesHint">List of suggested sub team names. Can be empty</param>
+        /// <param name="lowPreferenceNames">List of full names the user has low preference for. Can be empty</param>
         /// <param name="titleSize">Size of the title</param>
         /// <returns>user profile card</returns>
         public static string GetCardJson(
@@ -46,6 +54,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
             string seniority,
             List<string> teams,
             string subteamNamesHint,
+            List<string> lowPreferenceNames,
             string titleSize = "Large")
         {
             var teamNamesHint = string.IsNullOrEmpty(subteamNamesHint) ? string.Empty : "Suggested Teams: " + subteamNamesHint;
@@ -59,8 +68,9 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "defaultDiscipline", GetValueOrDefault(discipline, DEFAULTDISCIPLINE) },
                 { "defaultGender", GetValueOrDefault(gender, DEFAULTGENDER) },
                 { "defaultSeniority", GetValueOrDefault(seniority, DEFAULTSENIORITY) },
-                { "defaultTeams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams) },
-                { "teamNamesHint", teamNamesHint }
+                { "defaultTeams", string.Join(TeamsSeparatorWithSpace, teams) },
+                { "teamNamesHint", teamNamesHint },
+                { "defaultLowPreferenceNames", string.Join(NamesSeparatorWithSpace, lowPreferenceNames) }
             };
 
             return AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
@@ -73,10 +83,11 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="gender">User gender</param>
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
+        /// <param name="lowPreferenceNames">Full names of low preference matches</param>
         /// <returns>user profile card</returns>
-        public static AdaptiveCard GetResultCard(string discipline, string gender, string seniority, List<string> teams)
+        public static AdaptiveCard GetResultCard(string discipline, string gender, string seniority, List<string> teams, List<string> lowPreferenceNames)
         {
-            var pairs = GetDataForResultCard(discipline, gender, seniority, teams);
+            var pairs = GetDataForResultCard(discipline, gender, seniority, teams, lowPreferenceNames);
             return AdaptiveCardHelper.CreateSubmitResultCard("Saved Your Profile", pairs);
         }
 
@@ -87,16 +98,46 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="gender">User gender</param>
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
+        /// <param name="lowPreferenceNames">Full names of users the person has low preference for</param>
         /// <returns>pairs of data</returns>
-        public static List<Tuple<string, string>> GetDataForResultCard(string discipline, string gender, string seniority, List<string> teams)
+        public static List<Tuple<string, string>> GetDataForResultCard(string discipline, string gender, string seniority, List<string> teams, List<string> lowPreferenceNames)
         {
             return new List<Tuple<string, string>>
             {
                 new Tuple<string, string>("Discipline", GetUIText(discipline)),
-                new Tuple<string, string>("Subteams", string.Join(AdaptiveCardHelper.TeamsSeparatorWithSpace, teams)),
+                new Tuple<string, string>("Subteams", string.Join(TeamsSeparatorWithSpace, teams)),
                 new Tuple<string, string>("Seniority", GetUIText(seniority)),
-                new Tuple<string, string>("Gender", GetUIText(gender))
+                new Tuple<string, string>("Gender", GetUIText(gender)),
+                new Tuple<string, string>("Low Pref", string.Join(NamesSeparatorWithSpace, lowPreferenceNames))
             };
+        }
+
+        /// <summary>
+        /// Get list of sub teams based on the string
+        /// </summary>
+        /// <param name="subteams">subteam names separated by a separator</param>
+        /// <returns>List of subteam names</returns>
+        public static List<string> GetSubteams(string subteams)
+        {
+            return GetSeparatedValues(subteams, TeamsSeparatorWithSpace);
+        }
+
+        /// <summary>
+        /// Get list of full names based on the string
+        /// </summary>
+        /// <param name="fullNames">Full names separated by a separator</param>
+        /// <returns>List of names</returns>
+        public static List<string> GetLowPreferenceNames(string fullNames)
+        {
+            return GetSeparatedValues(fullNames, NamesSeparatorWithSpace);
+        }
+
+        private static List<string> GetSeparatedValues(string valuesWithSeparator, string separator)
+        {
+            // Who knows whether users will enter the separator and a space, so split without the space and trim.
+            string[] separators = { separator.Trim() };
+            var splitValues = valuesWithSeparator.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            return splitValues.Select(team => team.Trim()).ToList();
         }
 
         /// <summary>
@@ -139,6 +180,12 @@ namespace Icebreaker.Helpers.AdaptiveCards
             /// </summary>
             [JsonProperty(Required = Required.Always)]
             public string Subteams { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets the full names of people the user has low preference for, separated by commas
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string LowPreferenceNames { get; set; } = string.Empty;
         }
     }
 }

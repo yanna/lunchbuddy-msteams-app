@@ -99,6 +99,13 @@ namespace Icebreaker.Model
         public List<string> Subteams { get; set; } = new List<string>();
 
         /// <summary>
+        /// Gets or sets the full names of people the user has a low preference for in matches.
+        /// Their preference will be after people they have already matched with.
+        /// </summary>
+        [JsonProperty("lowPreferences")]
+        public List<string> LowPreferences { get; set; } = new List<string>();
+
+        /// <summary>
         /// Gets or sets a list of past matches. The first one is the most recent.
         /// </summary>
         /// Note: There is a 2MB limit on document sizes.

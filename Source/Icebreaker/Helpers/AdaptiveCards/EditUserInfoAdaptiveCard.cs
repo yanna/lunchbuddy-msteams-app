@@ -35,6 +35,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
         /// <param name="subteamNamesHint">List of suggested sub team names. Can be empty</param>
+        /// <param name="lowPreferenceNames">Full names of people the user has low preference for. Can be empty.</param>
         /// <returns>user profile card</returns>
         public static AdaptiveCard GetCard(
             string userId,
@@ -44,9 +45,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
             string gender,
             string seniority,
             List<string> teams,
-            string subteamNamesHint)
+            string subteamNamesHint,
+            List<string> lowPreferenceNames)
         {
-            var editProfileCardJson = EditUserProfileAdaptiveCard.GetCardJson(discipline, gender, seniority, teams, subteamNamesHint, titleSize: "Medium");
+            var editProfileCardJson = EditUserProfileAdaptiveCard.GetCardJson(discipline, gender, seniority, teams, subteamNamesHint, lowPreferenceNames, titleSize: "Medium");
             var card = AdaptiveCard.FromJson(editProfileCardJson).Card;
             var editProfileBody = card.Body;
 
@@ -115,14 +117,15 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="gender">User gender</param>
         /// <param name="seniority">User seniority</param>
         /// <param name="teams">Sub team names the user has been on</param>
+        /// <param name="lowPreferenceNames">Full names of people the user has low preference for. Can be empty.</param>
         /// <returns>user profile card</returns>
-        public static AdaptiveCard GetResultCard(EnrollmentStatus userStatus, string discipline, string gender, string seniority, List<string> teams)
+        public static AdaptiveCard GetResultCard(EnrollmentStatus userStatus, string discipline, string gender, string seniority, List<string> teams, List<string> lowPreferenceNames)
         {
             var pairs = new List<Tuple<string, string>>
             {
                 new Tuple<string, string>("Status", Enum.GetName(typeof(EnrollmentStatus), userStatus))
             };
-            pairs.AddRange(EditUserProfileAdaptiveCard.GetDataForResultCard(discipline, gender, seniority, teams));
+            pairs.AddRange(EditUserProfileAdaptiveCard.GetDataForResultCard(discipline, gender, seniority, teams, lowPreferenceNames));
             return AdaptiveCardHelper.CreateSubmitResultCard("Saved User Info", pairs);
         }
 

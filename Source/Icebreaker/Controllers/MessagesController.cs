@@ -275,10 +275,8 @@ namespace Icebreaker
             EditUserProfileAdaptiveCard.UserProfile userProfile,
             EnrollmentStatus? userStatus)
         {
-            // Who knows whether users will enter the separator and a space, so split without the space and trim.
-            string[] teamsSeparator = { AdaptiveCardHelper.TeamsSeparatorWithSpace.Trim() };
-            var splitTeams = userProfile.Subteams.Split(teamsSeparator, StringSplitOptions.RemoveEmptyEntries);
-            var subteams = splitTeams.Select(team => team.Trim().ToLowerInvariant()).ToList();
+            var subteams = EditUserProfileAdaptiveCard.GetSubteams(userProfile.Subteams);
+            var lowPreferenceNames = EditUserProfileAdaptiveCard.GetSubteams(userProfile.LowPreferenceNames);
 
             if (userStatus == null)
             {
@@ -290,7 +288,8 @@ namespace Icebreaker
                     userProfile.Discipline,
                     userProfile.Gender,
                     userProfile.Seniority,
-                    subteams);
+                    subteams,
+                    lowPreferenceNames);
             }
             else
             {
@@ -303,6 +302,7 @@ namespace Icebreaker
                     userProfile.Gender,
                     userProfile.Seniority,
                     subteams,
+                    lowPreferenceNames,
                     (EnrollmentStatus)userStatus);
             }
         }

@@ -80,6 +80,13 @@ namespace Icebreaker.Match
             var srcPersonData = this.GetPersonData(srcPersonUserId);
             var personScoreIsForData = this.GetPersonData(personScoreIsForUserId);
 
+            // Low preferences are last resort
+            var lowPreferences = srcPersonData.GetLowPreferenceNamesInLowerCase();
+            if (lowPreferences.Any() && !string.IsNullOrEmpty(personScoreIsForData.Name) && lowPreferences.Contains(personScoreIsForData.Name.ToLowerInvariant()))
+            {
+                return long.MinValue;
+            }
+
             // Past Matches are negative
             // They should come after the people who have never matched and
             // also sorted from oldest match to most recent (least desirable)
@@ -93,7 +100,7 @@ namespace Icebreaker.Match
 
             // For coronavirus times, strongly favouring similar teams so people
             // feel comfortable with their matches.
-            var isInSameTeam = srcPersonData.Teams.Intersect(personScoreIsForData.Teams).Any();
+            var isInSameTeam = srcPersonData.GetTeamsInLowerCase().Intersect(personScoreIsForData.GetTeamsInLowerCase()).Any();
             if (isInSameTeam)
             {
                 score += 16;
