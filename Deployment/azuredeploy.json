@@ -36,7 +36,7 @@
         "appIconUrl": {
             "type": "string",
             "minLength": 1,
-            "defaultValue": "https://raw.githubusercontent.com/OfficeDev/microsoft-teams-icebreaker-app/master/Manifest/color.png",
+            "defaultValue": "https://raw.githubusercontent.com/yanna/lunchbuddy-msteams-app/master/Manifest/lunchbuddycolor.png",
             "metadata": {
                 "description": "The link to the icon for the bot. It must resolve to a PNG file."
             }
@@ -157,7 +157,7 @@
         "gitRepoUrl": {
             "type": "string",
             "minLength": 1,
-            "defaultValue": "https://github.com/yanna/microsoft-teams-icebreaker-app.git",
+            "defaultValue": "https://github.com/yanna/lunchbuddy-msteams-app.git",
             "metadata": {
               "description": "The URL to the GitHub repository to deploy."
             }
