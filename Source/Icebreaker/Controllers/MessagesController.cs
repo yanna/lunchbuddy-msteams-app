@@ -13,7 +13,6 @@ namespace Icebreaker
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using System.Web.UI.WebControls;
     using Icebreaker.Controllers;
     using Icebreaker.Helpers;
     using Icebreaker.Helpers.AdaptiveCards;

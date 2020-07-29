@@ -792,6 +792,16 @@ namespace Icebreaker
             return userInfo ?? new UserInfo { TenantId = tenantId, UserId = userAadId, Status = EnrollmentStatus.NotJoined };
         }
 
+        private static bool IsUnknownUser(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return true;
+            }
+
+            return name.ToLowerInvariant().Contains(Resources.UnknownUserName);
+        }
+
         private async Task<bool> RemoveTeamUserIsAdminFor(string teamIdToRemove, string userId)
         {
             bool isSuccess = true;
@@ -1003,8 +1013,11 @@ namespace Icebreaker
             var tasks = members.Select(m => this.dataProvider.GetUserInfoAsync(m.GetUserId()));
             var results = await Task.WhenAll(tasks);
 
+            // Sometimes I see "Unknown User" in a team.
+            // I suspect these are people who have their AAD account disabled eg when someone leaves the company.
+            // Going to add a check for it to remove them but unsure if GetConversationMembersAsync actually includes them.
             return members
-                .Zip(results, (member, userInfo) => (userInfo?.IsActive == true) ? member : null)
+                .Zip(results, (member, userInfo) => (userInfo?.IsActive == true && !IsUnknownUser(member.Name)) ? member : null)
                 .Where(m => m != null)
                 .ToList();
         }

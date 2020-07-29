@@ -529,6 +529,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to unknown.
+        /// </summary>
+        internal static string UnknownUserName {
+            get {
+                return ResourceManager.GetString("UnknownUserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hi! What would you like to do?.
         /// </summary>
         internal static string UnrecognizedInput {
