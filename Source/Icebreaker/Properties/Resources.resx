@@ -161,6 +161,9 @@
     <value>Edit Profile </value>
     <comment>Edit profile button text</comment>
   </data>
+  <data name="EditProfileNoTeam" xml:space="preserve">
+    <value>This is unexpected. I can't determine the team you want to edit your profile for.</value>
+  </data>
   <data name="EditTeamSettingsButtonText" xml:space="preserve">
     <value>Admin: Edit Team Settings</value>
     <comment>Button text for edit team settings</comment>
@@ -272,6 +275,9 @@
     <value>Welcome {0}! When match time occurs, I will message you with your new buddy. (This only occurs for people in the team.)</value>
     <comment>The confirmation reply that is sent when the user opts into matches</comment>
   </data>
+  <data name="OptInOrOutNoTeam" xml:space="preserve">
+    <value>This is unexpected. I can't determine the team you want to edit your status for.</value>
+  </data>
   <data name="OptInUserFailText" xml:space="preserve">
     <value>Sorry, I had trouble opting you back in. Retry?</value>
     <comment>Show this text when the user opt in failed</comment>
@@ -282,6 +288,7 @@
   </data>
   <data name="OptOutConfirmationAnotherUser" xml:space="preserve">
     <value>I've paused {0}'s matches in {1}. You can turn them back on whenever you like.</value>
+    <comment>When the admin is opting out for another user, show this message for opt out confirmation</comment>
   </data>
   <data name="OptOutUserFailText" xml:space="preserve">
     <value>Sorry, I had trouble opting you out. Retry?</value>
@@ -338,6 +345,14 @@
   <data name="UnrecognizedInput" xml:space="preserve">
     <value>Hi! What would you like to do?</value>
     <comment>The text for the unrecognized input scenario</comment>
+  </data>
+  <data name="UnrecognizedInputChooseTeam" xml:space="preserve">
+    <value>Hi, which team do you want to perform actions for?</value>
+    <comment>Where there are multiple teams for unrecognized input, display this to pick the team</comment>
+  </data>
+  <data name="UnrecognizedInputNoTeam" xml:space="preserve">
+    <value>I'd love to help but LunchBuddy is not installed in any teams yet.</value>
+    <comment>The app is not installed on any team but we're talking to the app.</comment>
   </data>
   <data name="WelcomeTeamButtonText" xml:space="preserve">
     <value>Admin: Send Welcome Card</value>

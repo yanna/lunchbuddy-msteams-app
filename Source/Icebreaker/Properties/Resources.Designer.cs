@@ -160,6 +160,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This is unexpected. I can&apos;t determine the team you want to edit your profile for..
+        /// </summary>
+        internal static string EditProfileNoTeam {
+            get {
+                return ResourceManager.GetString("EditProfileNoTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Admin: Edit Team Settings.
         /// </summary>
         internal static string EditTeamSettingsButtonText {
@@ -412,6 +421,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This is unexpected. I can&apos;t determine the team you want to edit your status for..
+        /// </summary>
+        internal static string OptInOrOutNoTeam {
+            get {
+                return ResourceManager.GetString("OptInOrOutNoTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sorry, I had trouble opting you back in. Retry?.
         /// </summary>
         internal static string OptInUserFailText {
@@ -561,6 +579,24 @@ namespace Icebreaker.Properties {
         internal static string UnrecognizedInput {
             get {
                 return ResourceManager.GetString("UnrecognizedInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hi, which team do you want to perform actions for?.
+        /// </summary>
+        internal static string UnrecognizedInputChooseTeam {
+            get {
+                return ResourceManager.GetString("UnrecognizedInputChooseTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to I&apos;d love to help but LunchBuddy is not installed in any teams yet..
+        /// </summary>
+        internal static string UnrecognizedInputNoTeam {
+            get {
+                return ResourceManager.GetString("UnrecognizedInputNoTeam", resourceCulture);
             }
         }
         

@@ -177,13 +177,13 @@ namespace Icebreaker
 
                 if (allTeams.Count > 1)
                 {
-                    await SendChooseTeamForActionCard(connectorClient, activity, "Hi, which team do you want to perform actions for?", allTeams, actionMessage: activity.Text);
+                    await SendChooseTeamForActionCard(connectorClient, activity, Resources.UnrecognizedInputChooseTeam, allTeams, actionMessage: activity.Text);
                     return;
                 }
 
                 if (allTeams.Count == 0)
                 {
-                    await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("I'd love to help but LunchBuddy is not installed in any teams yet"));
+                    await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(Resources.UnrecognizedInputNoTeam));
                     return;
                 }
 
@@ -228,7 +228,7 @@ namespace Icebreaker
             {
                 // This should not happen, the card that showed the command should have a team context.
                 // Either this is from unrecognized input where we always ask for a team first or from a welcome card which has a team.
-                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("This is unexpected. I can't determine the team you want to edit your status for."));
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(Resources.OptInOrOutNoTeam));
                 return;
             }
 
@@ -324,7 +324,7 @@ namespace Icebreaker
             {
                 // This should not happen, the card that showed the command should have a team context.
                 // Either this is from unrecognized input where we always ask for a team first or from a welcome card which has a team.
-                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("This is unexpected. I can't determine the team you want to edit your status for."));
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(Resources.OptInOrOutNoTeam));
                 return;
             }
 
@@ -411,7 +411,7 @@ namespace Icebreaker
             {
                 // This should not happen, the card that showed the Edit Profile command should have a team context.
                 // Either this is from unrecognized input where we always ask for a team first or from a welcome card which has a team.
-                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("This is unexpected. I can't determine the team you want to edit your profile for."));
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(Resources.EditProfileNoTeam));
                 return;
             }
 
