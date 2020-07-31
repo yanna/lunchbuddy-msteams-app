@@ -63,6 +63,12 @@ namespace Icebreaker.Model
         [JsonProperty("status")]
         private string StatusInternal { get; set; } = Enum.GetName(typeof(EnrollmentStatus), EnrollmentStatus.NotJoined);
 
+        /// <summary>
+        /// Get the status of the user for a team
+        /// </summary>
+        /// <param name="teamId">team id</param>
+        /// <param name="statuses">current statues for different teams</param>
+        /// <returns>Status for the team</returns>
         public static EnrollmentStatus GetStatusInTeam(string teamId, List<UserEnrollmentStatus> statuses)
         {
             var teamStatus = statuses.FirstOrDefault(status => status.TeamId == teamId);

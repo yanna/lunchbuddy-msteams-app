@@ -208,7 +208,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\AdaptiveCards\AdaptiveCardHelper.cs" />
-    <Compile Include="Helpers\AdaptiveCards\ChooseUserAndTeamAdaptiveCard.cs" />
+    <Compile Include="Helpers\AdaptiveCards\ChooseUserAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditTeamSettingsAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\UnrecognizedInputAdaptiveCard.cs" />

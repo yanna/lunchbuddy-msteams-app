@@ -8,8 +8,8 @@ namespace Icebreaker.Controllers
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Icebreaker.Helpers.AdaptiveCards;
     using Icebreaker.Helpers;
+    using Icebreaker.Helpers.AdaptiveCards;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
@@ -49,8 +49,7 @@ namespace Icebreaker.Controllers
         /// <param name="msgId">message id</param>
         /// <param name="connectorClient">connector client</param>
         /// <param name="activity">activity that had the message</param>
-        /// <param name="senderAadId">sender AAD id</param>
-        /// <param name="senderChannelAccountId">sender ChannelAccount id</param>
+        /// <param name="teamId">team id for the action</param>
         /// <returns>Task</returns>
         public async Task HandleMessage(string msgId, ConnectorClient connectorClient, Activity activity, string teamId)
         {

@@ -21,6 +21,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// Returns the adaptive card for choosing a user
         /// </summary>
         /// <param name="users">List of users to display</param>
+        /// <param name="teamContext">Team the list of users is from</param>
         /// <param name="messageId">Message id the user picking is for</param>
         /// <returns>Card for choosing a user</returns>
         public static AdaptiveCard GetCard(List<User> users, TeamContext teamContext, string messageId)

@@ -112,8 +112,7 @@ namespace Icebreaker.Controllers
         /// <param name="connectorClient">connector client</param>
         /// <param name="activity">activity</param>
         /// <param name="tenantId">user's tenant id</param>
-        /// <param name="userAadId">user AAD id</param>
-        /// <param name="userName">user display name</param>
+        /// <param name="userAndTeam">user and team info</param>
         /// <returns>Task</returns>
         public async Task HandleAdminEditUserForUser(ConnectorClient connectorClient, Activity activity, string tenantId, ChooseUserResult userAndTeam)
         {

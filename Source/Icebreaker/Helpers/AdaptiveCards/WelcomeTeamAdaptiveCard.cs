@@ -18,7 +18,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     /// </summary>
     public class WelcomeTeamAdaptiveCard
     {
-        private static string BOT_MESSAGE_PREFIX = "Hi from ";
+        private const string BotMessagePrefix = "Hi from ";
         private static readonly string CardTemplate;
 
         static WelcomeTeamAdaptiveCard()
@@ -31,6 +31,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// Creates the adaptive card for the team welcome message
         /// </summary>
         /// <param name="teamName">The team name</param>
+        /// <param name="teamId">Team id</param>
         /// <param name="botChatId">Bot id that will allow deeplink to chat with the bot</param>
         /// <param name="botInstaller">The name of the person that installed the bot</param>
         /// <returns>The welcome team adaptive card</returns>
@@ -77,19 +78,24 @@ namespace Icebreaker.Helpers.AdaptiveCards
             return cardBody;
         }
 
-        private static string GetBotMessage(string teamId)
-        {
-            return BOT_MESSAGE_PREFIX + teamId;
-        }
-
+        /// <summary>
+        /// Get the team id from the message the user says to the bot. Empty string if it doesn't look like the message from the Chat with Me action.
+        /// </summary>
+        /// <param name="message">Bot coming from the Chat with Me action</param>
+        /// <returns>Team id or empty string</returns>
         public static string GetTeamIdFromBotMessage(string message)
         {
-            if (message.StartsWith(BOT_MESSAGE_PREFIX))
+            if (message.StartsWith(BotMessagePrefix))
             {
-                return message.Substring(BOT_MESSAGE_PREFIX.Length);
+                return message.Substring(BotMessagePrefix.Length);
             }
 
             return string.Empty;
+        }
+
+        private static string GetBotMessage(string teamId)
+        {
+            return BotMessagePrefix + teamId;
         }
     }
 }

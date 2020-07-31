@@ -119,25 +119,26 @@ namespace Icebreaker.Helpers.AdaptiveCards
             return adminActions;
         }
 
+        /// <summary>
+        /// Returns a list of user actions that a user can take
+        /// </summary>
+        /// <param name="teamContext">team context for the actions</param>
+        /// <param name="enrollmentStatus">user status for the team</param>
+        /// <returns>List of user actions</returns>
         public static List<AdaptiveAction> CreateUserActions(TeamContext teamContext, EnrollmentStatus enrollmentStatus)
         {
             return CreateUserActions(enrollmentStatus, teamContext.TeamName, teamContext);
         }
 
-        public static List<AdaptiveAction> CreateUserActionsForAdmin(ChooseUserResult userAndTeamResult, EnrollmentStatus enrollmentStatus)
+        /// <summary>
+        /// Returns a list of user actions that are invoked when an admin wishes to perform the action on behalf of someone else
+        /// </summary>
+        /// <param name="userAndTeam">user and team info</param>
+        /// <param name="enrollmentStatus">enrollment status for the team</param>
+        /// <returns>List of user actions</returns>
+        public static List<AdaptiveAction> CreateUserActionsForAdmin(ChooseUserResult userAndTeam, EnrollmentStatus enrollmentStatus)
         {
-            return CreateUserActions(enrollmentStatus, userAndTeamResult.TeamContext.TeamName, userAndTeamResult);
-        }
-
-        private static List<AdaptiveAction> CreateUserActions(EnrollmentStatus enrollmentStatus, string teamName, object submitActionData)
-        {
-            var userActions = new List<AdaptiveAction>()
-            {
-                CreateStatusSubmitAction(enrollmentStatus, teamName, submitActionData),
-                CreateSubmitAction(Resources.EditProfileButtonText, MessageIds.EditProfile, submitActionData),
-            };
-
-            return userActions;
+            return CreateUserActions(enrollmentStatus, userAndTeam.TeamContext.TeamName, userAndTeam);
         }
 
         /// <summary>
@@ -188,6 +189,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// Determine what the status button should say and the corresponding message id based on the current user status
         /// </summary>
         /// <param name="userStatus">User status</param>
+        /// <param name="teamName">Team name the status is for</param>
         /// <returns>Button text and message id</returns>
         public static Tuple<string, string> GetButtonTextAndMsgIdForStatusButton(EnrollmentStatus userStatus, string teamName)
         {
@@ -217,12 +219,24 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// Create the adaptive card submit action corresponding to the current status.
         /// </summary>
         /// <param name="userStatus">user status</param>
+        /// <param name="teamName">Team name the status is for</param>
         /// <param name="extraData">TeamContext or ChooseUserAndTeamResult object</param>
         /// <returns>submit action</returns>
         public static AdaptiveSubmitAction CreateStatusSubmitAction(EnrollmentStatus userStatus, string teamName, object extraData)
         {
             var textAndMsg = GetButtonTextAndMsgIdForStatusButton(userStatus, teamName);
             return CreateSubmitAction(textAndMsg.Item1, textAndMsg.Item2, extraData);
+        }
+
+        private static List<AdaptiveAction> CreateUserActions(EnrollmentStatus enrollmentStatus, string teamName, object submitActionData)
+        {
+            var userActions = new List<AdaptiveAction>()
+            {
+                CreateStatusSubmitAction(enrollmentStatus, teamName, submitActionData),
+                CreateSubmitAction(Resources.EditProfileButtonText, MessageIds.EditProfile, submitActionData),
+            };
+
+            return userActions;
         }
     }
 }

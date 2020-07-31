@@ -16,6 +16,13 @@ namespace Icebreaker.Helpers.HeroCards
     /// </summary>
     public static class ChooseTeamHeroCard
     {
+        /// <summary>
+        /// Show a list of teams to pick for a particular action.
+        /// </summary>
+        /// <param name="text">Text for the team prompt</param>
+        /// <param name="teams">List of teams to choose from</param>
+        /// <param name="actionMessage">The action message</param>
+        /// <returns>Choose team card</returns>
         public static HeroCard GetCard(string text, List<TeamContext> teams, string actionMessage)
         {
             var teamActions = new List<CardAction>();

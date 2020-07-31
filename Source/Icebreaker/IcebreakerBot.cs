@@ -269,9 +269,10 @@ namespace Icebreaker
         /// <param name="connectorClient">The connector client</param>
         /// <param name="userChannelAccount">The ChannelAccount of the user</param>
         /// <param name="tenantId">The tenant id</param>
-        /// <param name="teamId">The id of the team the user was added to.</param>
-        /// <param name="botInstallerName">The person that installed the bot. Can be empty.</param>
-        /// <param name="isAdminUser">User is admin for the teamId</param>
+        /// <param name="teamContext">The team the welcome message is for.</param>
+        /// <param name="userStatus">User's status in the team</param>
+        /// <param name="botInstallerName">Who installed the app in the team. Can be empty.</param>
+        /// <param name="isAdminUser">Is the user admin for the team</param>
         /// <returns>Tracking task</returns>
         public async Task WelcomeUser(ConnectorClient connectorClient, ChannelAccount userChannelAccount, string tenantId, TeamContext teamContext, EnrollmentStatus userStatus, string botInstallerName, bool isAdminUser)
         {
@@ -319,7 +320,6 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
-
         /// <summary>
         /// Sends a message whenever there is unrecognized input into the bot
         /// </summary>
@@ -351,6 +351,7 @@ namespace Icebreaker
         /// <param name="replyActivity">Activity for replying</param>
         /// <param name="tenantId">Tenant id of the user</param>
         /// <param name="userAadId">User AAD id</param>
+        /// <param name="teamContext">Team context for editing the profile. This is for the subteam names hint</param>
         /// <returns>Empty task</returns>
         public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, TeamContext teamContext)
         {
@@ -613,6 +614,7 @@ namespace Icebreaker
         /// </summary>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
+        /// <param name="teamId">Team id the action is for</param>
         /// <returns>Whether the opt out was successful</returns>
         public async Task<bool> OptOutUser(string tenantId, string userAadId, string teamId)
         {
@@ -626,6 +628,7 @@ namespace Icebreaker
         /// </summary>
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
+        /// <param name="teamId">Team id the action is for</param>
         /// <returns>Whether the opt in was successful</returns>
         public async Task<bool> OptInUser(string tenantId, string userAadId, string teamId)
         {
@@ -647,6 +650,11 @@ namespace Icebreaker
             return teamDetailsResult.Name;
         }
 
+        /// <summary>
+        /// Get all installed team contexts
+        /// </summary>
+        /// <param name="connectorClient">connector client</param>
+        /// <returns>List of team contexts</returns>
         public async Task<List<TeamContext>> GetAllTeams(ConnectorClient connectorClient)
         {
             var allTeams = await this.dataProvider.GetInstalledTeamsAsync();
@@ -656,6 +664,12 @@ namespace Icebreaker
             return allTeams.Zip(teamNames, (teamInfo, teamName) => new TeamContext { TeamId = teamInfo.TeamId, TeamName = teamName }).ToList();
         }
 
+        /// <summary>
+        /// Get team context objects by team ids
+        /// </summary>
+        /// <param name="connectorClient">connector client</param>
+        /// <param name="teamIds">team ids</param>
+        /// <returns>teamcontext objects</returns>
         public async Task<List<TeamContext>> GetTeamContextsByIds(ConnectorClient connectorClient, IList<string> teamIds)
         {
             var teamNameTasks = teamIds.Select(teamId => this.GetTeamNameAsync(connectorClient, teamId));

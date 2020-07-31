@@ -40,6 +40,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <summary>
         /// Creates the editable user profile card
         /// </summary>
+        /// <param name="userId">User id</param>
+        /// <param name="teamName">Team name subteam name hint is for</param>
         /// <param name="discipline">User discipline</param>
         /// <param name="gender">User gender</param>
         /// <param name="seniority">User seniority</param>

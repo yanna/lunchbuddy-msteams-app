@@ -74,6 +74,17 @@ namespace Icebreaker
             return this.Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        private static Task SendChooseTeamForActionCard(ConnectorClient connectorClient, Activity activity, string cardMsg, List<TeamContext> possibleTeamsForAction, string actionMessage)
+        {
+            var chooseTeamCard = ChooseTeamHeroCard.GetCard(cardMsg, possibleTeamsForAction, actionMessage);
+            var chooseTeamReply = activity.CreateReply();
+            chooseTeamReply.Attachments = new List<Attachment>
+            {
+                chooseTeamCard.ToAttachment(),
+            };
+            return connectorClient.Conversations.ReplyToActivityAsync(chooseTeamReply);
+        }
+
         private async Task HandleMessageActivity(ConnectorClient connectorClient, Activity activity)
         {
             try
@@ -328,7 +339,7 @@ namespace Icebreaker
                 return;
             }
 
-            var submitData = userAndTeamResult ?? (object) optOutTeam;
+            var submitData = userAndTeamResult ?? (object)optOutTeam;
             await this.HandleOptOut(connectorClient, activity, optOutUserId, optOutUserName, isAnotherUser: optOutUserId != senderAadId, tenantId, optOutTeam, submitData);
         }
 
@@ -380,17 +391,6 @@ namespace Icebreaker
             }
 
             await connectorClient.Conversations.ReplyToActivityAsync(optOutReply);
-        }
-
-        private static Task SendChooseTeamForActionCard(ConnectorClient connectorClient, Activity activity, string cardMsg, List<TeamContext> possibleTeamsForAction, string actionMessage)
-        {
-            var chooseTeamCard = ChooseTeamHeroCard.GetCard(cardMsg, possibleTeamsForAction, actionMessage);
-            var chooseTeamReply = activity.CreateReply();
-            chooseTeamReply.Attachments = new List<Attachment>
-            {
-                chooseTeamCard.ToAttachment(),
-            };
-            return connectorClient.Conversations.ReplyToActivityAsync(chooseTeamReply);
         }
 
         private async Task HandleEditProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId)
