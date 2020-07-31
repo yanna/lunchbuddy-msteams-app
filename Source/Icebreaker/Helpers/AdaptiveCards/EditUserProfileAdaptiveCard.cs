@@ -57,12 +57,12 @@ namespace Icebreaker.Helpers.AdaptiveCards
             string subteamNamesHint,
             List<string> lowPreferenceNames)
         {
-            var teamNamesHint = string.IsNullOrEmpty(subteamNamesHint) ? string.Empty : "Suggested Teams: " + subteamNamesHint;
+            var teamNamesHint = string.IsNullOrEmpty(subteamNamesHint) ? string.Empty : $"Teams in {teamName}: " + subteamNamesHint;
 
             // TODO: Lots of strings to put in the resources including those in the json file
             var variablesToValues = new Dictionary<string, string>()
             {
-                { "title", $"Edit Profile for {teamName}" },
+                { "title", $"Tell me about yourself" },
                 { "description", "This helps me improve your matches." },
                 { "defaultDiscipline", GetValueOrDefault(discipline, DEFAULTDISCIPLINE) },
                 { "defaultGender", GetValueOrDefault(gender, DEFAULTGENDER) },
