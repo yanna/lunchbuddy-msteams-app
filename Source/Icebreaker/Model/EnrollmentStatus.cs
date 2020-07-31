@@ -7,12 +7,12 @@
 namespace Icebreaker.Model
 {
     /// <summary>
-    /// User enrollment status into the program
+    /// User enrollment status into the team
     /// </summary>
     public enum EnrollmentStatus
     {
         /// <summary>
-        /// Has not opted in yet
+        /// Not joined
         /// </summary>
         NotJoined,
 
@@ -24,6 +24,11 @@ namespace Icebreaker.Model
         /// <summary>
         /// Joined and paused matches
         /// </summary>
-        Inactive
+        Paused,
+
+        /// <summary>
+        /// Left the team
+        /// </summary>
+        LeftTeam,
     }
 }

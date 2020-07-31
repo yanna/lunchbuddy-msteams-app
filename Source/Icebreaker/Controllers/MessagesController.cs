@@ -16,11 +16,13 @@ namespace Icebreaker
     using Icebreaker.Controllers;
     using Icebreaker.Helpers;
     using Icebreaker.Helpers.AdaptiveCards;
+    using Icebreaker.Helpers.HeroCards;
     using Icebreaker.Model;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams.Models;
+    using Newtonsoft.Json;
     using Properties;
 
     /// <summary>
@@ -77,32 +79,31 @@ namespace Icebreaker
             try
             {
                 var senderAadId = activity.From.Properties["aadObjectId"].ToString();
+                var senderName = activity.From.Name;
+
                 var senderChannelAccountId = activity.From.Id;
                 var teamChannelData = activity.GetChannelData<TeamsChannelData>();
                 var tenantId = teamChannelData.Tenant.Id;
-                var hasTeamContext = teamChannelData.Team != null;
+                var isMessageInChannel = teamChannelData.Team != null;
 
                 // Submit action from an adaptive card results in no text and hopefully some value.
                 if (activity.Text == null && activity.Value != null)
                 {
-                    if (activity.Value.ToString().TryParseJson(out EditUserInfoAdaptiveCard.UserInfo userInfo))
+                    if (activity.Value.ToString().TryParseJson(out EditUserProfileAdaptiveCard.UserProfile userProfile))
                     {
-                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, userInfo.UserAadId, userInfo, userInfo.GetStatus());
-                    }
-                    else if (activity.Value.ToString().TryParseJson(out EditUserProfileAdaptiveCard.UserProfile userProfile))
-                    {
-                        await this.HandleSaveUserInfoOrProfile(connectorClient, activity, tenantId, senderAadId, userProfile, userStatus: null);
+                        // Do not user the senderAadId as this can be triggered by an Admin for another user
+                        await this.HandleSaveUserProfile(connectorClient, activity, tenantId, userProfile.UserId, userProfile);
                     }
                     else if (activity.Value.ToString().TryParseJson(out EditTeamSettingsAdaptiveCard.TeamSettings teamSettings))
                     {
                         await this.HandleSaveTeamSettings(connectorClient, activity, teamSettings, tenantId);
                     }
-                    else if (activity.Value.ToString().TryParseJson(out ChooseUserResult chooseUser))
+                    else if (activity.Value.ToString().TryParseJson(out ChooseUserResult userAndTeam))
                     {
-                        if (chooseUser.MessageId == MessageIds.AdminEditUser)
+                        if (userAndTeam.MessageId == MessageIds.AdminEditUser)
                         {
                             await this.adminMessageHandler.HandleAdminEditUserForUser(
-                                connectorClient, activity, tenantId, chooseUser.GetUserId(), chooseUser.GetUserName());
+                                connectorClient, activity, tenantId, userAndTeam);
                         }
                     }
 
@@ -113,13 +114,13 @@ namespace Icebreaker
 
                 if (msg == MessageIds.OptOut)
                 {
-                    await this.HandleOptOut(connectorClient, activity, senderAadId, tenantId);
+                    await this.HandleOptOut(connectorClient, activity, senderAadId, senderName, tenantId);
                 }
                 else if (msg == MessageIds.OptIn)
                 {
-                    await this.HandleOptIn(connectorClient, activity, senderAadId, tenantId);
+                    await this.HandleOptIn(connectorClient, activity, senderAadId, senderName, tenantId);
                 }
-                else if (msg == MessageIds.EditProfile && !hasTeamContext)
+                else if (msg == MessageIds.EditProfile && !isMessageInChannel)
                 {
                     await this.HandleEditProfile(connectorClient, activity, tenantId, senderAadId);
                 }
@@ -129,11 +130,12 @@ namespace Icebreaker
                 }
                 else if (this.debugMessageHandler.CanHandleMessage(msg))
                 {
-                    await this.debugMessageHandler.HandleMessage(msg, connectorClient, activity, senderAadId, senderChannelAccountId);
+                    var teams = await this.bot.GetAllTeams(connectorClient);
+                    await this.debugMessageHandler.HandleMessage(msg, connectorClient, activity, teams.FirstOrDefault()?.TeamId);
                 }
                 else
                 {
-                    if (!hasTeamContext)
+                    if (!isMessageInChannel)
                     {
                         await this.HandleUnrecognizedMsgInOneOnOneChat(connectorClient, activity, tenantId, activity.From);
                     }
@@ -148,61 +150,125 @@ namespace Icebreaker
 
         private async Task HandleUnrecognizedMsgInOneOnOneChat(ConnectorClient connectorClient, Activity activity, string tenantId, ChannelAccount sender)
         {
-            var senderAadId = sender.GetUserId();
-            var userInfo = await this.bot.GetOrCreateUnpersistedUserInfo(tenantId, senderAadId);
+            // We either display a welcome user message or a simple unrecognized message.
+            // Both will list all the actions you can do and admin actions if the user is an admin.
 
-            var hasJoinedBefore = userInfo.Status != EnrollmentStatus.NotJoined;
-            var isAdminOfMoreThanOneTeam = userInfo.AdminForTeams.Count > 1;
+            // 1. Determine the team context.
+            // 2. If we don't have just one, ask for which team to perform actions for
+            // 3. Show welcome user if the user has not joined that team
+            // 4. Show unrecognized message if the user has joined that team before.
+            TeamContext teamForActions = null;
 
-            if (hasJoinedBefore || isAdminOfMoreThanOneTeam)
+            // Try to get it from the message if this was from the welcome team "Chat with me" action.
+            var teamIdFromWelcomeTeam = WelcomeTeamAdaptiveCard.GetTeamIdFromBotMessage(activity.Text);
+            if (!string.IsNullOrEmpty(teamIdFromWelcomeTeam))
             {
-                var replyActivity = activity.CreateReply();
-                await this.bot.SendUnrecognizedInputMessage(connectorClient, replyActivity, tenantId, senderAadId, userInfo.AdminForTeams, userInfo.Status);
+                string teamName = await this.bot.GetTeamNameAsync(connectorClient, teamIdFromWelcomeTeam);
+                teamForActions = new TeamContext { TeamId = teamIdFromWelcomeTeam, TeamName = teamName };
             }
             else
             {
-                TeamContext teamContext = null;
-                if (userInfo.AdminForTeams.Count == 1)
+                teamForActions = this.GetTeamContext(activity);
+            }
+
+            if (teamForActions == null)
+            {
+                var allTeams = await this.bot.GetAllTeams(connectorClient);
+
+                if (allTeams.Count > 1)
                 {
-                    var firstTeamId = userInfo.AdminForTeams.First();
-                    teamContext.TeamId = firstTeamId;
-                    teamContext.TeamName = await this.bot.GetTeamNameAsync(connectorClient, firstTeamId);
+                    await SendChooseTeamForActionCard(connectorClient, activity, "Hi, which team do you want to perform actions for?", allTeams, actionMessage: activity.Text);
+                    return;
                 }
 
-                await this.bot.WelcomeUser(connectorClient, sender, tenantId, teamId: string.Empty, botInstaller: string.Empty, teamContext);
+                if (allTeams.Count == 0)
+                {
+                    await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("I'd love to help but LunchBuddy is not installed in any teams yet"));
+                    return;
+                }
+
+                teamForActions = allTeams.First();
+            }
+
+            var senderAadId = sender.GetUserId();
+
+            var userInfo = await this.bot.GetOrCreateUnpersistedUserInfo(tenantId, senderAadId);
+            var userStatus = userInfo.GetStatusInTeam(teamForActions.TeamId);
+            var isUserAdminOfTeam = userInfo.AdminForTeams.Contains(teamForActions.TeamId);
+
+            if (userStatus == EnrollmentStatus.NotJoined)
+            {
+                await this.bot.WelcomeUser(connectorClient, sender, tenantId, teamForActions, userStatus, botInstallerName: string.Empty, isUserAdminOfTeam);
+            }
+            else
+            {
+                await this.bot.SendUnrecognizedInputMessage(connectorClient, activity.CreateReply(), teamForActions, userStatus, isUserAdminOfTeam);
             }
         }
 
-        private async Task HandleOptIn(ConnectorClient connectorClient, Activity activity, string senderAadId, string tenantId)
+        private async Task HandleOptIn(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderName, string tenantId)
+        {
+            TeamContext optInTeam = null;
+            string optInUserId = senderAadId;
+            string optInUserName = senderName;
+
+            ChooseUserResult userAndTeamResult = this.GetUserAndTeamResult(activity);
+
+            if (userAndTeamResult != null)
+            {
+                optInTeam = userAndTeamResult.TeamContext;
+                optInUserId = userAndTeamResult.GetUserId();
+                optInUserName = userAndTeamResult.GetUserName();
+            }
+
+            optInTeam = optInTeam ?? this.GetTeamContext(activity);
+
+            // Need to get list of possible teams the user can opt into
+            if (optInTeam == null)
+            {
+                // This should not happen, the card that showed the command should have a team context.
+                // Either this is from unrecognized input where we always ask for a team first or from a welcome card which has a team.
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("This is unexpected. I can't determine the team you want to edit your status for."));
+                return;
+            }
+
+            var submitData = userAndTeamResult ?? (object)optInTeam;
+            await this.HandleOptIn(connectorClient, activity, optInUserId, optInUserName, tenantId, optInTeam, submitData);
+        }
+
+        private async Task HandleOptIn(ConnectorClient connectorClient, Activity activity, string userId, string userName, string tenantId, TeamContext teamContext, object submitData)
         {
             // User opted in
-            this.telemetryClient.TrackTrace($"User {senderAadId} opted in");
+            this.telemetryClient.TrackTrace($"User {userId} opted in");
 
             var properties = new Dictionary<string, string>
             {
-                { "UserAadId", senderAadId },
+                { "UserAadId", userId },
                 { "OptInStatus", "true" },
             };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
-            var isSuccessful = await this.bot.OptInUser(tenantId, senderAadId);
+            var isSuccessful = await this.bot.OptInUser(tenantId, userId, teamContext.TeamId);
 
             var optInReply = activity.CreateReply();
             if (isSuccessful)
             {
+                var actionText = string.Format(Resources.PausePairingsButtonText, teamContext.TeamName);
+
                 optInReply.Attachments = new List<Attachment>
                 {
                     new HeroCard()
                     {
-                        Text = Resources.OptInConfirmation,
+                        Text = string.Format(Resources.OptInConfirmation, userName, teamContext.TeamName),
                         Buttons = new List<CardAction>()
                         {
                             new CardAction()
                             {
-                                Title = Resources.PausePairingsButtonText,
-                                DisplayText = Resources.PausePairingsButtonText,
+                                Title = actionText,
+                                DisplayText = actionText,
                                 Type = ActionTypes.MessageBack,
-                                Text = MessageIds.OptOut
+                                Text = MessageIds.OptOut,
+                                Value = JsonConvert.SerializeObject(submitData)
                             }
                         }
                     }.ToAttachment(),
@@ -216,37 +282,93 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(optInReply);
         }
 
-        private async Task HandleOptOut(ConnectorClient connectorClient, Activity activity, string senderAadId, string tenantId)
+        private TeamContext GetTeamContext(Activity activity)
+        {
+            if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext team))
+            {
+                return team;
+            }
+
+            return null;
+        }
+
+        private ChooseUserResult GetUserAndTeamResult(Activity activity)
+        {
+            if (activity.Value != null && activity.Value.ToString().TryParseJson(out ChooseUserResult userAndTeam))
+            {
+                return userAndTeam;
+            }
+
+            return null;
+        }
+
+        private async Task HandleOptOut(ConnectorClient connectorClient, Activity activity, string senderAadId, string senderName, string tenantId)
+        {
+            TeamContext optOutTeam = null;
+            string optOutUserId = senderAadId;
+            string optOutUserName = senderName;
+
+            ChooseUserResult userAndTeamResult = this.GetUserAndTeamResult(activity);
+
+            if (userAndTeamResult != null)
+            {
+                optOutTeam = userAndTeamResult.TeamContext;
+                optOutUserId = userAndTeamResult.GetUserId();
+                optOutUserName = userAndTeamResult.GetUserName();
+            }
+
+            optOutTeam = optOutTeam ?? this.GetTeamContext(activity);
+
+            // Need to get list of possible teams the user can opt out from
+            if (optOutTeam == null)
+            {
+                // This should not happen, the card that showed the command should have a team context.
+                // Either this is from unrecognized input where we always ask for a team first or from a welcome card which has a team.
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("This is unexpected. I can't determine the team you want to edit your status for."));
+                return;
+            }
+
+            var submitData = userAndTeamResult ?? (object) optOutTeam;
+            await this.HandleOptOut(connectorClient, activity, optOutUserId, optOutUserName, isAnotherUser: optOutUserId != senderAadId, tenantId, optOutTeam, submitData);
+        }
+
+        private async Task HandleOptOut(ConnectorClient connectorClient, Activity activity, string userId, string userName, bool isAnotherUser, string tenantId, TeamContext optOutTeam, object submitData)
         {
             // User opted out
-            this.telemetryClient.TrackTrace($"User {senderAadId} opted out");
+            this.telemetryClient.TrackTrace($"User {userId} opted out");
 
             var properties = new Dictionary<string, string>
             {
-                { "UserAadId", senderAadId },
+                { "UserAadId", userId },
                 { "OptInStatus", "false" },
             };
             this.telemetryClient.TrackEvent("UserOptInStatusSet", properties);
 
-            var isSuccessful = await this.bot.OptOutUser(tenantId, senderAadId);
+            var isSuccessful = await this.bot.OptOutUser(tenantId, userId, optOutTeam.TeamId);
 
             var optOutReply = activity.CreateReply();
 
             if (isSuccessful)
             {
+                var text = isAnotherUser ? string.Format(Resources.OptOutConfirmationAnotherUser, userName, optOutTeam.TeamName) :
+                    string.Format(Resources.OptOutConfirmation, optOutTeam.TeamName);
+
+                var actionText = string.Format(Resources.ResumePairingsButtonText, optOutTeam.TeamName);
+
                 optOutReply.Attachments = new List<Attachment>
                 {
                     new HeroCard()
                     {
-                        Text = Resources.OptOutConfirmation,
+                        Text = text,
                         Buttons = new List<CardAction>()
                         {
                             new CardAction()
                             {
-                                Title = Resources.ResumePairingsButtonText,
-                                DisplayText = Resources.ResumePairingsButtonText,
+                                Title = actionText,
+                                DisplayText = actionText,
                                 Type = ActionTypes.MessageBack,
-                                Text = MessageIds.OptIn
+                                Text = MessageIds.OptIn,
+                                Value = JsonConvert.SerializeObject(submitData)
                             }
                         }
                     }.ToAttachment(),
@@ -260,50 +382,63 @@ namespace Icebreaker
             await connectorClient.Conversations.ReplyToActivityAsync(optOutReply);
         }
 
-        private async Task HandleEditProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId)
+        private static Task SendChooseTeamForActionCard(ConnectorClient connectorClient, Activity activity, string cardMsg, List<TeamContext> possibleTeamsForAction, string actionMessage)
         {
-            var replyActivity = activity.CreateReply();
-            await this.bot.EditUserProfile(connectorClient, replyActivity, tenantId, senderAadId);
+            var chooseTeamCard = ChooseTeamHeroCard.GetCard(cardMsg, possibleTeamsForAction, actionMessage);
+            var chooseTeamReply = activity.CreateReply();
+            chooseTeamReply.Attachments = new List<Attachment>
+            {
+                chooseTeamCard.ToAttachment(),
+            };
+            return connectorClient.Conversations.ReplyToActivityAsync(chooseTeamReply);
         }
 
-        private async Task HandleSaveUserInfoOrProfile(
+        private async Task HandleEditProfile(ConnectorClient connectorClient, Activity activity, string tenantId, string senderAadId)
+        {
+            var userId = senderAadId;
+            TeamContext teamContext = null;
+
+            var userAndTeam = this.GetUserAndTeamResult(activity);
+            if (userAndTeam != null)
+            {
+                userId = userAndTeam.GetUserId();
+                teamContext = userAndTeam.TeamContext;
+            }
+
+            teamContext = teamContext ?? this.GetTeamContext(activity);
+
+            if (teamContext == null)
+            {
+                // This should not happen, the card that showed the Edit Profile command should have a team context.
+                // Either this is from unrecognized input where we always ask for a team first or from a welcome card which has a team.
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("This is unexpected. I can't determine the team you want to edit your profile for."));
+                return;
+            }
+
+            var replyActivity = activity.CreateReply();
+            await this.bot.EditUserProfile(connectorClient, replyActivity, tenantId, userId, teamContext);
+        }
+
+        private async Task HandleSaveUserProfile(
             ConnectorClient connectorClient,
             Activity activity,
             string tenantId,
             string senderAadId,
-            EditUserProfileAdaptiveCard.UserProfile userProfile,
-            EnrollmentStatus? userStatus)
+            EditUserProfileAdaptiveCard.UserProfile userProfile)
         {
             var subteams = EditUserProfileAdaptiveCard.GetSubteams(userProfile.Subteams);
             var lowPreferenceNames = EditUserProfileAdaptiveCard.GetSubteams(userProfile.LowPreferenceNames);
 
-            if (userStatus == null)
-            {
-                await this.bot.SaveUserProfile(
-                    connectorClient,
-                    activity,
-                    tenantId,
-                    senderAadId,
-                    userProfile.Discipline,
-                    userProfile.Gender,
-                    userProfile.Seniority,
-                    subteams,
-                    lowPreferenceNames);
-            }
-            else
-            {
-                await this.bot.SaveUserInfo(
-                    connectorClient,
-                    activity,
-                    tenantId,
-                    senderAadId,
-                    userProfile.Discipline,
-                    userProfile.Gender,
-                    userProfile.Seniority,
-                    subteams,
-                    lowPreferenceNames,
-                    (EnrollmentStatus)userStatus);
-            }
+            await this.bot.SaveUserProfile(
+                connectorClient,
+                activity,
+                tenantId,
+                senderAadId,
+                userProfile.Discipline,
+                userProfile.Gender,
+                userProfile.Seniority,
+                subteams,
+                lowPreferenceNames);
         }
 
         private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, EditTeamSettingsAdaptiveCard.TeamSettings teamSettings, string tenantId)
@@ -339,6 +474,8 @@ namespace Icebreaker
 
                     string myBotId = message.Recipient.Id;
                     string teamId = teamsChannelData.Team.Id;
+                    string teamName = teamsChannelData.Team.Name;
+                    var teamContext = new TeamContext { TeamId = teamId, TeamName = teamName };
 
                     if (message.MembersAdded?.Count() > 0)
                     {
@@ -346,14 +483,14 @@ namespace Icebreaker
                         {
                             if (member.Id == myBotId)
                             {
-                                await this.HandleAddedBot(connectorClient, message, teamId, tenantId, teamsChannelData?.Team?.Name);
+                                await this.HandleAddedBot(connectorClient, message, tenantId, teamContext);
                             }
                             else
                             {
                                 await this.bot.SaveAddedUserToTeam(member.GetUserId(), teamId);
 
                                 var installedTeam = await this.bot.GetInstalledTeam(teamId);
-                                await this.bot.WelcomeUser(connectorClient, member, tenantId, teamId, installedTeam.InstallerName);
+                                await this.bot.WelcomeUser(connectorClient, member, tenantId, teamContext, EnrollmentStatus.NotJoined, installedTeam.InstallerName, isAdminUser: false);
                             }
                         }
                     }
@@ -382,8 +519,10 @@ namespace Icebreaker
             }
         }
 
-        private async Task HandleAddedBot(ConnectorClient connectorClient, Activity message, string teamId, string tenantId, string teamName)
+        private async Task HandleAddedBot(ConnectorClient connectorClient, Activity message, string tenantId, TeamContext teamContext)
         {
+            var teamId = teamContext.TeamId;
+
             this.telemetryClient.TrackTrace($"Bot installed to team {teamId}");
 
             var properties = new Dictionary<string, string>
@@ -412,10 +551,11 @@ namespace Icebreaker
 
             if (addedSuccessfully && personThatAddedBot != null)
             {
-                // Welcome the admin. The team is manually welcomed by the admin through clicking on the "Admin: Send Welcome Card" button as the
-                // admin need to edit the subteam names through "Admin: Edit Team Settings" first.
-                var adminTeamContext = new TeamContext { TeamId = teamId, TeamName = teamName };
-                await this.bot.WelcomeUser(connectorClient, personThatAddedBot, tenantId, teamId, "you", adminTeamContext);
+                // Welcome the admin.
+                // We don't send a welcome card to the team yet as the admin needs to edit the subteam names through "Admin: Edit Team Settings" first.
+                // Then the welcome team card is sent manually through the "Admin: Send Welcome Card" button.
+                // Assumption: user status is NotJoined. Don't want to incur a query as if the user status is not NotJoined, it's not a big deal, they can just edit it.
+                await this.bot.WelcomeUser(connectorClient, personThatAddedBot, tenantId, teamContext, userStatus: EnrollmentStatus.NotJoined, "you", isAdminUser: true);
             }
             else if (!addedSuccessfully && personThatAddedBot != null)
             {

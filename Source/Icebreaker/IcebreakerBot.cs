@@ -20,6 +20,7 @@ namespace Icebreaker
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.Azure;
+    using Microsoft.Bot.Builder.Internals.Fibers;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
 
@@ -253,7 +254,7 @@ namespace Icebreaker
         }
 
         /// <summary>
-        /// Method that will return the information of the installed team
+        /// Returns the install team info about the team. Can return null.
         /// </summary>
         /// <param name="teamId">The team id</param>
         /// <returns>The team that the bot has been installed to</returns>
@@ -268,18 +269,16 @@ namespace Icebreaker
         /// <param name="connectorClient">The connector client</param>
         /// <param name="userChannelAccount">The ChannelAccount of the user</param>
         /// <param name="tenantId">The tenant id</param>
-        /// <param name="teamId">The id of the team the user was added to. Can be empty.</param>
-        /// <param name="botInstaller">The person that installed the bot. Can be empty.</param>
-        /// <param name="adminTeamContext">Team context for the admin actions</param>
+        /// <param name="teamId">The id of the team the user was added to.</param>
+        /// <param name="botInstallerName">The person that installed the bot. Can be empty.</param>
+        /// <param name="isAdminUser">User is admin for the teamId</param>
         /// <returns>Tracking task</returns>
-        public async Task WelcomeUser(ConnectorClient connectorClient, ChannelAccount userChannelAccount, string tenantId, string teamId, string botInstaller, TeamContext adminTeamContext = null)
+        public async Task WelcomeUser(ConnectorClient connectorClient, ChannelAccount userChannelAccount, string tenantId, TeamContext teamContext, EnrollmentStatus userStatus, string botInstallerName, bool isAdminUser)
         {
             this.telemetryClient.TrackTrace($"Sending welcome message for user {userChannelAccount.GetUserId()}");
 
-            var teamName = string.IsNullOrEmpty(teamId) ? string.Empty : await this.GetTeamNameAsync(connectorClient, teamId);
+            var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCard(teamContext, userStatus, botInstallerName, isAdminUser);
 
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userChannelAccount.GetUserId());
-            var welcomeMessageCard = WelcomeNewMemberAdaptiveCard.GetCardJson(userInfo.Status, teamName, this.botDisplayName, botInstaller, adminTeamContext);
             await this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeMessageCard), userChannelAccount, tenantId);
         }
 
@@ -314,38 +313,30 @@ namespace Icebreaker
             this.telemetryClient.TrackTrace($"Sending welcome message for team {teamId}");
 
             var teamName = await this.GetTeamNameAsync(connectorClient, teamId);
-            var welcomeTeamMessageCard = WelcomeTeamAdaptiveCard.GetCardJson(teamName, botChannelAccountId, botInstaller);
+            var welcomeTeamMessageCard = WelcomeTeamAdaptiveCard.GetCardJson(teamName, teamId, botChannelAccountId, botInstaller);
             var wasSuccessful = await this.NotifyTeam(connectorClient, welcomeTeamMessageCard, teamId);
             replyActivity.Text = wasSuccessful ? string.Format(Resources.SendWelcomeCardSuccess, teamName) : string.Format(Resources.SendWelcomeCardFail, teamName);
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
+
 
         /// <summary>
         /// Sends a message whenever there is unrecognized input into the bot
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
         /// <param name="replyActivity">The activity for replying to a message</param>
-        /// <param name="tenantId">User tenant id</param>
-        /// <param name="userAadId">User AAD id</param>
-        /// <param name="teamIdsAllowingAdminActionsByUser">List of team ids this user is an admin for. Can be empty.</param>
-        /// <param name="userStatus">User status</param>
+        /// <param name="actionsTeamContext">Team info for the context</param>
+        /// <param name="userStatusForTeam">User status for the team</param>
+        /// <param name="isUserAdminOfTeam">Whether user is admin of the team</param>
         /// <returns>Tracking task</returns>
-        public async Task SendUnrecognizedInputMessage(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, List<string> teamIdsAllowingAdminActionsByUser, EnrollmentStatus userStatus)
+        public async Task SendUnrecognizedInputMessage(
+            ConnectorClient connectorClient,
+            Activity replyActivity,
+            TeamContext actionsTeamContext,
+            EnrollmentStatus userStatusForTeam,
+            bool isUserAdminOfTeam)
         {
-            var showAdminActions = teamIdsAllowingAdminActionsByUser.Count > 0;
-            TeamContext teamContext = null;
-            if (teamIdsAllowingAdminActionsByUser.Count == 1)
-            {
-                var teamId = teamIdsAllowingAdminActionsByUser.First();
-                var teamName = await this.GetTeamNameAsync(connectorClient, teamId);
-                teamContext = new TeamContext
-                {
-                    TeamId = teamId,
-                    TeamName = teamName
-                };
-            }
-
-            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCardJson(userStatus, showAdminActions, teamContext);
+            var unrecognizedInputAdaptiveCard = UnrecognizedInputAdaptiveCard.GetCardJson(actionsTeamContext, userStatusForTeam, showAdminActions: isUserAdminOfTeam);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(unrecognizedInputAdaptiveCard)
@@ -361,34 +352,12 @@ namespace Icebreaker
         /// <param name="tenantId">Tenant id of the user</param>
         /// <param name="userAadId">User AAD id</param>
         /// <returns>Empty task</returns>
-        public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId)
+        public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, TeamContext teamContext)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
-            var subteamsHint = await this.GetSubteamNamesHintForUser(connectorClient, userAadId);
+            var subteamsHint = await this.GetSubteamNamesHintForUser(teamContext.TeamId);
 
-            var card = EditUserProfileAdaptiveCard.GetCardJson(userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint, userInfo.LowPreferences);
-            replyActivity.Attachments = new List<Attachment>()
-            {
-                AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
-            };
-            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
-        }
-
-        /// <summary>
-        /// Edit the user info which includes the user profile and enrollment
-        /// </summary>
-        /// <param name="connectorClient">connector client</param>
-        /// <param name="replyActivity">reply activity</param>
-        /// <param name="tenantId">user tenant id</param>
-        /// <param name="userAadId">user AAD id</param>
-        /// <param name="userName">user display name</param>
-        /// <returns>Task</returns>
-        public async Task EditUserInfo(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, string userName)
-        {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
-            var subteamsHint = await this.GetSubteamNamesHintForUser(connectorClient, userAadId);
-
-            var card = EditUserInfoAdaptiveCard.GetCard(userInfo.UserId, userName, userInfo.Status, userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint, userInfo.LowPreferences);
+            var card = EditUserProfileAdaptiveCard.GetCardJson(userAadId, teamContext.TeamName, userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint, userInfo.LowPreferences);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)
@@ -445,63 +414,6 @@ namespace Icebreaker
             else
             {
                 replyActivity.Text = Resources.SaveProfileFailText;
-            }
-
-            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
-        }
-
-        /// <summary>
-        /// Saves the user info to the database
-        /// </summary>
-        /// <param name="connectorClient">The connector client</param>
-        /// <param name="activity">Activity of the user data submission</param>
-        /// <param name="tenantId">Tenant id of the user</param>
-        /// <param name="userAadId">AAD id of the user</param>
-        /// <param name="discipline">Discipline of the user to store in the database. Can be empty string.</param>
-        /// <param name="gender">Gender of the user to store in the database. Can be empty string.</param>
-        /// <param name="seniority">Seniority of the user to store in the database. Can be empty string.</param>
-        /// <param name="teams">Teams of the user to store in the database. Can be empty list.</param>
-        /// <param name="lowPreferenceNames">Full names of people the user has low preference for. Can be empty.</param>
-        /// <param name="userStatus">Whether the user is opted into matches</param>
-        /// <returns>Empty task</returns>
-        public async Task SaveUserInfo(
-            ConnectorClient connectorClient,
-            Activity activity,
-            string tenantId,
-            string userAadId,
-            string discipline,
-            string gender,
-            string seniority,
-            List<string> teams,
-            List<string> lowPreferenceNames,
-            EnrollmentStatus userStatus)
-        {
-            var isSuccess = await this.SaveUserInfo(tenantId, userAadId, discipline, gender, seniority, teams, lowPreferenceNames, userStatus);
-
-            // After you do the card submission, the card resets to the old values even though the new values are saved.
-            // This is just the default behaviour of Adaptive Cards.
-            // So we can do this a couple of ways:
-            // 1) manually update the message to update the card to the new values but this requires storing the original activity id
-            //    because it's not the submit activity but the activity that triggered the submit activity.
-            // 2) let it happen and reply with a readonly card representing the new state.
-            // Picking option 2 because I want to avoid storing extra state.
-            var replyActivity = activity.CreateReply();
-            if (isSuccess)
-            {
-                replyActivity.Attachments = new List<Attachment>
-                {
-                    AdaptiveCardHelper.CreateAdaptiveCardAttachment(EditUserInfoAdaptiveCard.GetResultCard(
-                        userStatus,
-                        this.GetUITextForProfileData(discipline),
-                        this.GetUITextForProfileData(gender),
-                        this.GetUITextForProfileData(seniority),
-                        teams,
-                        lowPreferenceNames))
-                };
-            }
-            else
-            {
-                replyActivity.Text = Resources.SaveUserInfoFailText;
             }
 
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
@@ -635,12 +547,18 @@ namespace Icebreaker
         {
             var teamInfo = await this.dataProvider.GetInstalledTeamAsync(teamId);
 
-            await this.dataProvider.RemoveTeamInstallInfoAsync(teamId);
+            bool succeeded = await this.dataProvider.RemoveTeamInstallInfoAsync(teamId);
 
-            if (teamInfo != null && teamInfo.AdminUser != null)
+            if (succeeded && teamInfo != null && teamInfo.AdminUser != null)
             {
                 await this.RemoveTeamUserIsAdminFor(teamId, teamInfo.AdminUser?.UserId);
             }
+
+            // Also considered do we need to update all users for this team
+            // and update their status for the team?
+            // Decided against it because if I uninstalled this bot and reinstalled
+            // it to upgrade to a newer version, I don't really want the user enrollment
+            // to all switch back to not joined.
         }
 
         /// <summary>
@@ -659,9 +577,11 @@ namespace Icebreaker
                 return;
             }
 
-            var numRemoved = userInfo.RemovedFromTeamIds.RemoveAll(id => id == teamId);
-            if (numRemoved == 0)
+            var hadStatusForTeamId = userInfo.SetStatusInTeam(EnrollmentStatus.NotJoined, teamId);
+            if (!hadStatusForTeamId)
             {
+                // A status of NotJoined is assumed if we have no info for it so
+                // we don't need to update the database if we didn't replace any previous status.
                 return;
             }
 
@@ -684,7 +604,7 @@ namespace Icebreaker
                 return;
             }
 
-            userInfo.RemovedFromTeamIds.Add(teamId);
+            userInfo.SetStatusInTeam(EnrollmentStatus.LeftTeam, teamId);
             await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
@@ -694,10 +614,10 @@ namespace Icebreaker
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
         /// <returns>Whether the opt out was successful</returns>
-        public async Task<bool> OptOutUser(string tenantId, string userAadId)
+        public async Task<bool> OptOutUser(string tenantId, string userAadId, string teamId)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
-            userInfo.Status = EnrollmentStatus.Inactive;
+            userInfo.SetStatusInTeam(EnrollmentStatus.Paused, teamId);
             return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
@@ -707,10 +627,10 @@ namespace Icebreaker
         /// <param name="tenantId">The tenant id</param>
         /// <param name="userAadId">The user AAD id</param>
         /// <returns>Whether the opt in was successful</returns>
-        public async Task<bool> OptInUser(string tenantId, string userAadId)
+        public async Task<bool> OptInUser(string tenantId, string userAadId, string teamId)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
-            userInfo.Status = EnrollmentStatus.Active;
+            userInfo.SetStatusInTeam(EnrollmentStatus.Active, teamId);
             return await this.dataProvider.SetUserInfoAsync(userInfo);
         }
 
@@ -725,6 +645,23 @@ namespace Icebreaker
             var teamsConnectorClient = connectorClient.GetTeamsConnectorClient();
             var teamDetailsResult = await teamsConnectorClient.Teams.FetchTeamDetailsAsync(teamId);
             return teamDetailsResult.Name;
+        }
+
+        public async Task<List<TeamContext>> GetAllTeams(ConnectorClient connectorClient)
+        {
+            var allTeams = await this.dataProvider.GetInstalledTeamsAsync();
+            var teamNameTasks = allTeams.Select(team => this.GetTeamNameAsync(connectorClient, team.TeamId));
+            var teamNames = await Task.WhenAll(teamNameTasks);
+
+            return allTeams.Zip(teamNames, (teamInfo, teamName) => new TeamContext { TeamId = teamInfo.TeamId, TeamName = teamName }).ToList();
+        }
+
+        public async Task<List<TeamContext>> GetTeamContextsByIds(ConnectorClient connectorClient, IList<string> teamIds)
+        {
+            var teamNameTasks = teamIds.Select(teamId => this.GetTeamNameAsync(connectorClient, teamId));
+            var teamNames = await Task.WhenAll(teamNameTasks);
+            var teamContexts = teamIds.Zip(teamNames, (teamId, teamName) => new TeamContext { TeamId = teamId, TeamName = teamName }).ToList();
+            return teamContexts;
         }
 
         /// <summary>
@@ -789,7 +726,7 @@ namespace Icebreaker
         public async Task<UserInfo> GetOrCreateUnpersistedUserInfo(string tenantId, string userAadId)
         {
             var userInfo = await this.dataProvider.GetUserInfoAsync(userAadId);
-            return userInfo ?? new UserInfo { TenantId = tenantId, UserId = userAadId, Status = EnrollmentStatus.NotJoined };
+            return userInfo ?? new UserInfo { TenantId = tenantId, UserId = userAadId };
         }
 
         private static bool IsUnknownUser(string name)
@@ -841,7 +778,7 @@ namespace Icebreaker
            string seniority,
            List<string> subteams,
            List<string> lowPreferenceNames,
-           EnrollmentStatus? userStatus)
+           UserEnrollmentStatus userStatus)
         {
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             userInfo.Discipline = discipline;
@@ -851,7 +788,7 @@ namespace Icebreaker
             userInfo.LowPreferences = lowPreferenceNames;
             if (userStatus != null)
             {
-                userInfo.Status = (EnrollmentStatus)userStatus;
+                userInfo.SetStatusInTeam(userStatus.Status, userStatus.TeamId);
             }
 
             var isSuccess = await this.dataProvider.SetUserInfoAsync(userInfo);
@@ -1004,9 +941,11 @@ namespace Icebreaker
 
         private async Task<List<ChannelAccount>> GetOptedInUsers(ConnectorClient connectorClient, TeamInstallInfo teamInfo)
         {
+            var teamId = teamInfo.TeamId;
+
             // Pull the roster of specified team and then remove everyone who has opted out explicitly
-            var members = await connectorClient.Conversations.GetConversationMembersAsync(teamInfo.TeamId);
-            this.telemetryClient.TrackTrace($"Found {members.Count} in team {teamInfo.TeamId}");
+            var members = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
+            this.telemetryClient.TrackTrace($"Found {members.Count} in team {teamId}");
 
             // UserInfo only exists if the user has entered some info in the first place (eg optout or profile details)
             // Opt out is presumed if no UserInfo is found.
@@ -1017,7 +956,7 @@ namespace Icebreaker
             // I suspect these are people who have their AAD account disabled eg when someone leaves the company.
             // Going to add a check for it to remove them but unsure if GetConversationMembersAsync actually includes them.
             return members
-                .Zip(results, (member, userInfo) => (userInfo?.IsActive == true && !IsUnknownUser(member.Name)) ? member : null)
+                .Zip(results, (member, userInfo) => (userInfo?.IsActiveInTeam(teamId) == true && !IsUnknownUser(member.Name)) ? member : null)
                 .Where(m => m != null)
                 .ToList();
         }
@@ -1067,30 +1006,13 @@ namespace Icebreaker
             return foundUser == null ? string.Empty : team.SubteamNames;
         }
 
-        private async Task<string> GetSubteamNamesHintForUser(ConnectorClient connectorClient, string userAadId)
+        private async Task<string> GetSubteamNamesHintForUser(string teamId)
         {
-            var teams = await this.dataProvider.GetInstalledTeamsAsync();
+            var team = await this.dataProvider.GetInstalledTeamAsync(teamId);
             var subteams = new List<string>();
-            if (teams.Count == 1)
+            if (team != null)
             {
-                var onlyTeam = teams.First();
-                subteams.Add(onlyTeam.SubteamNames);
-            }
-            else if (teams.Count > 1)
-            {
-                // Note: This is pretty expensive if teams list/teams are quite big.
-                //       May need to revist and store a user's teams
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-
-                var tasks = teams.Select(team => this.GetSubteamNamesIfUserExistsInTeam(connectorClient, team, userAadId));
-                subteams = (await Task.WhenAll(tasks)).ToList();
-
-                watch.Stop();
-                var elapsedMs = watch.ElapsedMilliseconds;
-                if (elapsedMs > 500)
-                {
-                    this.telemetryClient.TrackTrace("EditProfileTooLong", SeverityLevel.Warning);
-                }
+                subteams.Add(team.SubteamNames);
             }
 
             var subteamsSanitized = subteams.Where(names => !string.IsNullOrEmpty(names)).Select(names => names.Trim());

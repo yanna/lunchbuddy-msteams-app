@@ -52,7 +52,7 @@
     {
         "type": "Action.OpenUrl",
         "title": "%chatWithMeButtonText%",
-        "url": "https://teams.microsoft.com/l/chat/0/0?users=%botChatId%&message=Hi"
+        "url": "https://teams.microsoft.com/l/chat/0/0?users=%botChatId%&message=%botMessage%"
     }
   ],
   "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",

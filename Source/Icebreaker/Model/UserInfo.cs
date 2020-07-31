@@ -8,6 +8,7 @@ namespace Icebreaker.Model
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Microsoft.Azure.Documents;
     using Newtonsoft.Json;
 
@@ -28,38 +29,10 @@ namespace Icebreaker.Model
         }
 
         /// <summary>
-        /// Gets or sets user enrollment status [NotJoined,Active,Paused]
+        /// Gets or sets the enrollment status of the user for a team. If there are no status then the user has not joined at all.
         /// </summary>
-        [JsonIgnore]
-        public EnrollmentStatus Status
-        {
-            get
-            {
-                try
-                {
-                    return (EnrollmentStatus)Enum.Parse(typeof(EnrollmentStatus), this.StatusInternal);
-                }
-                catch (Exception)
-                {
-                }
-
-                return EnrollmentStatus.NotJoined;
-            }
-
-            set
-            {
-                this.StatusInternal = Enum.GetName(typeof(EnrollmentStatus), value);
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the user wants to receive matches
-        /// </summary>
-        [JsonIgnore]
-        public bool IsActive
-        {
-            get { return this.Status == EnrollmentStatus.Active; }
-        }
+        [JsonProperty("statusInTeam")]
+        public List<UserEnrollmentStatus> StatusInTeam { get; set; } = new List<UserEnrollmentStatus>();
 
         /// <summary>
         /// Gets or sets the list of team ids this user is an admin for
@@ -116,15 +89,36 @@ namespace Icebreaker.Model
         public List<UserMatch> Matches { get; set; } = new List<UserMatch>();
 
         /// <summary>
-        /// Gets or sets a list of teams the member is no longer part of. Unsure if this happens when AAD accounts get disabled.
+        /// Returns the status of the user for the team
         /// </summary>
-        [JsonProperty("removedFromTeamIds")]
-        public List<string> RemovedFromTeamIds { get; set; } = new List<string>();
+        /// <param name="teamId">team id</param>
+        /// <returns>User enrollment status</returns>
+        public EnrollmentStatus GetStatusInTeam(string teamId)
+        {
+            return UserEnrollmentStatus.GetStatusInTeam(teamId, this.StatusInTeam);
+        }
 
         /// <summary>
-        /// Gets or sets user enrollment status [NotJoined,Active,Paused]
+        /// Update the status for a team
         /// </summary>
-        [JsonProperty("status")]
-        private string StatusInternal { get; set; } = Enum.GetName(typeof(EnrollmentStatus), EnrollmentStatus.NotJoined);
+        /// <param name="newStatus">user status</param>
+        /// <param name="teamId">team id</param>
+        /// <returns>Whether already had status for teamId</returns>
+        public bool SetStatusInTeam(EnrollmentStatus newStatus, string teamId)
+        {
+            var numRemoved = this.StatusInTeam.RemoveAll(status => status.TeamId == teamId);
+            this.StatusInTeam.Add(new UserEnrollmentStatus { TeamId = teamId, Status = newStatus });
+            return numRemoved > 0;
+        }
+
+        /// <summary>
+        /// Is user available for matches in the team
+        /// </summary>
+        /// <param name="teamId">team id</param>
+        /// <returns>Whether user is active</returns>
+        public bool IsActiveInTeam(string teamId)
+        {
+            return this.GetStatusInTeam(teamId) == EnrollmentStatus.Active;
+        }
     }
 }

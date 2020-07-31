@@ -115,16 +115,27 @@ namespace Icebreaker.Controllers
         /// <param name="userAadId">user AAD id</param>
         /// <param name="userName">user display name</param>
         /// <returns>Task</returns>
-        public async Task HandleAdminEditUserForUser(ConnectorClient connectorClient, Activity activity, string tenantId, string userAadId, string userName)
+        public async Task HandleAdminEditUserForUser(ConnectorClient connectorClient, Activity activity, string tenantId, ChooseUserResult userAndTeam)
         {
-            await this.bot.EditUserInfo(connectorClient, activity.CreateReply(), tenantId, userAadId, userName);
+            // Provide the user actions for the user
+            var userInfo = await this.bot.GetOrCreateUnpersistedUserInfo(tenantId, userAndTeam.GetUserId());
+            var userStatus = userInfo.GetStatusInTeam(userAndTeam.TeamContext.TeamId);
+
+            var editUserCard = EditAnyUserAdaptiveCard.GetCard(userStatus, userAndTeam);
+
+            var replyActivity = activity.CreateReply();
+            replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(editUserCard) };
+
+            await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
         private async Task HandleAdminEditUser(ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
+            // Ask for team if we don't have one, then ask for a user, then show the edit any user card
+            // which includes all user actions.
             if (activity.Value != null && activity.Value.ToString().TryParseJson(out TeamContext request))
             {
-                await this.HandleAdminEditUserForTeam(connectorClient, activity, senderAadId, request.TeamId, request.TeamName);
+                await this.SendChooseUserCard(connectorClient, activity, senderAadId, request.TeamId, request.TeamName);
             }
             else
             {
@@ -134,15 +145,16 @@ namespace Icebreaker.Controllers
                     senderAadId,
                     adminActionName: Resources.AdminActionEditUser,
                     adminActionMessageId: MessageIds.AdminEditUser,
-                    this.HandleAdminEditUserForTeam);
+                    this.SendChooseUserCard);
             }
         }
 
-        private async Task HandleAdminEditUserForTeam(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId, string teamName)
+        private async Task SendChooseUserCard(ConnectorClient connectorClient, Activity activity, string senderAadId, string teamId, string teamName)
         {
             var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
             var users = allMembers.Select(account => new ChooseUserAdaptiveCard.User { AadId = account.GetUserId(), Name = account.Name }).OrderBy(t => t.Name);
-            var pickUser = ChooseUserAdaptiveCard.GetCard(users.ToList(), MessageIds.AdminEditUser);
+            var allTeams = await this.bot.GetAllTeams(connectorClient);
+            var pickUser = ChooseUserAdaptiveCard.GetCard(users.ToList(), new TeamContext { TeamId = teamId, TeamName = teamName }, MessageIds.AdminEditUser);
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(pickUser) };
@@ -250,30 +262,14 @@ namespace Icebreaker.Controllers
             }
             else
             {
-                var teamActions = new List<CardAction>();
+                var teamContexts = await this.bot.GetTeamContextsByIds(connectorClient, teamIdsAllowingAdminActionsByUser);
 
-                foreach (var teamId in teamIdsAllowingAdminActionsByUser)
-                {
-                    var teamName = await this.bot.GetTeamNameAsync(connectorClient, teamId);
-                    var teamCardAction = new CardAction()
-                    {
-                        Title = teamName,
-                        DisplayText = teamName,
-                        Type = ActionTypes.MessageBack,
-                        Text = adminActionMessageId,
-                        Value = JsonConvert.SerializeObject(new TeamContext { TeamId = teamId, TeamName = teamName })
-                    };
-                    teamActions.Add(teamCardAction);
-                }
+                var chooseTeamCard = ChooseTeamHeroCard.GetCard(string.Format(Resources.AdminActionWhichTeamText, adminActionName), teamContexts, adminActionMessageId);
 
                 var pickTeamReply = activity.CreateReply();
                 pickTeamReply.Attachments = new List<Attachment>
                 {
-                    new HeroCard()
-                    {
-                        Text = string.Format(Resources.AdminActionWhichTeamText, adminActionName),
-                        Buttons = teamActions
-                    }.ToAttachment(),
+                    chooseTeamCard.ToAttachment(),
                 };
 
                 await connectorClient.Conversations.ReplyToActivityAsync(pickTeamReply);
@@ -298,7 +294,8 @@ namespace Icebreaker.Controllers
             }
             else
             {
-                reply.Text = Resources.NewPairingsNotEnoughUsers;
+                var numUsers = matchResult.OddPerson != null ? 1 : 0;
+                reply.Text = string.Format(Resources.NewPairingsNotEnoughUsers, numUsers);
             }
 
             await connectorClient.Conversations.ReplyToActivityAsync(reply);

@@ -29,30 +29,24 @@ namespace Icebreaker.Helpers.AdaptiveCards
         }
 
         /// <summary>
-        /// Creates the welcome new member card.
+        /// Creates the welcome new member card that welcomes the user to a specific team.
         /// </summary>
+        /// <param name="teamContext">Team context for the card.</param>
         /// <param name="userStatus">User status</param>
-        /// <param name="teamName">The team name. Can be empty</param>
-        /// <param name="botDisplayName">The bot name</param>
-        /// <param name="botInstaller">The name of the person that installed the bot to the team. Can be empty.</param>
-        /// <param name="adminTeamContext">Team context for the admin actions. If this is not null the admin version of the card is shown</param>
+        /// <param name="botInstallerName">The name of the person that installed the bot to the team. Can be empty.</param>
+        /// <param name="showAdminActions">Whether to show the admin actions</param>
         /// <returns>The welcome new member card</returns>
-        public static string GetCardJson(EnrollmentStatus userStatus, string teamName, string botDisplayName, string botInstaller, TeamContext adminTeamContext)
+        public static AdaptiveCard GetCard(TeamContext teamContext, EnrollmentStatus userStatus, string botInstallerName, bool showAdminActions)
         {
-            string introMessagePart1 = string.Empty;
-            if (!string.IsNullOrEmpty(teamName))
+            string introMessagePart1;
+            if (string.IsNullOrEmpty(botInstallerName))
             {
-                if (string.IsNullOrEmpty(botInstaller))
-                {
-                    introMessagePart1 = string.Format(Resources.InstallMessageUnknownInstaller, teamName);
-                }
-                else
-                {
-                    introMessagePart1 = string.Format(Resources.InstallMessageKnownInstaller, botInstaller, teamName);
-                }
+                introMessagePart1 = string.Format(Resources.InstallMessageUnknownInstaller, teamContext.TeamName);
             }
-
-            var showAdminActions = adminTeamContext != null;
+            else
+            {
+                introMessagePart1 = string.Format(Resources.InstallMessageKnownInstaller, botInstallerName, teamContext.TeamName);
+            }
 
             var introMessagePart2 = Resources.InstallMessageBotDescription;
             var introMessagePart3 = showAdminActions ? Resources.InstallMessageInstructionAdmin : Resources.InstallMessageInstruction;
@@ -62,38 +56,31 @@ namespace Icebreaker.Helpers.AdaptiveCards
             var baseDomain = CloudConfigurationManager.GetSetting("AppBaseDomain");
             var welcomeCardImageUrl = $"https://{baseDomain}/Content/welcome-card-image.png";
 
-            var statusAction = AdaptiveCardHelper.GetButtonTextAndMsgIdForStatusButton(userStatus);
-            var statusActionText = statusAction.Item1;
-            var statusActionMsgId = statusAction.Item2;
-
             var salutationText = Resources.SalutationTitleText;
-            var editProfileText = Resources.EditProfileButtonText;
 
             var variablesToValues = new Dictionary<string, string>()
             {
-                { "botDisplayName", botDisplayName },
+                { "salutationText", salutationText },
+                { "welcomeCardImageUrl", welcomeCardImageUrl },
                 { "introMessagePart1", introMessagePart1 },
                 { "introMessagePart2", introMessagePart2 },
                 { "introMessagePart3", introMessagePart3 },
                 { "suggestedNextStep", suggestedNextStep },
-                { "welcomeCardImageUrl", welcomeCardImageUrl },
-                { "editProfileText", editProfileText },
-                { "statusActionText", statusActionText },
-                { "statusActionMessageId", statusActionMsgId },
-                { "salutationText", salutationText }
             };
 
             var cardBody = AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
+            var card = AdaptiveCard.FromJson(cardBody).Card;
 
             if (showAdminActions)
             {
-                var card = AdaptiveCard.FromJson(cardBody).Card;
-                var adminActions = AdaptiveCardHelper.CreateAdminActions(adminTeamContext);
-                card.Actions.InsertRange(0, adminActions);
-                cardBody = card.ToJson();
+                var adminActions = AdaptiveCardHelper.CreateAdminActions(teamContext);
+                card.Actions.AddRange(adminActions);
             }
 
-            return cardBody;
+            var userActions = AdaptiveCardHelper.CreateUserActions(teamContext, userStatus);
+            card.Actions.AddRange(userActions);
+
+            return card;
         }
     }
 }

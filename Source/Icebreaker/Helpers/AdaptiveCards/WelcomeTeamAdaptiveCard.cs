@@ -8,6 +8,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Runtime.CompilerServices;
     using System.Web.Hosting;
     using Icebreaker.Properties;
     using Microsoft.Azure;
@@ -17,6 +18,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
     /// </summary>
     public class WelcomeTeamAdaptiveCard
     {
+        private static string BOT_MESSAGE_PREFIX = "Hi from ";
         private static readonly string CardTemplate;
 
         static WelcomeTeamAdaptiveCard()
@@ -32,7 +34,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="botChatId">Bot id that will allow deeplink to chat with the bot</param>
         /// <param name="botInstaller">The name of the person that installed the bot</param>
         /// <returns>The welcome team adaptive card</returns>
-        public static string GetCardJson(string teamName, string botChatId, string botInstaller)
+        public static string GetCardJson(string teamName, string teamId, string botChatId, string botInstaller)
         {
             string teamIntroPart1;
             if (string.IsNullOrEmpty(botInstaller))
@@ -62,7 +64,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "welcomeCardImageUrl", welcomeCardImageUrl },
                 { "salutationText", salutationText },
                 { "chatWithMeButtonText", chatWithMeButtonText },
-                { "botChatId", botChatId }
+                { "botChatId", botChatId },
+                { "botMessage", GetBotMessage(teamId) }
             };
 
             var cardBody = CardTemplate;
@@ -72,6 +75,21 @@ namespace Icebreaker.Helpers.AdaptiveCards
             }
 
             return cardBody;
+        }
+
+        private static string GetBotMessage(string teamId)
+        {
+            return BOT_MESSAGE_PREFIX + teamId;
+        }
+
+        public static string GetTeamIdFromBotMessage(string message)
+        {
+            if (message.StartsWith(BOT_MESSAGE_PREFIX))
+            {
+                return message.Substring(BOT_MESSAGE_PREFIX.Length);
+            }
+
+            return string.Empty;
         }
     }
 }

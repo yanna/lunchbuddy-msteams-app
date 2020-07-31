@@ -27,6 +27,11 @@ namespace Icebreaker.Controllers
         public const string EditProfile = "editprofile";
 
         /// <summary>
+        /// Edit user enrollment status
+        /// </summary>
+        public const string EditEnrollment = "editenrollment";
+
+        /// <summary>
         /// Generate pairs from opted in users in the team
         /// </summary>
         public const string AdminMakePairs = "makepairs";

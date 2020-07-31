@@ -4,7 +4,7 @@
 // </copyright>
 //----------------------------------------------------------------------------------------------
 
-namespace Icebreaker.Controllers
+namespace Icebreaker.Helpers
 {
     using Newtonsoft.Json;
 

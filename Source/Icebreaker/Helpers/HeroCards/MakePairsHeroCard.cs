@@ -62,6 +62,14 @@ namespace Icebreaker.Helpers.HeroCards
                             Type = ActionTypes.MessageBack,
                             Text = MessageIds.AdminMakePairs,
                             Value = JsonConvert.SerializeObject(new TeamContext { TeamId = teamId, TeamName = teamName })
+                        },
+                        new CardAction
+                        {
+                            Title = Resources.EditUserButtonText,
+                            DisplayText = Resources.EditUserButtonText,
+                            Type = ActionTypes.MessageBack,
+                            Text = MessageIds.AdminEditUser,
+                            Value = JsonConvert.SerializeObject(new TeamContext { TeamId = teamId, TeamName = teamName })
                         }
                     }
             };

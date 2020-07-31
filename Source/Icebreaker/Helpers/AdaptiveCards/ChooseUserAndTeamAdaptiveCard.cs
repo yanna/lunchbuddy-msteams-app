@@ -23,7 +23,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="users">List of users to display</param>
         /// <param name="messageId">Message id the user picking is for</param>
         /// <returns>Card for choosing a user</returns>
-        public static AdaptiveCard GetCard(List<User> users, string messageId)
+        public static AdaptiveCard GetCard(List<User> users, TeamContext teamContext, string messageId)
         {
             var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 2))
             {
@@ -31,14 +31,20 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 {
                     new AdaptiveTextBlock()
                     {
-                        Text = "Choose User",
+                        Text = "Choose User and Team",
                         Size = AdaptiveTextSize.Large,
                         Wrap = true,
                         Weight = AdaptiveTextWeight.Bolder
                     },
+                    new AdaptiveTextBlock()
+                    {
+                        Text = "Choose User",
+                        Size = AdaptiveTextSize.Medium,
+                        Wrap = true,
+                    },
                     new AdaptiveChoiceSetInput()
                     {
-                        Id = "User",
+                        Id = "UserJson",
                         Style = AdaptiveChoiceInputStyle.Compact,
                         Choices = users.Select(user => new AdaptiveChoice
                         {
@@ -52,7 +58,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
                     new AdaptiveSubmitAction
                     {
                         Title = "Submit",
-                        Data = JObject.FromObject(new { MessageId = messageId })
+                        Data = JObject.FromObject(new { MessageId = messageId, TeamContext = teamContext })
                     }
                 }
             };

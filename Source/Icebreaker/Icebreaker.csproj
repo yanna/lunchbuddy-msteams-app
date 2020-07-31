@@ -48,8 +48,8 @@
     <DocumentationFile>bin\IceBreaker.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AdaptiveCards, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\AdaptiveCards.1.1.2\lib\net452\AdaptiveCards.dll</HintPath>
+    <Reference Include="AdaptiveCards, Version=1.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\AdaptiveCards.1.2.4\lib\net452\AdaptiveCards.dll</HintPath>
     </Reference>
     <Reference Include="Autofac, Version=3.5.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
@@ -128,8 +128,8 @@
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Microsoft.WindowsAzure.ConfigurationManager.3.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Polly, Version=5.3.1.0, Culture=neutral, PublicKeyToken=c8a3ffc3f8f825cc, processorArchitecture=MSIL">
       <HintPath>..\packages\Polly-Signed.5.3.1\lib\net45\Polly.dll</HintPath>
@@ -197,18 +197,19 @@
     <Compile Include="Controllers\AdminMessageHandler.cs" />
     <Compile Include="Controllers\DebugMessageHandler.cs" />
     <Compile Include="Helpers\AdaptiveCards\ChooseUserResult.cs" />
+    <Compile Include="Helpers\AdaptiveCards\EditAnyUserAdaptiveCard.cs" />
+    <Compile Include="Helpers\HeroCards\ChooseTeamHeroCard.cs" />
     <Compile Include="Helpers\HeroCards\MakePairsResult.cs" />
     <Compile Include="Controllers\MessageIds.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Controllers\ProcessNowController.cs" />
-    <Compile Include="Controllers\TeamContext.cs" />
+    <Compile Include="Helpers\TeamContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\AdaptiveCards\AdaptiveCardHelper.cs" />
-    <Compile Include="Helpers\AdaptiveCards\ChooseUserAdaptiveCard.cs" />
+    <Compile Include="Helpers\AdaptiveCards\ChooseUserAndTeamAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditTeamSettingsAdaptiveCard.cs" />
-    <Compile Include="Helpers\AdaptiveCards\EditUserInfoAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\PairUpNotificationAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\UnrecognizedInputAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditUserProfileAdaptiveCard.cs" />
@@ -220,6 +221,7 @@
     <Compile Include="Model\EnrollmentStatus.cs" />
     <Compile Include="Model\TeamInstallInfo.cs" />
     <Compile Include="Model\UserInfo.cs" />
+    <Compile Include="Model\UserEnrollmentStatus.cs" />
     <Compile Include="Model\UserMatch.cs" />
     <Compile Include="IcebreakerBot.cs" />
     <Compile Include="IcebreakerModule.cs" />

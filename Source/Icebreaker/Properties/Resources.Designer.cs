@@ -142,6 +142,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Enrollment.
+        /// </summary>
+        internal static string EditEnrollmentButtonText {
+            get {
+                return ResourceManager.GetString("EditEnrollmentButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Profile .
         /// </summary>
         internal static string EditProfileButtonText {
@@ -241,7 +250,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Join LunchBuddy.
+        ///   Looks up a localized string similar to Join LunchBuddy in {0}.
         /// </summary>
         internal static string JoinButtonText {
             get {
@@ -340,7 +349,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There are not enough active users to make pairs. You need at least two. .
+        ///   Looks up a localized string similar to There are not enough active users to make pairs. You need at least two but there are currently {0}..
         /// </summary>
         internal static string NewPairingsNotEnoughUsers {
             get {
@@ -394,7 +403,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Welcome! You are all set to receive matches. Have fun!.
+        ///   Looks up a localized string similar to Welcome {0}! When match time occurs, I will message you with your new buddy. (This only occurs for people in the team.).
         /// </summary>
         internal static string OptInConfirmation {
             get {
@@ -412,11 +421,20 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to I&apos;ve paused your matches. You can turn them back on whenever you like..
+        ///   Looks up a localized string similar to I&apos;ve paused your matches in {0}. You can turn them back on whenever you like..
         /// </summary>
         internal static string OptOutConfirmation {
             get {
                 return ResourceManager.GetString("OptOutConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to I&apos;ve paused {0}&apos;s matches in {1}. You can turn them back on whenever you like..
+        /// </summary>
+        internal static string OptOutConfirmationAnotherUser {
+            get {
+                return ResourceManager.GetString("OptOutConfirmationAnotherUser", resourceCulture);
             }
         }
         
@@ -430,7 +448,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pause Matches.
+        ///   Looks up a localized string similar to Pause Matches in {0}.
         /// </summary>
         internal static string PausePairingsButtonText {
             get {
@@ -457,7 +475,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Resume Matches.
+        ///   Looks up a localized string similar to Resume Matches in {0}.
         /// </summary>
         internal static string ResumePairingsButtonText {
             get {

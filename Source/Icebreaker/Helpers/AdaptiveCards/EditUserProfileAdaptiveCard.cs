@@ -46,31 +46,31 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="teams">Sub team names the user has been on</param>
         /// <param name="subteamNamesHint">List of suggested sub team names. Can be empty</param>
         /// <param name="lowPreferenceNames">List of full names the user has low preference for. Can be empty</param>
-        /// <param name="titleSize">Size of the title</param>
         /// <returns>user profile card</returns>
         public static string GetCardJson(
+            string userId,
+            string teamName,
             string discipline,
             string gender,
             string seniority,
             List<string> teams,
             string subteamNamesHint,
-            List<string> lowPreferenceNames,
-            string titleSize = "Large")
+            List<string> lowPreferenceNames)
         {
             var teamNamesHint = string.IsNullOrEmpty(subteamNamesHint) ? string.Empty : "Suggested Teams: " + subteamNamesHint;
 
             // TODO: Lots of strings to put in the resources including those in the json file
             var variablesToValues = new Dictionary<string, string>()
             {
-                { "title", "Please tell me about yourself" },
-                { "titleSize", titleSize },
+                { "title", $"Edit Profile for {teamName}" },
                 { "description", "This helps me improve your matches." },
                 { "defaultDiscipline", GetValueOrDefault(discipline, DEFAULTDISCIPLINE) },
                 { "defaultGender", GetValueOrDefault(gender, DEFAULTGENDER) },
                 { "defaultSeniority", GetValueOrDefault(seniority, DEFAULTSENIORITY) },
                 { "defaultTeams", string.Join(TeamsSeparatorWithSpace, teams) },
                 { "teamNamesHint", teamNamesHint },
-                { "defaultLowPreferenceNames", string.Join(NamesSeparatorWithSpace, lowPreferenceNames) }
+                { "defaultLowPreferenceNames", string.Join(NamesSeparatorWithSpace, lowPreferenceNames) },
+                { "userId", userId }
             };
 
             return AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
@@ -157,6 +157,12 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// </summary>
         public class UserProfile
         {
+            /// <summary>
+            /// Gets or sets User AAD id
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string UserId { get; set; } = string.Empty;
+
             /// <summary>
             /// Gets or sets User discipline
             /// </summary>

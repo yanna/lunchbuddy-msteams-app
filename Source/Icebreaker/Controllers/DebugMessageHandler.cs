@@ -9,6 +9,7 @@ namespace Icebreaker.Controllers
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Icebreaker.Helpers.AdaptiveCards;
+    using Icebreaker.Helpers;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
@@ -51,7 +52,7 @@ namespace Icebreaker.Controllers
         /// <param name="senderAadId">sender AAD id</param>
         /// <param name="senderChannelAccountId">sender ChannelAccount id</param>
         /// <returns>Task</returns>
-        public async Task HandleMessage(string msgId, ConnectorClient connectorClient, Activity activity, string senderAadId, string senderChannelAccountId)
+        public async Task HandleMessage(string msgId, ConnectorClient connectorClient, Activity activity, string teamId)
         {
             if (msgId == MessageIds.DebugNotifyUser)
             {
@@ -59,15 +60,15 @@ namespace Icebreaker.Controllers
             }
             else if (msgId == MessageIds.DebugWelcomeUser)
             {
-                await this.HandleDebugWelcomeUser(connectorClient, activity, activity.From.AsTeamsChannelAccount());
+                await this.HandleDebugWelcomeUser(connectorClient, activity, teamId);
             }
             else if (msgId == MessageIds.DebugWelcomeUserAdmin)
             {
-                await this.HandleDebugWelcomeUserAdmin(connectorClient, activity, activity.From.AsTeamsChannelAccount());
+                await this.HandleDebugWelcomeUserAdmin(connectorClient, activity, teamId);
             }
             else if (msgId == MessageIds.DebugWelcomeTeam)
             {
-                await this.HandleDebugWelcomeTeam(connectorClient, activity, activity.From.AsTeamsChannelAccount());
+                await this.HandleDebugWelcomeTeam(connectorClient, activity, teamId);
             }
         }
 
@@ -81,9 +82,13 @@ namespace Icebreaker.Controllers
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
-        private async Task HandleDebugWelcomeUser(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
+        private async Task HandleDebugWelcomeUser(ConnectorClient connectorClient, Activity activity, string teamId)
         {
-            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCardJson(Model.EnrollmentStatus.NotJoined, "TestTeam", "LunchBuddy", "InstallerPerson", null);
+            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCard(
+                new TeamContext { TeamId = teamId, TeamName = "TestTeam" },
+                Model.EnrollmentStatus.NotJoined,
+                "InstallerPerson",
+                false);
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };
@@ -91,9 +96,13 @@ namespace Icebreaker.Controllers
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
-        private async Task HandleDebugWelcomeUserAdmin(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
+        private async Task HandleDebugWelcomeUserAdmin(ConnectorClient connectorClient, Activity activity, string teamId)
         {
-            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCardJson(Model.EnrollmentStatus.NotJoined, "TestTeam", "LunchBuddy", "you", new TeamContext());
+            var welcomeCard = WelcomeNewMemberAdaptiveCard.GetCard(
+                new TeamContext { TeamId = teamId, TeamName = "TestTeam" },
+                Model.EnrollmentStatus.NotJoined,
+                "you",
+                true);
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };
@@ -101,9 +110,9 @@ namespace Icebreaker.Controllers
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
-        private async Task HandleDebugWelcomeTeam(ConnectorClient connectorClient, Activity activity, TeamsChannelAccount sender)
+        private async Task HandleDebugWelcomeTeam(ConnectorClient connectorClient, Activity activity, string teamId)
         {
-            var welcomeCard = WelcomeTeamAdaptiveCard.GetCardJson("TestTeam", activity.Recipient.Id, "Rocky");
+            var welcomeCard = WelcomeTeamAdaptiveCard.GetCardJson("TestTeam", teamId, activity.Recipient.Id, "Rocky");
 
             var replyActivity = activity.CreateReply();
             replyActivity.Attachments = new List<Attachment> { AdaptiveCardHelper.CreateAdaptiveCardAttachment(welcomeCard) };

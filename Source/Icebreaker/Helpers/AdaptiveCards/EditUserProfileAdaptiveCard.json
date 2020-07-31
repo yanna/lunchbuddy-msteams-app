@@ -7,7 +7,7 @@
             "type": "TextBlock",
             "text": "%title%",
             "weight": "Bolder",
-            "size": "%titleSize%",
+            "size": "Large",
             "wrap": true
         },
         {
@@ -157,7 +157,8 @@
     "actions": [
         {
             "type": "Action.Submit",
-            "title": "Submit"
+            "title": "Submit",
+            "data": { "UserId": "%userId%" }
         }
     ]
 }

@@ -123,10 +123,10 @@ namespace Icebreaker.Helpers
         }
 
         /// <summary>
-        /// Returns the team that the bot has been installed to
+        /// Returns the installed team info given the team id. Can return null if we have no info about the team id.
         /// </summary>
         /// <param name="teamId">The team id</param>
-        /// <returns>Team that the bot is installed to</returns>
+        /// <returns>Team information</returns>
         public async Task<TeamInstallInfo> GetInstalledTeamAsync(string teamId)
         {
             await this.EnsureInitializedAsync();

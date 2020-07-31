@@ -153,6 +153,10 @@
     <value>Chat With Me</value>
     <comment>Button text for chatting with the bot</comment>
   </data>
+  <data name="EditEnrollmentButtonText" xml:space="preserve">
+    <value>Edit Enrollment</value>
+    <comment>Edit enrollment of statuses in teams</comment>
+  </data>
   <data name="EditProfileButtonText" xml:space="preserve">
     <value>Edit Profile </value>
     <comment>Edit profile button text</comment>
@@ -197,8 +201,8 @@
     <comment>Install message and also the welcome message when the app installer is not known - {0} is the placeholder for the name of the team that the app has been installed to</comment>
   </data>
   <data name="JoinButtonText" xml:space="preserve">
-    <value>Join LunchBuddy</value>
-    <comment>Button for joining into the program</comment>
+    <value>Join LunchBuddy in {0}</value>
+    <comment>Button for joining into the program for a particular team</comment>
   </data>
   <data name="MakePairsButtonText" xml:space="preserve">
     <value>Admin: Create Pairs</value>
@@ -241,7 +245,7 @@
     <comment>Description for the new pairings text</comment>
   </data>
   <data name="NewPairingsNotEnoughUsers" xml:space="preserve">
-    <value>There are not enough active users to make pairs. You need at least two. </value>
+    <value>There are not enough active users to make pairs. You need at least two but there are currently {0}.</value>
     <comment>Message for when there are not enough users users to make pairs with</comment>
   </data>
   <data name="NewPairingsOddPerson" xml:space="preserve">
@@ -265,7 +269,7 @@
     <comment>The text to show when no approval setting was successfully changed</comment>
   </data>
   <data name="OptInConfirmation" xml:space="preserve">
-    <value>Welcome! You are all set to receive matches. Have fun!</value>
+    <value>Welcome {0}! When match time occurs, I will message you with your new buddy. (This only occurs for people in the team.)</value>
     <comment>The confirmation reply that is sent when the user opts into matches</comment>
   </data>
   <data name="OptInUserFailText" xml:space="preserve">
@@ -273,16 +277,19 @@
     <comment>Show this text when the user opt in failed</comment>
   </data>
   <data name="OptOutConfirmation" xml:space="preserve">
-    <value>I've paused your matches. You can turn them back on whenever you like.</value>
-    <comment>The confirmation reply that is sent when the user pauses all matches</comment>
+    <value>I've paused your matches in {0}. You can turn them back on whenever you like.</value>
+    <comment>The confirmation reply that is sent when the user pauses matches for a particular team.</comment>
+  </data>
+  <data name="OptOutConfirmationAnotherUser" xml:space="preserve">
+    <value>I've paused {0}'s matches in {1}. You can turn them back on whenever you like.</value>
   </data>
   <data name="OptOutUserFailText" xml:space="preserve">
     <value>Sorry, I had trouble opting you out. Retry?</value>
     <comment>Show this text when the user opt out failed</comment>
   </data>
   <data name="PausePairingsButtonText" xml:space="preserve">
-    <value>Pause Matches</value>
-    <comment>Button text to pause pairings</comment>
+    <value>Pause Matches in {0}</value>
+    <comment>Button text to pause pairings for a particular team</comment>
   </data>
   <data name="ProposeMeetupButtonText" xml:space="preserve">
     <value>Propose Meetup</value>
@@ -293,8 +300,8 @@
     <comment>Button text to regenerate pairings</comment>
   </data>
   <data name="ResumePairingsButtonText" xml:space="preserve">
-    <value>Resume Matches</value>
-    <comment>Button text to resume pairings</comment>
+    <value>Resume Matches in {0}</value>
+    <comment>Button text to resume pairings for a particular team</comment>
   </data>
   <data name="SalutationTitleText" xml:space="preserve">
     <value>Hi there!</value>

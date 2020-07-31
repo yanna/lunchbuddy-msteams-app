@@ -70,13 +70,13 @@ namespace Icebreaker.Helpers.AdaptiveCards
         }
 
         /// <summary>
-        /// Create a submit action that will apply the title, message and a team context for admin actions if available
+        /// Create a submit action that will apply the title, message and store extra data to give the action more context
         /// </summary>
         /// <param name="title">Button title and the message back when clicked</param>
         /// <param name="messageId">Message id this button will invoke</param>
-        /// <param name="teamContext">Team context of the admin action</param>
+        /// <param name="extraData">Either TeamContext of the action or ChooseUserResult for the action</param>
         /// <returns>Submit action for an adaptive card</returns>
-        public static AdaptiveSubmitAction CreateSubmitAction(string title, string messageId, TeamContext teamContext = null)
+        public static AdaptiveSubmitAction CreateSubmitAction(string title, string messageId, object extraData)
         {
             var data = JObject.FromObject(new
             {
@@ -88,11 +88,11 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 }
             });
 
-            if (teamContext != null)
+            if (extraData != null)
             {
-                // In order for the data to be left in the activity.Value to be deserialized into a TeamContext
-                // object it needs to be on the root object.
-                data.Merge(JObject.FromObject(teamContext));
+                // In order for the data to be in the activity.Value and for it to be deserialized into a TeamContext
+                // object, it needs to be on the root object.
+                data.Merge(JObject.FromObject(extraData));
             }
 
             return new AdaptiveSubmitAction
@@ -117,6 +117,27 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 CreateSubmitAction(Resources.MakePairsButtonText, MessageIds.AdminMakePairs, adminTeamContext)
             };
             return adminActions;
+        }
+
+        public static List<AdaptiveAction> CreateUserActions(TeamContext teamContext, EnrollmentStatus enrollmentStatus)
+        {
+            return CreateUserActions(enrollmentStatus, teamContext.TeamName, teamContext);
+        }
+
+        public static List<AdaptiveAction> CreateUserActionsForAdmin(ChooseUserResult userAndTeamResult, EnrollmentStatus enrollmentStatus)
+        {
+            return CreateUserActions(enrollmentStatus, userAndTeamResult.TeamContext.TeamName, userAndTeamResult);
+        }
+
+        private static List<AdaptiveAction> CreateUserActions(EnrollmentStatus enrollmentStatus, string teamName, object submitActionData)
+        {
+            var userActions = new List<AdaptiveAction>()
+            {
+                CreateStatusSubmitAction(enrollmentStatus, teamName, submitActionData),
+                CreateSubmitAction(Resources.EditProfileButtonText, MessageIds.EditProfile, submitActionData),
+            };
+
+            return userActions;
         }
 
         /// <summary>
@@ -168,7 +189,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// </summary>
         /// <param name="userStatus">User status</param>
         /// <returns>Button text and message id</returns>
-        public static Tuple<string, string> GetButtonTextAndMsgIdForStatusButton(EnrollmentStatus userStatus)
+        public static Tuple<string, string> GetButtonTextAndMsgIdForStatusButton(EnrollmentStatus userStatus, string teamName)
         {
             string buttonText = string.Empty;
             string messageId = string.Empty;
@@ -176,15 +197,15 @@ namespace Icebreaker.Helpers.AdaptiveCards
             switch (userStatus)
             {
                 case EnrollmentStatus.NotJoined:
-                    buttonText = Resources.JoinButtonText;
+                    buttonText = string.Format(Resources.JoinButtonText, teamName);
                     messageId = MessageIds.OptIn;
                     break;
                 case EnrollmentStatus.Active:
-                    buttonText = Resources.PausePairingsButtonText;
+                    buttonText = string.Format(Resources.PausePairingsButtonText, teamName);
                     messageId = MessageIds.OptOut;
                     break;
-                case EnrollmentStatus.Inactive:
-                    buttonText = Resources.ResumePairingsButtonText;
+                case EnrollmentStatus.Paused:
+                    buttonText = string.Format(Resources.ResumePairingsButtonText, teamName);
                     messageId = MessageIds.OptIn;
                     break;
             }
@@ -196,11 +217,12 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// Create the adaptive card submit action corresponding to the current status.
         /// </summary>
         /// <param name="userStatus">user status</param>
+        /// <param name="extraData">TeamContext or ChooseUserAndTeamResult object</param>
         /// <returns>submit action</returns>
-        public static AdaptiveSubmitAction CreateStatusSubmitAction(EnrollmentStatus userStatus)
+        public static AdaptiveSubmitAction CreateStatusSubmitAction(EnrollmentStatus userStatus, string teamName, object extraData)
         {
-            var textAndMsg = GetButtonTextAndMsgIdForStatusButton(userStatus);
-            return CreateSubmitAction(textAndMsg.Item1, textAndMsg.Item2);
+            var textAndMsg = GetButtonTextAndMsgIdForStatusButton(userStatus, teamName);
+            return CreateSubmitAction(textAndMsg.Item1, textAndMsg.Item2, extraData);
         }
     }
 }
