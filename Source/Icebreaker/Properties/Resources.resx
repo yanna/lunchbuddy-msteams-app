@@ -141,6 +141,9 @@
     <value>change notify mode to no approval</value>
     <comment>Admin action option</comment>
   </data>
+  <data name="AdminActionSendTeamWelcome" xml:space="preserve">
+    <value>send the team welcome card</value>
+  </data>
   <data name="AdminActionWhichTeamText" xml:space="preserve">
     <value>Which team do you wish to {0} for?</value>
     <comment>Title for card that asks which team the admin action should be generated for</comment>
@@ -337,6 +340,9 @@
   <data name="TakeATourButtonText" xml:space="preserve">
     <value>Take a Tour</value>
     <comment>The text for the button which launches a tour when clicked</comment>
+  </data>
+  <data name="UnexpectedErrorNoTeam" xml:space="preserve">
+    <value>This is unexpected. I can't determine the team you want to perform the action for.</value>
   </data>
   <data name="UnknownUserName" xml:space="preserve">
     <value>unknown</value>

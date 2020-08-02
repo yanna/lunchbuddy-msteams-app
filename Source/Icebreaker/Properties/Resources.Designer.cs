@@ -115,6 +115,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to send the team welcome card.
+        /// </summary>
+        internal static string AdminActionSendTeamWelcome {
+            get {
+                return ResourceManager.GetString("AdminActionSendTeamWelcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Which team do you wish to {0} for?.
         /// </summary>
         internal static string AdminActionWhichTeamText {
@@ -561,6 +570,15 @@ namespace Icebreaker.Properties {
         internal static string TakeATourButtonText {
             get {
                 return ResourceManager.GetString("TakeATourButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is unexpected. I can&apos;t determine the team you want to perform the action for..
+        /// </summary>
+        internal static string UnexpectedErrorNoTeam {
+            get {
+                return ResourceManager.GetString("UnexpectedErrorNoTeam", resourceCulture);
             }
         }
         

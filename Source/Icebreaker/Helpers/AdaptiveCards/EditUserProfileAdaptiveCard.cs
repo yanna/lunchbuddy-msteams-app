@@ -40,7 +40,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <summary>
         /// Creates the editable user profile card
         /// </summary>
-        /// <param name="userId">User id</param>
+        /// <param name="userId">User id the profile is for</param>
+        /// <param name="userName">User name the profile is for</param>
         /// <param name="teamName">Team name subteam name hint is for</param>
         /// <param name="discipline">User discipline</param>
         /// <param name="gender">User gender</param>
@@ -48,23 +49,26 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="teams">Sub team names the user has been on</param>
         /// <param name="subteamNamesHint">List of suggested sub team names. Can be empty</param>
         /// <param name="lowPreferenceNames">List of full names the user has low preference for. Can be empty</param>
+        /// <param name="isOnBehalfOfAnotherUser">Show different title when this card is show for another user</param>
         /// <returns>user profile card</returns>
         public static string GetCardJson(
             string userId,
+            string userName,
             string teamName,
             string discipline,
             string gender,
             string seniority,
             List<string> teams,
             string subteamNamesHint,
-            List<string> lowPreferenceNames)
+            List<string> lowPreferenceNames,
+            bool isOnBehalfOfAnotherUser = false)
         {
             var teamNamesHint = string.IsNullOrEmpty(subteamNamesHint) ? string.Empty : $"Teams in {teamName}: " + subteamNamesHint;
 
             // TODO: Lots of strings to put in the resources including those in the json file
             var variablesToValues = new Dictionary<string, string>()
             {
-                { "title", $"Tell me about yourself" },
+                { "title", isOnBehalfOfAnotherUser ? $"Edit Profile for {userName}" : $"Tell me about yourself" },
                 { "description", "This helps me improve your matches." },
                 { "defaultDiscipline", GetValueOrDefault(discipline, DEFAULTDISCIPLINE) },
                 { "defaultGender", GetValueOrDefault(gender, DEFAULTGENDER) },
@@ -90,7 +94,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         public static AdaptiveCard GetResultCard(string discipline, string gender, string seniority, List<string> teams, List<string> lowPreferenceNames)
         {
             var pairs = GetDataForResultCard(discipline, gender, seniority, teams, lowPreferenceNames);
-            return AdaptiveCardHelper.CreateSubmitResultCard("Saved Your Profile", pairs);
+            return AdaptiveCardHelper.CreateSubmitResultCard("Saved Profile", pairs);
         }
 
         /// <summary>

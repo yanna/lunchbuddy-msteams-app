@@ -7,6 +7,7 @@
 namespace Icebreaker.Helpers.HeroCards
 {
     using System.Collections.Generic;
+    using System.Linq;
     using Icebreaker.Controllers;
     using Microsoft.Bot.Connector;
     using Newtonsoft.Json;
@@ -26,8 +27,8 @@ namespace Icebreaker.Helpers.HeroCards
         public static HeroCard GetCard(string text, List<TeamContext> teams, string actionMessage)
         {
             var teamActions = new List<CardAction>();
-
-            foreach (var team in teams)
+            var orderedByName = teams.OrderBy(t => t.TeamName).ToList();
+            foreach (var team in orderedByName)
             {
                 var teamName = team.TeamName;
 

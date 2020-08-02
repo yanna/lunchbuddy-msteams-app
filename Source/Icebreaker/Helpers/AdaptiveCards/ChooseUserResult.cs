@@ -20,13 +20,13 @@ namespace Icebreaker.Helpers.AdaptiveCards
         public string MessageId { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the serialized User string. Adaptive card doesn't treat it as an object.
+        /// Gets or sets the serialized User string. Adaptive card doesn't treat AdaptiveChoice as an object.
         /// </summary>
         [JsonProperty(Required = Required.Always)]
         public string UserJson { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the serialized TeamContext string. Adaptive card doesn't treat it as an object.
+        /// Gets or sets the serialized TeamContext string.
         /// </summary>
         [JsonProperty(Required = Required.Always)]
         public TeamContext TeamContext { get; set; }

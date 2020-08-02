@@ -196,6 +196,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AdminMessageHandler.cs" />
     <Compile Include="Controllers\DebugMessageHandler.cs" />
+    <Compile Include="Controllers\ActivityHelper.cs" />
     <Compile Include="Helpers\AdaptiveCards\ChooseUserResult.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditAnyUserAdaptiveCard.cs" />
     <Compile Include="Helpers\HeroCards\ChooseTeamHeroCard.cs" />
@@ -203,6 +204,8 @@
     <Compile Include="Controllers\MessageIds.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Controllers\ProcessNowController.cs" />
+    <Compile Include="Helpers\UserAndTeam.cs" />
+    <Compile Include="Helpers\UserContext.cs" />
     <Compile Include="Helpers\TeamContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

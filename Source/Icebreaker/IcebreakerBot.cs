@@ -350,15 +350,25 @@ namespace Icebreaker
         /// <param name="connectorClient">The connector client</param>
         /// <param name="replyActivity">Activity for replying</param>
         /// <param name="tenantId">Tenant id of the user</param>
-        /// <param name="userAadId">User AAD id</param>
-        /// <param name="teamContext">Team context for editing the profile. This is for the subteam names hint</param>
+        /// <param name="userAndTeam">User and team info. Team info is for the subteam names hint</param>
+        /// <param name="isOnBehalfOfAnotherUser">whether this card is displayed for a user that's not the sender of the activity</param>
         /// <returns>Empty task</returns>
-        public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, string userAadId, TeamContext teamContext)
+        public async Task EditUserProfile(ConnectorClient connectorClient, Activity replyActivity, string tenantId, UserAndTeam userAndTeam, bool isOnBehalfOfAnotherUser)
         {
-            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
-            var subteamsHint = await this.GetSubteamNamesHintForUser(teamContext.TeamId);
+            var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAndTeam.User.UserAadId);
+            var subteamsHint = await this.GetSubteamNamesHintForUser(userAndTeam.Team.TeamId);
 
-            var card = EditUserProfileAdaptiveCard.GetCardJson(userAadId, teamContext.TeamName, userInfo.Discipline, userInfo.Gender, userInfo.Seniority, userInfo.Subteams, subteamsHint, userInfo.LowPreferences);
+            var card = EditUserProfileAdaptiveCard.GetCardJson(
+                userAndTeam.User.UserAadId,
+                userAndTeam.User.UserName,
+                userAndTeam.Team.TeamName,
+                userInfo.Discipline,
+                userInfo.Gender,
+                userInfo.Seniority,
+                userInfo.Subteams,
+                subteamsHint,
+                userInfo.LowPreferences,
+                isOnBehalfOfAnotherUser);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)

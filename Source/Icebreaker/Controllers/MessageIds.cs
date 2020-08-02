@@ -42,16 +42,6 @@ namespace Icebreaker.Controllers
         public const string AdminNotifyPairs = "notifypairs";
 
         /// <summary>
-        /// The timer triggered pairing will send the pairings immediately after generating them.
-        /// </summary>
-        public const string AdminChangeNotifyModeNoApproval = "notifynoapproval";
-
-        /// <summary>
-        /// The timer triggered pairing will send the pairings to the admin for approval.
-        /// </summary>
-        public const string AdminChangeNotifyModeNeedApproval = "notifyneedapproval";
-
-        /// <summary>
         /// Edit team settings
         /// </summary>
         public const string AdminEditTeamSettings = "editteamsettings";

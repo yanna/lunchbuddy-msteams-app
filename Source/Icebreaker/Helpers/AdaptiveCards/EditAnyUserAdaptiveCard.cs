@@ -8,7 +8,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
 {
     using System.Collections.Generic;
     using global::AdaptiveCards;
-    using Icebreaker.Controllers;
     using Icebreaker.Model;
 
     /// <summary>
@@ -29,10 +28,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <returns>Edit any user card</returns>
         public static AdaptiveCard GetCard(
             EnrollmentStatus userStatus,
-            ChooseUserResult userAndTeam)
+            UserAndTeam userAndTeam)
         {
-            var userName = userAndTeam.GetUserName();
-            var teamName = userAndTeam.TeamContext.TeamName;
+            var userName = userAndTeam.User.UserName;
+            var teamName = userAndTeam.Team.TeamName;
 
             var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 2))
             {

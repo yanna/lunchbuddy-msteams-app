@@ -74,7 +74,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// </summary>
         /// <param name="title">Button title and the message back when clicked</param>
         /// <param name="messageId">Message id this button will invoke</param>
-        /// <param name="extraData">Either TeamContext of the action or ChooseUserResult for the action</param>
+        /// <param name="extraData">Either TeamContext of the action or UserAndTeam for the action</param>
         /// <returns>Submit action for an adaptive card</returns>
         public static AdaptiveSubmitAction CreateSubmitAction(string title, string messageId, object extraData)
         {
@@ -136,9 +136,9 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <param name="userAndTeam">user and team info</param>
         /// <param name="enrollmentStatus">enrollment status for the team</param>
         /// <returns>List of user actions</returns>
-        public static List<AdaptiveAction> CreateUserActionsForAdmin(ChooseUserResult userAndTeam, EnrollmentStatus enrollmentStatus)
+        public static List<AdaptiveAction> CreateUserActionsForAdmin(UserAndTeam userAndTeam, EnrollmentStatus enrollmentStatus)
         {
-            return CreateUserActions(enrollmentStatus, userAndTeam.TeamContext.TeamName, userAndTeam);
+            return CreateUserActions(enrollmentStatus, userAndTeam.Team.TeamName, userAndTeam);
         }
 
         /// <summary>
