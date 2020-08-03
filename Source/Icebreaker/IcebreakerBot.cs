@@ -23,6 +23,7 @@ namespace Icebreaker
     using Microsoft.Bot.Builder.Internals.Fibers;
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
+    using Microsoft.Bot.Connector.Teams.Models;
 
     /// <summary>
     /// Implements the core logic for Icebreaker bot
@@ -321,7 +322,7 @@ namespace Icebreaker
         }
 
         /// <summary>
-        /// Sends a message whenever there is unrecognized input into the bot
+        /// Sends unrecognized message that occured in a one on one chat. See SendUnrecognizedChannelMessage for unknown message in channel.
         /// </summary>
         /// <param name="connectorClient">The connector client</param>
         /// <param name="replyActivity">The activity for replying to a message</param>
@@ -329,7 +330,7 @@ namespace Icebreaker
         /// <param name="userStatusForTeam">User status for the team</param>
         /// <param name="isUserAdminOfTeam">Whether user is admin of the team</param>
         /// <returns>Tracking task</returns>
-        public async Task SendUnrecognizedInputMessage(
+        public async Task SendUnrecognizedOneOnOneMessage(
             ConnectorClient connectorClient,
             Activity replyActivity,
             TeamContext actionsTeamContext,
@@ -342,6 +343,19 @@ namespace Icebreaker
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(unrecognizedInputAdaptiveCard)
             };
             await connectorClient.Conversations.ReplyToActivityAsync(replyActivity);
+        }
+
+        /// <summary>
+        /// Send unrecognized message that occurred in a team channel. See SendUnrecognizedOneOnOneMessage for unknown message in a one on one chat
+        /// </summary>
+        /// <param name="connectorClient">connector client</param>
+        /// <param name="activity">original activity</param>
+        /// <param name="teamId">team id of the channel</param>
+        /// <returns>Unrecognized message in a channel card</returns>
+        public Task SendUnrecognizedChannelMessage(ConnectorClient connectorClient, Activity activity, string teamId)
+        {
+            var card = UnrecognizedInputInChannelAdaptiveCard.GetCard(activity.Recipient.Id, teamId);
+            return ActivityHelper.ReplyWithAdaptiveCard(connectorClient, activity, card);
         }
 
         /// <summary>

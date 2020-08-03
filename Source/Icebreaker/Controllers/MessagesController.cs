@@ -145,7 +145,11 @@ namespace Icebreaker
                 }
                 else
                 {
-                    if (!isMessageInChannel)
+                    if (isMessageInChannel)
+                    {
+                        await this.bot.SendUnrecognizedChannelMessage(connectorClient, activity, activity.GetChannelData<TeamsChannelData>().Team.Id);
+                    }
+                    else
                     {
                         await this.HandleUnrecognizedMsgInOneOnOneChat(connectorClient, activity, tenantId, activity.From);
                     }
@@ -170,7 +174,7 @@ namespace Icebreaker
             TeamContext teamForActions = null;
 
             // Try to get it from the message if this was from the welcome team "Chat with me" action.
-            var teamIdFromWelcomeTeam = WelcomeTeamAdaptiveCard.GetTeamIdFromBotMessage(activity.Text);
+            var teamIdFromWelcomeTeam = AdaptiveCardHelper.GetTeamIdFromChatWithMeMessage(activity.Text);
             if (!string.IsNullOrEmpty(teamIdFromWelcomeTeam))
             {
                 string teamName = await this.bot.GetTeamNameAsync(connectorClient, teamIdFromWelcomeTeam);
@@ -213,7 +217,7 @@ namespace Icebreaker
             }
             else
             {
-                await this.bot.SendUnrecognizedInputMessage(connectorClient, activity.CreateReply(), teamForActions, userStatus, isUserAdminOfTeam);
+                await this.bot.SendUnrecognizedOneOnOneMessage(connectorClient, activity.CreateReply(), teamForActions, userStatus, isUserAdminOfTeam);
             }
         }
 

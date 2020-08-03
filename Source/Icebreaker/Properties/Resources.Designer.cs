@@ -574,15 +574,6 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This is unexpected. I can&apos;t determine the team you want to perform the action for..
-        /// </summary>
-        internal static string UnexpectedErrorNoTeam {
-            get {
-                return ResourceManager.GetString("UnexpectedErrorNoTeam", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to unknown.
         /// </summary>
         internal static string UnknownUserName {
@@ -606,6 +597,15 @@ namespace Icebreaker.Properties {
         internal static string UnrecognizedInputChooseTeam {
             get {
                 return ResourceManager.GetString("UnrecognizedInputChooseTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hi! Chat with me one on one so I can help you..
+        /// </summary>
+        internal static string UnrecognizedInputInChannelText {
+            get {
+                return ResourceManager.GetString("UnrecognizedInputInChannelText", resourceCulture);
             }
         }
         

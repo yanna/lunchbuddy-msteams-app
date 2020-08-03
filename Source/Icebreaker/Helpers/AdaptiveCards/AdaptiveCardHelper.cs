@@ -23,6 +23,37 @@ namespace Icebreaker.Helpers.AdaptiveCards
     /// </summary>
     public static class AdaptiveCardHelper
     {
+        private const string ChatWithMeMessagePrefix = "Hi from ";
+
+        /// <summary>
+        /// Get the team id from the Chat With Me bot message. Empty string if it doesn't look like the message from the Chat with Me action.
+        /// See GetChatWithMeMessage() for team id embedding.
+        /// </summary>
+        /// <param name="message">Bot coming from the Chat with Me action</param>
+        /// <returns>Team id or empty string</returns>
+        public static string GetTeamIdFromChatWithMeMessage(string message)
+        {
+            if (message.StartsWith(ChatWithMeMessagePrefix))
+            {
+                return message.Substring(ChatWithMeMessagePrefix.Length);
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Create the message that will be autopopulated when the user uses the Chat with Me action.
+        /// The Chat With Me action is displayed in a channel and this message is used to extract
+        /// context from which team the message is from.
+        /// See GetTeamIdFromChatWithMeMessage() for team id extraction.
+        /// </summary>
+        /// <param name="teamId">team id the message is from.</param>
+        /// <returns>Chat with me message</returns>
+        public static string GetChatWithMeMessage(string teamId)
+        {
+            return ChatWithMeMessagePrefix + teamId;
+        }
+
         /// <summary>
         /// Replace the template keys with the provided values
         /// </summary>

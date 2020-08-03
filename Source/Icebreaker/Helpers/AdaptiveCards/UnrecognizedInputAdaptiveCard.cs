@@ -6,10 +6,7 @@
 namespace Icebreaker.Helpers.AdaptiveCards
 {
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Web.Services.Description;
     using global::AdaptiveCards;
-    using Icebreaker.Controllers;
     using Icebreaker.Model;
     using Icebreaker.Properties;
 

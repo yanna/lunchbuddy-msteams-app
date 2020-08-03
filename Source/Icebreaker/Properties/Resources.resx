@@ -341,9 +341,6 @@
     <value>Take a Tour</value>
     <comment>The text for the button which launches a tour when clicked</comment>
   </data>
-  <data name="UnexpectedErrorNoTeam" xml:space="preserve">
-    <value>This is unexpected. I can't determine the team you want to perform the action for.</value>
-  </data>
   <data name="UnknownUserName" xml:space="preserve">
     <value>unknown</value>
     <comment>Name that appears when an AAD account is disabled. A check is made to filter out names that contain this string when evaluating opted in users for match ups</comment>
@@ -355,6 +352,10 @@
   <data name="UnrecognizedInputChooseTeam" xml:space="preserve">
     <value>Hi, which team do you want to perform actions for?</value>
     <comment>Where there are multiple teams for unrecognized input, display this to pick the team</comment>
+  </data>
+  <data name="UnrecognizedInputInChannelText" xml:space="preserve">
+    <value>Hi! Chat with me one on one so I can help you.</value>
+    <comment>Text to show when there's unrecognized message in a channel</comment>
   </data>
   <data name="UnrecognizedInputNoTeam" xml:space="preserve">
     <value>I'd love to help but LunchBuddy is not installed in any teams yet.</value>

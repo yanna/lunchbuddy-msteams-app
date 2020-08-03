@@ -18,7 +18,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
     /// </summary>
     public class WelcomeTeamAdaptiveCard
     {
-        private const string BotMessagePrefix = "Hi from ";
         private static readonly string CardTemplate;
 
         static WelcomeTeamAdaptiveCard()
@@ -32,10 +31,10 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// </summary>
         /// <param name="teamName">The team name</param>
         /// <param name="teamId">Team id</param>
-        /// <param name="botChatId">Bot id that will allow deeplink to chat with the bot</param>
+        /// <param name="botChannelAccountId">Bot id that will allow deeplink to chat with the bot</param>
         /// <param name="botInstaller">The name of the person that installed the bot</param>
         /// <returns>The welcome team adaptive card</returns>
-        public static string GetCardJson(string teamName, string teamId, string botChatId, string botInstaller)
+        public static string GetCardJson(string teamName, string teamId, string botChannelAccountId, string botInstaller)
         {
             string teamIntroPart1;
             if (string.IsNullOrEmpty(botInstaller))
@@ -65,8 +64,8 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "welcomeCardImageUrl", welcomeCardImageUrl },
                 { "salutationText", salutationText },
                 { "chatWithMeButtonText", chatWithMeButtonText },
-                { "botChatId", botChatId },
-                { "botMessage", GetBotMessage(teamId) }
+                { "botChatId", botChannelAccountId },
+                { "botMessage", AdaptiveCardHelper.GetChatWithMeMessage(teamId) }
             };
 
             var cardBody = CardTemplate;
@@ -76,26 +75,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
             }
 
             return cardBody;
-        }
-
-        /// <summary>
-        /// Get the team id from the message the user says to the bot. Empty string if it doesn't look like the message from the Chat with Me action.
-        /// </summary>
-        /// <param name="message">Bot coming from the Chat with Me action</param>
-        /// <returns>Team id or empty string</returns>
-        public static string GetTeamIdFromBotMessage(string message)
-        {
-            if (message.StartsWith(BotMessagePrefix))
-            {
-                return message.Substring(BotMessagePrefix.Length);
-            }
-
-            return string.Empty;
-        }
-
-        private static string GetBotMessage(string teamId)
-        {
-            return BotMessagePrefix + teamId;
         }
     }
 }
