@@ -24,6 +24,7 @@ namespace Icebreaker
     using Microsoft.Bot.Connector;
     using Microsoft.Bot.Connector.Teams;
     using Microsoft.Bot.Connector.Teams.Models;
+    using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 
     /// <summary>
     /// Implements the core logic for Icebreaker bot
@@ -162,10 +163,14 @@ namespace Icebreaker
 
                     var matchDate = DateTime.UtcNow;
 
-                    var notifyPairsTasks = pairs.Select(pair => this.NotifyPair(connectorClient, team.TenantId, teamName, pair, matchDate));
-                    var usersNotifiedCounts = await Task.WhenAll(notifyPairsTasks);
-
-                    usersNotifiedCount += usersNotifiedCounts.Sum();
+                    // Tried to take this out of a foreach and use Select with a Task.WhenAll but this caused us
+                    // to have too many requests in a short amount of time and we couldn't send the cards to the users
+                    // because it hit a Teams bot limit. In our case we had about 40 users.
+                    // So keep it in a foreach even though this is more "synchronous".
+                    foreach (var pair in pairs)
+                    {
+                        usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, teamName, pair, matchDate);
+                    }
                 }
             }
             catch (Exception ex)
@@ -891,16 +896,33 @@ namespace Icebreaker
             return notifiedUser;
         }
 
+        private RetryPolicy CreateRetryPolicy()
+        {
+            // When NotifyUser is called to notify pairups we hit a Teams bot rate limit
+            // The scenario was after 9 seconds with 12 NotifyUser calls (with max 2 in each sec), we got "too many requests" exceptions.
+            //
+            // Cannot tell which limit we're hitting as the most conservative limit on the page below for
+            // Create/Send Conversation is 2 secs => Max 8, 30 secs => Max 60
+            // but it does say they are subject to change. In any case use a retry policy to do the requests.
+            // https://docs.microsoft.com/en-us/microsoftteams/platform/bots/how-to/rate-limit
+            //
+            // deltaBackoff is used to add a randomized  +/- 20% delta to avoid numerous clients retrying simultaneously.
+            var exponentialBackoffRetryStrategy = new ExponentialBackoff(retryCount: 3, minBackoff: TimeSpan.FromSeconds(2), maxBackoff: TimeSpan.FromSeconds(30), deltaBackoff: TimeSpan.FromSeconds(1));
+            var retryPolicy = new RetryPolicy(new BotSdkTransientExceptionDetectionStrategy(), exponentialBackoffRetryStrategy);
+            return retryPolicy;
+        }
+
         private async Task<bool> NotifyUser(ConnectorClient connectorClient, Attachment cardToSend, ChannelAccount user, string tenantId)
         {
             var userId = user.GetUserId();
             this.telemetryClient.TrackTrace($"Sending notification to user {userId}");
 
+            var retryPolicy = this.CreateRetryPolicy();
             try
             {
                 // ensure conversation exists
                 var bot = new ChannelAccount { Id = this.botId };
-                var response = connectorClient.Conversations.CreateOrGetDirectConversation(bot, user, tenantId);
+                var response = retryPolicy.ExecuteAction<ConversationResourceResponse>(() => connectorClient.Conversations.CreateOrGetDirectConversation(bot, user, tenantId));
                 this.telemetryClient.TrackTrace($"Received conversation {response.Id} for {userId}");
 
                 // construct the activity we want to post
@@ -919,7 +941,7 @@ namespace Icebreaker
 
                 if (!this.isTesting)
                 {
-                    await connectorClient.Conversations.SendToConversationAsync(activity);
+                    await retryPolicy.ExecuteAsync(() => connectorClient.Conversations.SendToConversationAsync(activity));
                     this.telemetryClient.TrackTrace($"Sent notification to user {userId}");
                 }
 
@@ -927,7 +949,7 @@ namespace Icebreaker
             }
             catch (Exception ex)
             {
-                this.telemetryClient.TrackTrace($"Error sending notification to user: {ex.Message}", SeverityLevel.Warning);
+                this.telemetryClient.TrackTrace($"Error sending notification to user: {ex.Message}", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex);
                 return false;
             }
@@ -935,6 +957,8 @@ namespace Icebreaker
 
         private async Task<bool> SavePastMatch(string tenantId, string userAadId, string matchedUserAadId, DateTime matchDate)
         {
+            this.telemetryClient.TrackTrace($"Save new match {matchedUserAadId} for {userAadId}");
+
             var userInfo = await this.GetOrCreateUnpersistedUserInfo(tenantId, userAadId);
             userInfo.Matches.Insert(0, new UserMatch { UserId = matchedUserAadId, MatchDateUtc = matchDate });
             return await this.dataProvider.SetUserInfoAsync(userInfo);
@@ -1024,7 +1048,9 @@ namespace Icebreaker
                 return new MatchResult(new List<MatchResult.MatchPair>(), users.First());
             }
 
-            Random random = new Random(Guid.NewGuid().GetHashCode());
+            var randomSeed = Guid.NewGuid().GetHashCode();
+            this.telemetryClient.TrackTrace($"Random seed is {randomSeed}");
+            Random random = new Random(randomSeed);
 
             var useStableMarriageAlgorithmUserCount = 4;
 
