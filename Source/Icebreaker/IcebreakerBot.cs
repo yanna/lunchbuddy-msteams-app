@@ -169,18 +169,9 @@ namespace Icebreaker
                     // to have too many requests in a short amount of time and we couldn't send the cards to the users
                     // because it hit a Teams bot limit. In our case we had about 40 users.
                     // So keep it in a foreach even though this is more "synchronous".
-                    bool start = false;
                     foreach (var pair in pairs)
                     {
-                        if (pair.Item1.Name.StartsWith("Simon "))
-                        {
-                            start = true;
-                        }
-
-                        if (start)
-                        {
-                            usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, teamName, pair, matchDate);
-                        }
+                        usersNotifiedCount += await this.NotifyPair(connectorClient, team.TenantId, teamName, pair, matchDate);
                     }
                 }
             }
