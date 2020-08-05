@@ -219,7 +219,7 @@
     <comment>Error message if the pairs could not be notified manually</comment>
   </data>
   <data name="ManualNotifiedUsersMessage" xml:space="preserve">
-    <value>Notified {0} pair(s).</value>
+    <value>Notified {0} out of {1} users.</value>
     <comment>Message after the pairs have been notified manually</comment>
   </data>
   <data name="MatchUpCardContentPart1" xml:space="preserve">

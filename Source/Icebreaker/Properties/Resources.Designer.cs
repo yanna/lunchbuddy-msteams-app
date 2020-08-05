@@ -295,7 +295,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Notified {0} pair(s)..
+        ///   Looks up a localized string similar to Notified {0} out of {1} users..
         /// </summary>
         internal static string ManualNotifiedUsersMessage {
             get {

@@ -162,8 +162,8 @@ namespace Icebreaker.Controllers
                     membersByChannelAccountId[pair.Item2])).ToList();
 
                 var team = await this.bot.GetInstalledTeam(makePairsResult.TeamId);
-                var numPairsNotified = await this.bot.NotifyAllPairs(team, pairs);
-                replyMessage = string.Format(Resources.ManualNotifiedUsersMessage, numPairsNotified);
+                var numUsersNotified = await this.bot.NotifyAllPairs(team, pairs);
+                replyMessage = string.Format(Resources.ManualNotifiedUsersMessage, numUsersNotified, pairs.Count * 2);
             }
             catch (Exception ex)
             {

@@ -144,13 +144,12 @@ namespace Icebreaker
         /// </summary>
         /// <param name="team">team info</param>
         /// <param name="pairs">member pairs</param>
-        /// <returns>Count of pairs notified</returns>
+        /// <returns>Count of people notified</returns>
         public async Task<int> NotifyAllPairs(TeamInstallInfo team, IList<Tuple<ChannelAccount, ChannelAccount>> pairs)
         {
             this.telemetryClient.TrackTrace($"Notify pairs for team {team.Id}");
 
             int usersNotifiedCount = 0;
-            int pairsNotifiedCount = 0;
 
             try
             {
@@ -167,7 +166,6 @@ namespace Icebreaker
                     var usersNotifiedCounts = await Task.WhenAll(notifyPairsTasks);
 
                     usersNotifiedCount += usersNotifiedCounts.Sum();
-                    pairsNotifiedCount += pairs.Count;
                 }
             }
             catch (Exception ex)
@@ -176,9 +174,10 @@ namespace Icebreaker
                 this.telemetryClient.TrackException(ex);
             }
 
-            this.telemetryClient.TrackTrace($"Made {pairsNotifiedCount} pairups, {usersNotifiedCount} notifications sent");
+            var expectedUserCount = pairs.Count * 2;
+            this.telemetryClient.TrackTrace($"Notify results: {usersNotifiedCount} out of {expectedUserCount} notifications sent");
 
-            return pairsNotifiedCount;
+            return usersNotifiedCount;
         }
 
         /// <summary>
@@ -874,19 +873,22 @@ namespace Icebreaker
 
             // Send notifications and return the number that was successful
             var notifyResults = await Task.WhenAll(
-                this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(cardForPerson1), teamsPerson1, tenantId),
-                this.NotifyUser(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(cardForPerson2), teamsPerson2, tenantId));
+                this.NotifyUserAndSavePastMatch(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(cardForPerson1), teamsPerson1, teamsPerson2.GetUserId(), tenantId, matchDate),
+                this.NotifyUserAndSavePastMatch(connectorClient, AdaptiveCardHelper.CreateAdaptiveCardAttachment(cardForPerson2), teamsPerson2, teamsPerson1.GetUserId(), tenantId, matchDate));
 
             var successfulNotifyCount = notifyResults.Count(wasNotified => wasNotified);
-            if (successfulNotifyCount > 0)
+            return successfulNotifyCount;
+        }
+
+        private async Task<bool> NotifyUserAndSavePastMatch(ConnectorClient connectorClient, Attachment cardToSend, ChannelAccount user, string matchedUserId, string tenantId, DateTime matchDate)
+        {
+            bool notifiedUser = await this.NotifyUser(connectorClient, cardToSend, user, tenantId);
+            if (notifiedUser)
             {
-                // As long as one person gets the notification we'll consider it a match for both.
-                await Task.WhenAll(
-                    this.SavePastMatch(tenantId, teamsPerson1.GetUserId(), teamsPerson2.GetUserId(), matchDate),
-                    this.SavePastMatch(tenantId, teamsPerson2.GetUserId(), teamsPerson1.GetUserId(), matchDate));
+                await this.SavePastMatch(tenantId, user.GetUserId(), matchedUserId, matchDate);
             }
 
-            return successfulNotifyCount;
+            return notifiedUser;
         }
 
         private async Task<bool> NotifyUser(ConnectorClient connectorClient, Attachment cardToSend, ChannelAccount user, string tenantId)
@@ -899,7 +901,7 @@ namespace Icebreaker
                 // ensure conversation exists
                 var bot = new ChannelAccount { Id = this.botId };
                 var response = connectorClient.Conversations.CreateOrGetDirectConversation(bot, user, tenantId);
-                this.telemetryClient.TrackTrace($"Received conversation {response.Id}");
+                this.telemetryClient.TrackTrace($"Received conversation {response.Id} for {userId}");
 
                 // construct the activity we want to post
                 var activity = new Activity()
@@ -918,6 +920,7 @@ namespace Icebreaker
                 if (!this.isTesting)
                 {
                     await connectorClient.Conversations.SendToConversationAsync(activity);
+                    this.telemetryClient.TrackTrace($"Sent notification to user {userId}");
                 }
 
                 return true;
