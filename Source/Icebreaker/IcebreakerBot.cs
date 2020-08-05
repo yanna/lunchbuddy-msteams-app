@@ -51,6 +51,8 @@ namespace Icebreaker
             this.botDisplayName = CloudConfigurationManager.GetSetting("BotDisplayName");
             this.botId = CloudConfigurationManager.GetSetting("MicrosoftAppId");
             this.isTesting = Convert.ToBoolean(CloudConfigurationManager.GetSetting("Testing"));
+
+            this.telemetryClient.TrackTrace($"Starting bot with IsTesting: {this.isTesting} MaxPairUpsPerTeam: {this.maxPairUpsPerTeam}");
         }
 
         /// <summary>
