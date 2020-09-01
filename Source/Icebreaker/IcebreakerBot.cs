@@ -136,7 +136,7 @@ namespace Icebreaker
                     var teamName = await this.GetTeamNameAsync(connectorClient, team.TeamId);
 
                     var matchAttachment = this.CreateMatchAttachment(matchResult, team.TeamId, teamName);
-                    var adminUser = new ChannelAccount { Id = team.AdminUser?.ChannelAccountId };
+                    var adminUser = new TeamsChannelAccount { Id = team.AdminUser?.ChannelAccountId, ObjectId = team.AdminUser?.UserId };
 
                     await this.NotifyUser(connectorClient, matchAttachment, adminUser, team.TenantId);
                 }
