@@ -68,6 +68,12 @@ namespace Icebreaker
 
             try
             {
+                // We need to call TrustServiceUrl because this function can be
+                // initiated by the Logic App and therefore does not come from a request
+                // that is already authenticated by BotAuthentication
+                // https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-howto-proactive-message?view=azure-bot-service-4.0&tabs=csharp#avoiding-401-unauthorized-errors
+                MicrosoftAppCredentials.TrustServiceUrl(team.ServiceUrl);
+
                 using (var connectorClient = new ConnectorClient(new Uri(team.ServiceUrl)))
                 {
                     var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
