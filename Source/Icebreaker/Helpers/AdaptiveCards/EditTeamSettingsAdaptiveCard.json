@@ -15,10 +15,9 @@
             "weight": "Bolder"
         },
         {
-            "type": "Input.ChoiceSet",
-            "choices": [],
-            "style": "compact",
-            "id": "AdminUserJson"
+            "type": "Input.Text",
+            "id": "AdminUserName",
+            "value": "%adminUserName%"
         },
         {
             "type": "TextBlock",
@@ -72,7 +71,9 @@
             "type": "Action.Submit",
             "title": "Submit",
             "data": {
-                "TeamId": "%teamId%"
+                "TeamId": "%teamId%",
+                "OriginalAdminUserId": "%originalAdminUserId%",
+                "OriginalAdminUserName": "%originalAdminUserName%"
             }
         }
     ]

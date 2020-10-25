@@ -693,11 +693,26 @@ namespace Icebreaker
         /// <returns>List of team contexts</returns>
         public async Task<List<TeamContext>> GetAllTeams(ConnectorClient connectorClient)
         {
-            var allTeams = await this.dataProvider.GetInstalledTeamsAsync();
-            var teamNameTasks = allTeams.Select(team => this.GetTeamNameAsync(connectorClient, team.TeamId));
-            var teamNames = await Task.WhenAll(teamNameTasks);
+            var installedTeams = await this.dataProvider.GetInstalledTeamsAsync();
+            var teamContexts = new List<TeamContext>();
 
-            return allTeams.Zip(teamNames, (teamInfo, teamName) => new TeamContext { TeamId = teamInfo.TeamId, TeamName = teamName }).ToList();
+            foreach (var installedTeam in installedTeams)
+            {
+                try
+                {
+                    var teamName = await this.GetTeamNameAsync(connectorClient, installedTeam.TeamId);
+                    var teamContext = new TeamContext { TeamId = installedTeam.TeamId, TeamName = teamName };
+                    teamContexts.Add(teamContext);
+                }
+                catch (Exception ex)
+                {
+                    // This may happen if the bot we're using is not installed in the other teams
+                    this.telemetryClient.TrackTrace($"Could not get the team name for {installedTeam.TeamId}: {ex.Message}", SeverityLevel.Warning);
+                    this.telemetryClient.TrackException(ex);
+                }
+            }
+
+            return teamContexts;
         }
 
         /// <summary>
@@ -747,7 +762,6 @@ namespace Icebreaker
             var teamInfo = await this.GetInstalledTeam(teamId);
 
             var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
-            var users = allMembers.Select(account => new EditTeamSettingsAdaptiveCard.User { AadId = account.GetUserId(), Name = account.Name }).OrderBy(t => t.Name);
 
             EditTeamSettingsAdaptiveCard.User adminUser = null;
             if (teamInfo.AdminUser != null)
@@ -759,7 +773,7 @@ namespace Icebreaker
                 }
             }
 
-            var card = EditTeamSettingsAdaptiveCard.GetCard(teamId, teamName, users.ToList(), adminUser, teamInfo.NotifyMode, teamInfo.SubteamNames);
+            var card = EditTeamSettingsAdaptiveCard.GetCard(teamId, teamName, adminUser, teamInfo.NotifyMode, teamInfo.SubteamNames);
             replyActivity.Attachments = new List<Attachment>()
             {
                 AdaptiveCardHelper.CreateAdaptiveCardAttachment(card)

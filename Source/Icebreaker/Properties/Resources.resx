@@ -171,6 +171,10 @@
     <value>Admin: Edit Team Settings</value>
     <comment>Button text for edit team settings</comment>
   </data>
+  <data name="EditTeamSettingsUnrecognizedUserName" xml:space="preserve">
+    <value>Admin User: could not find the name {0} in the team. Please double check the spelling and make sure it is the full name.</value>
+    <comment>When the user name is entered for the admin but we can't find it. </comment>
+  </data>
   <data name="EditUserButtonText" xml:space="preserve">
     <value>Admin: Edit Any User</value>
     <comment>Admin action for editing user profile and opt in status of someone on the team they manage</comment>

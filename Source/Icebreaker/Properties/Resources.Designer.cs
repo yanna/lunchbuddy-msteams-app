@@ -187,6 +187,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Admin User: could not find the name {0} in the team. Please double check the spelling and make sure it is the full name..
+        /// </summary>
+        internal static string EditTeamSettingsUnrecognizedUserName {
+            get {
+                return ResourceManager.GetString("EditTeamSettingsUnrecognizedUserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Admin: Edit Any User.
         /// </summary>
         internal static string EditUserButtonText {

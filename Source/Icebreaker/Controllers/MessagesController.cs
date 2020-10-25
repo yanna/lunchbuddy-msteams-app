@@ -358,14 +358,39 @@ namespace Icebreaker
                 lowPreferenceNames);
         }
 
-        private Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, EditTeamSettingsAdaptiveCard.TeamSettings teamSettings, string tenantId)
+        private async Task HandleSaveTeamSettings(ConnectorClient connectorClient, Activity activity, EditTeamSettingsAdaptiveCard.TeamSettings teamSettings, string tenantId)
         {
-            return this.bot.SaveTeamSettings(
+            var adminUserId = string.Empty;
+
+            // Get the name from the original id if we can, otherwise query for it.
+            if (!string.IsNullOrEmpty(teamSettings.AdminUserName))
+            {
+                if (teamSettings.AdminUserName == teamSettings.OriginalAdminUserName)
+                {
+                    adminUserId = teamSettings.OriginalAdminUserId;
+                }
+                else
+                {
+                    var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamSettings.TeamId);
+                    var foundAdminUser = allMembers.FirstOrDefault(account => account.Name == teamSettings.AdminUserName);
+
+                    if (foundAdminUser == null)
+                    {
+                        var errorMsg = string.Format(Resources.EditTeamSettingsUnrecognizedUserName, teamSettings.AdminUserName);
+                        await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(errorMsg));
+                        return;
+                    }
+
+                    adminUserId = foundAdminUser.GetUserId();
+                }
+            }
+
+            await this.bot.SaveTeamSettings(
                 connectorClient,
                 activity,
                 tenantId,
                 teamSettings.TeamId,
-                teamSettings.GetUserId(),
+                adminUserId,
                 teamSettings.NotifyMode,
                 teamSettings.SubteamNames);
         }

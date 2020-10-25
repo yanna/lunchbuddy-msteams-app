@@ -32,15 +32,12 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// </summary>
         /// <param name="teamId">Team id</param>
         /// <param name="teamName">User discipline</param>
-        /// <param name="potentialAdminUsers">List of users we can change into the admin</param>
         /// <param name="adminUser">Admin user. Can be null if bot installed by Graph or changed to no admin</param>
         /// <param name="teamNotifyMode">How pairings will be notified</param>
         /// <param name="subteamNames">Sub team names hints for Edit Profile page</param>
         /// <returns>user profile card</returns>
-        public static AdaptiveCard GetCard(string teamId, string teamName, List<User> potentialAdminUsers, User adminUser, string teamNotifyMode, string subteamNames)
+        public static AdaptiveCard GetCard(string teamId, string teamName, User adminUser, string teamNotifyMode, string subteamNames)
         {
-            var defaultAdminUser = adminUser == null ? TeamSettings.EmptyUser : JsonConvert.SerializeObject(adminUser);
-
             var variablesToValues = new Dictionary<string, string>()
             {
                 { "teamId", teamId },
@@ -48,19 +45,16 @@ namespace Icebreaker.Helpers.AdaptiveCards
                 { "noApprovalValue", TeamInstallInfo.NotifyModeNoApproval },
                 { "needApprovalValue", TeamInstallInfo.NotifyModeNeedApproval },
                 { "defaultNotifyMode", teamNotifyMode },
-                { "subteamNames", subteamNames }
+                { "subteamNames", subteamNames },
+                { "adminUserName", adminUser == null ? string.Empty : adminUser.Name },
+                { "originalAdminUserId", adminUser == null ? string.Empty : adminUser.AadId },
+                { "originalAdminUserName", adminUser == null ? string.Empty : adminUser.Name }
             };
 
             var cardJson = AdaptiveCardHelper.ReplaceTemplateKeys(CardTemplate, variablesToValues);
 
             // There is an AdaptiveCard template library but it's only for .NET core.
             var card = AdaptiveCard.FromJson(cardJson).Card;
-            var adminUserElement = card.Body.Find(element => element.Id == "AdminUserJson");
-            var adminChoiceInput = adminUserElement as AdaptiveChoiceSetInput;
-            adminChoiceInput.Choices = new List<AdaptiveChoice> { new AdaptiveChoice { Title = EmptyUserText, Value = TeamSettings.EmptyUser } };
-            adminChoiceInput.Choices.AddRange(potentialAdminUsers.Select(user => new AdaptiveChoice { Title = user.Name, Value = JsonConvert.SerializeObject(user) }));
-            adminChoiceInput.Value = defaultAdminUser;
-
             return card;
         }
 
@@ -128,15 +122,22 @@ namespace Icebreaker.Helpers.AdaptiveCards
         public class TeamSettings
         {
             /// <summary>
-            /// Value for an empty user. Can't be empty otherwise sending the activity will result in an exception.
-            /// </summary>
-            public const string EmptyUser = "{}";
-
-            /// <summary>
-            /// Gets or sets the Admin user json which includes id and name. Can be empty.
+            /// Gets or sets the Admin user name. Can be empty.
             /// </summary>
             [JsonProperty(Required = Required.Always)]
-            public string AdminUserJson { get; set; } = string.Empty;
+            public string OriginalAdminUserName { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets the Admin user id. Can be empty.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string OriginalAdminUserId { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Gets or sets the newly entered admin user name
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string AdminUserName { get; set; } = string.Empty;
 
             /// <summary>
             /// Gets or sets the notify mode
@@ -155,24 +156,6 @@ namespace Icebreaker.Helpers.AdaptiveCards
             /// </summary>
             [JsonProperty(Required = Required.Always)]
             public string TeamId { get; set; } = string.Empty;
-
-            /// <summary>
-            /// Gets the user id
-            /// </summary>
-            /// <returns>User id</returns>
-            public string GetUserId() => this.HasAdminUser() ? JsonConvert.DeserializeObject<User>(this.AdminUserJson).AadId : string.Empty;
-
-            /// <summary>
-            /// Gets the user name
-            /// </summary>
-            /// <returns>Name</returns>
-            public string GetUserName() => this.HasAdminUser() ? JsonConvert.DeserializeObject<User>(this.AdminUserJson).Name : string.Empty;
-
-            /// <summary>
-            /// Whether user id exists
-            /// </summary>
-            /// <returns>True if user id exists</returns>
-            private bool HasAdminUser() => this.AdminUserJson != EmptyUser;
         }
     }
 }
