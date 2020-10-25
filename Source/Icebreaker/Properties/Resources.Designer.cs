@@ -151,6 +151,24 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please enter the full name of the user.
+        /// </summary>
+        internal static string ChooseUserNoUserName {
+            get {
+                return ResourceManager.GetString("ChooseUserNoUserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find the name {0} in the team. Please double check the spelling and make sure it is the full name..
+        /// </summary>
+        internal static string ChooseUserUnrecognizedUserName {
+            get {
+                return ResourceManager.GetString("ChooseUserUnrecognizedUserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Enrollment.
         /// </summary>
         internal static string EditEnrollmentButtonText {

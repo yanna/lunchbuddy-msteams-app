@@ -20,28 +20,24 @@ namespace Icebreaker.Helpers.AdaptiveCards
         /// <summary>
         /// Returns the adaptive card for choosing a user
         /// </summary>
-        /// <param name="users">List of users to display</param>
+        /// <param name="users">List of users to display. If it's empty, show a text input</param>
         /// <param name="teamContext">Team the list of users is from</param>
         /// <param name="messageId">Message id the user picking is for</param>
         /// <returns>Card for choosing a user</returns>
         public static AdaptiveCard GetCard(List<User> users, TeamContext teamContext, string messageId)
         {
+            var isDropdownVisible = users.Count > 0;
+
             var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 2))
             {
                 Body = new List<AdaptiveElement>
                 {
                     new AdaptiveTextBlock()
                     {
-                        Text = "Choose User and Team",
+                        Text = "User Name",
                         Size = AdaptiveTextSize.Large,
                         Wrap = true,
                         Weight = AdaptiveTextWeight.Bolder
-                    },
-                    new AdaptiveTextBlock()
-                    {
-                        Text = "Choose User",
-                        Size = AdaptiveTextSize.Medium,
-                        Wrap = true,
                     },
                     new AdaptiveChoiceSetInput()
                     {
@@ -51,7 +47,13 @@ namespace Icebreaker.Helpers.AdaptiveCards
                         {
                             Title = user.Name,
                             Value = JsonConvert.SerializeObject(user)
-                        }).ToList()
+                        }).ToList(),
+                        IsVisible = isDropdownVisible
+                    },
+                    new AdaptiveTextInput()
+                    {
+                        Id = "UserNameInput",
+                        IsVisible = !isDropdownVisible
                     }
                 },
                 Actions = new List<AdaptiveAction>
@@ -59,7 +61,7 @@ namespace Icebreaker.Helpers.AdaptiveCards
                     new AdaptiveSubmitAction
                     {
                         Title = "Submit",
-                        Data = JObject.FromObject(new { MessageId = messageId, TeamContext = teamContext })
+                        Data = JObject.FromObject(new { MessageId = messageId, TeamContext = teamContext, HasNameAndId = isDropdownVisible })
                     }
                 }
             };

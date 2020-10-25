@@ -372,7 +372,7 @@ namespace Icebreaker
                 else
                 {
                     var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamSettings.TeamId);
-                    var foundAdminUser = allMembers.FirstOrDefault(account => account.Name == teamSettings.AdminUserName);
+                    var foundAdminUser = allMembers.FirstOrDefault(account => account.Name.ToLower() == teamSettings.AdminUserName.Trim().ToLower());
 
                     if (foundAdminUser == null)
                     {

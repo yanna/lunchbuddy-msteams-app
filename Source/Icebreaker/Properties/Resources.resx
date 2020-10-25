@@ -156,6 +156,14 @@
     <value>Chat With Me</value>
     <comment>Button text for chatting with the bot</comment>
   </data>
+  <data name="ChooseUserNoUserName" xml:space="preserve">
+    <value>Please enter the full name of the user</value>
+    <comment>When we can't find the user in the team.</comment>
+  </data>
+  <data name="ChooseUserUnrecognizedUserName" xml:space="preserve">
+    <value>Could not find the name {0} in the team. Please double check the spelling and make sure it is the full name.</value>
+    <comment>When we can't find the user in the team.</comment>
+  </data>
   <data name="EditEnrollmentButtonText" xml:space="preserve">
     <value>Edit Enrollment</value>
     <comment>Edit enrollment of statuses in teams</comment>

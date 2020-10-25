@@ -100,20 +100,39 @@ namespace Icebreaker.Controllers
             var teamContext = ActivityHelper.ParseCardActionData<TeamContext>(activity);
             if (teamContext != null)
             {
-                var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(teamContext.TeamId);
-                var users = allMembers.Select(account => new ChooseUserAdaptiveCard.User { AadId = account.GetUserId(), Name = account.Name }).OrderBy(t => t.Name);
-                var pickUserCard = ChooseUserAdaptiveCard.GetCard(users.ToList(), teamContext, msgId);
+                // Once there's too many users (>100?) we can get an RequestEntityTooLarge status code if
+                // we pass in the users to be shown in the dropdown.
+                // Just ask for the user name as a text input through passing an empty user list.
+                var users = new List<ChooseUserAdaptiveCard.User>();
+                var pickUserCard = ChooseUserAdaptiveCard.GetCard(users, teamContext, msgId);
                 await ActivityHelper.ReplyWithAdaptiveCard(connectorClient, activity, pickUserCard);
                 return;
             }
 
             var chooseUserResult = ActivityHelper.ParseCardActionData<ChooseUserResult>(activity);
-            if (chooseUserResult != null)
+            if (chooseUserResult == null)
             {
-                var userAndTeam = new UserAndTeam { Team = chooseUserResult.TeamContext, User = new UserContext { UserAadId = chooseUserResult.GetUserId(), UserName = chooseUserResult.GetUserName() } };
-                await this.SendEditAnyUserCard(connectorClient, activity, ActivityHelper.GetTenantId(activity), userAndTeam);
                 return;
             }
+
+            if (string.IsNullOrEmpty(chooseUserResult.UserNameInput))
+            {
+                var errorMsg = Resources.ChooseUserNoUserName;
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(errorMsg));
+                return;
+            }
+
+            var allMembers = await connectorClient.Conversations.GetConversationMembersAsync(chooseUserResult.TeamContext.TeamId);
+            var user = allMembers.FirstOrDefault(u => u.Name.ToLower() == chooseUserResult.UserNameInput.Trim().ToLower());
+            if (user == null)
+            {
+                var errorMsg = string.Format(Resources.ChooseUserUnrecognizedUserName, chooseUserResult.UserNameInput);
+                await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(errorMsg));
+                return;
+            }
+
+            var userAndTeam = new UserAndTeam { Team = chooseUserResult.TeamContext, User = new UserContext { UserAadId = user.GetUserId(), UserName = user.Name } };
+            await this.SendEditAnyUserCard(connectorClient, activity, ActivityHelper.GetTenantId(activity), userAndTeam);
         }
 
         private async Task HandleAdminMakePairs(string msgId, ConnectorClient connectorClient, Activity activity, string senderAadId)
