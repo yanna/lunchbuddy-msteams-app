@@ -76,14 +76,15 @@ namespace Icebreaker
 
                 using (var connectorClient = new ConnectorClient(new Uri(team.ServiceUrl)))
                 {
-                    var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
-
                     var watch = System.Diagnostics.Stopwatch.StartNew();
+                    var optedInUsers = await this.GetOptedInUsers(connectorClient, team);
+                    watch.Stop();
+                    this.telemetryClient.TrackTrace($"Team {team.Id} took {watch.ElapsedMilliseconds} ms to GetOptedInUsers");
+
+                    watch = System.Diagnostics.Stopwatch.StartNew();
                     matchResult = await this.MakePairs(optedInUsers);
                     watch.Stop();
-                    var elapsedMs = watch.ElapsedMilliseconds;
-
-                    this.telemetryClient.TrackTrace($"Team {team.Id} took {elapsedMs} ms to makepairs for {optedInUsers.Count} opted in users.");
+                    this.telemetryClient.TrackTrace($"Team {team.Id} took {watch.ElapsedMilliseconds} ms to MakePairs for {optedInUsers.Count} opted in users.");
 
                     matchResult.Pairs.Take(this.maxPairUpsPerTeam).ToList();
                 }
@@ -1030,22 +1031,19 @@ namespace Icebreaker
         {
             var teamId = teamInfo.TeamId;
 
-            // Pull the roster of specified team and then remove everyone who has opted out explicitly
+            // Pull the roster of specified team and only keep those who have opted in explicitly
             var members = await connectorClient.Conversations.GetConversationMembersAsync(teamId);
-            this.telemetryClient.TrackTrace($"Found {members.Count} in team {teamId}");
-
-            // UserInfo only exists if the user has entered some info in the first place (eg optout or profile details)
-            // Opt out is presumed if no UserInfo is found.
-            var tasks = members.Select(m => this.dataProvider.GetUserInfoAsync(m.GetUserId()));
-            var results = await Task.WhenAll(tasks);
+            this.telemetryClient.TrackTrace($"There are {members.Count} total in team {teamId}");
 
             // Sometimes I see "Unknown User" in a team.
             // I suspect these are people who have their AAD account disabled eg when someone leaves the company.
             // Going to add a check for it to remove them but unsure if GetConversationMembersAsync actually includes them.
-            return members
-                .Zip(results, (member, userInfo) => (userInfo?.IsActiveInTeam(teamId) == true && !IsUnknownUser(member.Name)) ? member : null)
-                .Where(m => m != null)
-                .ToList();
+            var memberByUserId = members.Where(m => !IsUnknownUser(m.Name)).ToDictionary(m => m.GetUserId(), m => m);
+
+            var activeUserIds = await this.dataProvider.GetActiveUserIdsForTeam(teamId);
+            this.telemetryClient.TrackTrace($"There are {activeUserIds.Count} active users in team {teamId}");
+
+            return activeUserIds.Where(userId => memberByUserId.ContainsKey(userId)).Select(userId => memberByUserId[userId]).ToList();
         }
 
         private async Task<MatchResult> MakePairs(List<ChannelAccount> users)

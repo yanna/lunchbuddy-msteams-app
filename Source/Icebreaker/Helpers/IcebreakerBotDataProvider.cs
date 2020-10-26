@@ -8,6 +8,7 @@ namespace Icebreaker.Helpers
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Icebreaker.Model;
     using Microsoft.ApplicationInsights;
@@ -16,6 +17,7 @@ namespace Icebreaker.Helpers
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Data provider routines
@@ -120,6 +122,34 @@ namespace Icebreaker.Helpers
             }
 
             return installedTeams;
+        }
+
+        /// <summary>
+        /// Gets the active user ids for a team
+        /// </summary>
+        /// <param name="teamId">Team id</param>
+        /// <returns>List of user ids</returns>
+        public async Task<IList<string>> GetActiveUserIdsForTeam(string teamId)
+        {
+            await this.EnsureInitializedAsync();
+
+            try
+            {
+                var activeStatus = Enum.GetName(typeof(EnrollmentStatus), EnrollmentStatus.Active);
+
+                var activeUserIdsQuery = this.documentClient.CreateDocumentQuery<UserIdResult>(
+                    this.usersCollection.SelfLink,
+                    $"SELECT c.id FROM c WHERE ARRAY_CONTAINS(c.statusInTeam, {{'teamId':'{teamId}', 'status': '{activeStatus}'}}, true)",
+                    new FeedOptions { EnableCrossPartitionQuery = true }).ToList();
+
+                return activeUserIdsQuery.Select(result => result.Id).ToList();
+            }
+            catch (Exception ex)
+            {
+                this.telemetryClient.TrackTrace($"Error getting active user ids for team {teamId}", SeverityLevel.Error);
+                this.telemetryClient.TrackException(ex.InnerException);
+                return new List<string>();
+            }
         }
 
         /// <summary>
@@ -249,6 +279,15 @@ namespace Icebreaker.Helpers
         private async Task EnsureInitializedAsync()
         {
             await this.initializeTask.Value;
+        }
+
+        private class UserIdResult
+        {
+            /// <summary>
+            /// Gets or sets the message id the choose user result was for
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Id { get; set; } = string.Empty;
         }
     }
 }

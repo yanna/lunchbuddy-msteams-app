@@ -31,6 +31,7 @@ namespace Icebreaker.Model
         /// <summary>
         /// Gets or sets the enrollment status of the user for a team. If there are no status then the user has not joined at all.
         /// </summary>
+        /// Note: if this is changed, please update the query in the data provider GetActiveUserIdsForTeam
         [JsonProperty("statusInTeam")]
         public List<UserEnrollmentStatus> StatusInTeam { get; set; } = new List<UserEnrollmentStatus>();
 
