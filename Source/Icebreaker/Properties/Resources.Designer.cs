@@ -160,7 +160,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find the name {0} in the team. Please double check the spelling and make sure it is the full name..
+        ///   Looks up a localized string similar to Error: Could not find the name {0} in the team. Please double check the spelling and make sure it is the entire name as shown on Teams..
         /// </summary>
         internal static string ChooseUserUnrecognizedUserName {
             get {
@@ -205,7 +205,7 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Admin User: could not find the name {0} in the team. Please double check the spelling and make sure it is the full name..
+        ///   Looks up a localized string similar to Admin User Error: could not find the name {0} in the team. Please double check the spelling and make sure it is the entire name as shown on Teams..
         /// </summary>
         internal static string EditTeamSettingsUnrecognizedUserName {
             get {

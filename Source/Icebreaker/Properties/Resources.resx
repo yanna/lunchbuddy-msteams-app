@@ -161,7 +161,7 @@
     <comment>When we can't find the user in the team.</comment>
   </data>
   <data name="ChooseUserUnrecognizedUserName" xml:space="preserve">
-    <value>Could not find the name {0} in the team. Please double check the spelling and make sure it is the full name.</value>
+    <value>Error: Could not find the name {0} in the team. Please double check the spelling and make sure it is the entire name as shown on Teams.</value>
     <comment>When we can't find the user in the team.</comment>
   </data>
   <data name="EditEnrollmentButtonText" xml:space="preserve">
@@ -180,7 +180,7 @@
     <comment>Button text for edit team settings</comment>
   </data>
   <data name="EditTeamSettingsUnrecognizedUserName" xml:space="preserve">
-    <value>Admin User: could not find the name {0} in the team. Please double check the spelling and make sure it is the full name.</value>
+    <value>Admin User Error: could not find the name {0} in the team. Please double check the spelling and make sure it is the entire name as shown on Teams.</value>
     <comment>When the user name is entered for the admin but we can't find it. </comment>
   </data>
   <data name="EditUserButtonText" xml:space="preserve">
