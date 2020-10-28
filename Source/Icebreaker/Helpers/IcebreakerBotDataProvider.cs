@@ -62,7 +62,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
-                this.telemetryClient.TrackTrace("Error deleting team info", SeverityLevel.Error);
+                this.telemetryClient.TrackTrace($"Error deleting team info for {teamId}", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
             }
 
@@ -85,7 +85,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
-                this.telemetryClient.TrackTrace("Error updating team install info", SeverityLevel.Error);
+                this.telemetryClient.TrackTrace($"Error updating team install info for {team.TeamId}", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
             }
 
@@ -169,7 +169,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
-                this.telemetryClient.TrackTrace("Error getting team info", SeverityLevel.Error);
+                this.telemetryClient.TrackTrace($"Error getting team info for {teamId}", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
                 return null;
             }
@@ -191,7 +191,8 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
-                this.telemetryClient.TrackTrace("Error getting user info", SeverityLevel.Error);
+                // This is typical for when we do an existence check on the user document. Downgrade to a warning.
+                this.telemetryClient.TrackTrace($"Error getting user info for {userAadId}", SeverityLevel.Warning);
                 this.telemetryClient.TrackException(ex.InnerException);
                 return null;
             }
@@ -212,7 +213,7 @@ namespace Icebreaker.Helpers
             }
             catch (Exception ex)
             {
-                this.telemetryClient.TrackTrace("Error setting user info", SeverityLevel.Error);
+                this.telemetryClient.TrackTrace($"Error setting user info for {userInfo?.Id}", SeverityLevel.Error);
                 this.telemetryClient.TrackException(ex.InnerException);
                 return false;
             }
