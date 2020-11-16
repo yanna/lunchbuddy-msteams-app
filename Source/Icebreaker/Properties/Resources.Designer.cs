@@ -331,6 +331,15 @@ namespace Icebreaker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Notifying users....
+        /// </summary>
+        internal static string ManualNotifyingUsersMessage {
+            get {
+                return ResourceManager.GetString("ManualNotifyingUsersMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hi there again, I&apos;m {0} in {1}. A bot that pairs you with a new coworker to meet each month..
         /// </summary>
         internal static string MatchUpCardContentPart1 {

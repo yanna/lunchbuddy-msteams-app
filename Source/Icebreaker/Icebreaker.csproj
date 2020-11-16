@@ -200,6 +200,7 @@
     <Compile Include="Controllers\AdminMessageHandler.cs" />
     <Compile Include="Controllers\DebugMessageHandler.cs" />
     <Compile Include="Controllers\ActivityHelper.cs" />
+    <Compile Include="Controllers\ProactiveMessage.cs" />
     <Compile Include="Helpers\AdaptiveCards\ChooseUserResult.cs" />
     <Compile Include="Helpers\AdaptiveCards\EditAnyUserAdaptiveCard.cs" />
     <Compile Include="Helpers\AdaptiveCards\UnrecognizedInputInChannelAdaptiveCard.cs" />

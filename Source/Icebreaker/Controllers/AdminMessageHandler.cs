@@ -10,6 +10,7 @@ namespace Icebreaker.Controllers
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Web.Hosting;
     using System.Web.UI.WebControls;
     using Icebreaker.Helpers;
     using Icebreaker.Helpers.AdaptiveCards;
@@ -149,9 +150,9 @@ namespace Icebreaker.Controllers
             if (matchResult.Pairs.Any())
             {
                 reply.Attachments = new List<Attachment>
-                {
-                    this.bot.CreateMatchAttachment(matchResult, team.Id, teamContext.TeamName)
-                };
+            {
+                this.bot.CreateMatchAttachment(matchResult, team.Id, teamContext.TeamName)
+            };
             }
             else
             {
@@ -162,37 +163,48 @@ namespace Icebreaker.Controllers
             await connectorClient.Conversations.ReplyToActivityAsync(reply);
         }
 
+        private async Task AdminNotifyPairs(ProactiveMessage proactiveMessage, MakePairsResult makePairsResult)
+        {
+            using (var connectorClient = new ConnectorClient(new Uri(proactiveMessage.ServiceUrl)))
+            {
+                string replyMessage = string.Empty;
+
+                try
+                {
+                    var members = await connectorClient.Conversations.GetConversationMembersAsync(makePairsResult.TeamId);
+                    var membersByChannelAccountId = members.ToDictionary(key => key.Id, value => value);
+
+                    // Evaluate all values so we can fail early if someone no longer exists
+                    var pairs = makePairsResult.PairChannelAccountIds.Select(pair => new Tuple<ChannelAccount, ChannelAccount>(
+                        membersByChannelAccountId[pair.Item1],
+                        membersByChannelAccountId[pair.Item2])).ToList();
+
+                    var team = await this.bot.GetInstalledTeam(makePairsResult.TeamId);
+                    var numUsersNotified = await this.bot.NotifyAllPairs(team, pairs);
+                    replyMessage = string.Format(Resources.ManualNotifiedUsersMessage, numUsersNotified, pairs.Count * 2);
+                }
+                catch (Exception ex)
+                {
+                    replyMessage = Resources.ManualNotifiedUsersErrorMessage;
+                    this.telemetryClient.TrackTrace($"Error while notifying pairs: {ex.Message}", SeverityLevel.Warning);
+                    this.telemetryClient.TrackException(ex);
+                }
+
+                await proactiveMessage.Send(connectorClient, replyMessage);
+            }
+        }
+
         private async Task HandleAdminNotifyPairs(string msgId, ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
-            var makePairsResult = ActivityHelper.ParseCardActionData<MakePairsResult>(activity);
-
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered notify pairs");
 
-            string replyMessage = string.Empty;
-
-            try
-            {
-                var members = await connectorClient.Conversations.GetConversationMembersAsync(makePairsResult.TeamId);
-                var membersByChannelAccountId = members.ToDictionary(key => key.Id, value => value);
-
-                // Evaluate all values so we can fail early if someone no longer exists
-                var pairs = makePairsResult.PairChannelAccountIds.Select(pair => new Tuple<ChannelAccount, ChannelAccount>(
-                    membersByChannelAccountId[pair.Item1],
-                    membersByChannelAccountId[pair.Item2])).ToList();
-
-                var team = await this.bot.GetInstalledTeam(makePairsResult.TeamId);
-                var numUsersNotified = await this.bot.NotifyAllPairs(team, pairs);
-                replyMessage = string.Format(Resources.ManualNotifiedUsersMessage, numUsersNotified, pairs.Count * 2);
-            }
-            catch (Exception ex)
-            {
-                replyMessage = Resources.ManualNotifiedUsersErrorMessage;
-                this.telemetryClient.TrackTrace($"Error while notifying pairs: {ex.Message}", SeverityLevel.Warning);
-                this.telemetryClient.TrackException(ex);
-            }
-
-            Activity reply = activity.CreateReply(replyMessage);
-            await connectorClient.Conversations.ReplyToActivityAsync(reply);
+            // The bot framework resends the message if we don't respond within a short period of time (roughly 5 seconds)
+            // Sending notify messages to 12 users caused 4 notifypairs messages and it was resend 4 times.
+            // So reply immediately and put the work on a background thread. Any further replies will be a proactive bot message.
+            var proactiveMessage = new ProactiveMessage(activity);
+            var makePairsResult = ActivityHelper.ParseCardActionData<MakePairsResult>(activity);
+            await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply(Resources.ManualNotifyingUsersMessage));
+            HostingEnvironment.QueueBackgroundWorkItem(ct => this.AdminNotifyPairs(proactiveMessage, makePairsResult));
         }
 
         private async Task HandleAdminEditTeamSettings(string msgId, ConnectorClient connectorClient, Activity activity, string senderAadId)

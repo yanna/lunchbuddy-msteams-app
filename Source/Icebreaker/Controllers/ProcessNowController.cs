@@ -46,7 +46,7 @@ namespace Icebreaker.Controllers
                 // This avoids a race condition in MicrosoftAppCredentials.GetTokenAsync that can lead it to return an expired token
                 await this.botCredentials.GetTokenAsync();
 
-                HostingEnvironment.QueueBackgroundWorkItem(ct => this.MakePairs());
+                HostingEnvironment.QueueBackgroundWorkItem(ct => this.MakePairsAndNotifyForAllTeams());
                 return this.StatusCode(System.Net.HttpStatusCode.OK);
             }
             else
@@ -55,7 +55,7 @@ namespace Icebreaker.Controllers
             }
         }
 
-        private async Task<int> MakePairs()
+        private async Task<int> MakePairsAndNotifyForAllTeams()
         {
             return await this.bot.MakePairsAndNotifyForAllTeams();
         }

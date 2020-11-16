@@ -234,6 +234,10 @@
     <value>Notified {0} out of {1} users.</value>
     <comment>Message after the pairs have been notified manually</comment>
   </data>
+  <data name="ManualNotifyingUsersMessage" xml:space="preserve">
+    <value>Notifying users...</value>
+    <comment>Notifying users of the pairing</comment>
+  </data>
   <data name="MatchUpCardContentPart1" xml:space="preserve">
     <value>Hi there again, I'm {0} in {1}. A bot that pairs you with a new coworker to meet each month.</value>
     <comment>First part of the match up card main content</comment>
