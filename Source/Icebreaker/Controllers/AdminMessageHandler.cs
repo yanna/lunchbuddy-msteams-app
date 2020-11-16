@@ -136,31 +136,41 @@ namespace Icebreaker.Controllers
             await this.SendEditAnyUserCard(connectorClient, activity, ActivityHelper.GetTenantId(activity), userAndTeam);
         }
 
+        private async Task AdminMakePairs(ProactiveMessage proactiveMessage, string teamId, string teamName)
+        {
+            using (var connectorClient = new ConnectorClient(new Uri(proactiveMessage.ServiceUrl)))
+            {
+                var team = await this.bot.GetInstalledTeam(teamId);
+
+                var matchResult = await this.bot.MakePairsForTeam(team);
+
+                List<Attachment> attachments = null;
+                string replyText = string.Empty;
+
+                if (matchResult.Pairs.Any())
+                {
+                    attachments = new List<Attachment>
+                    {
+                        this.bot.CreateMatchAttachment(matchResult, team.Id, teamName)
+                    };
+                }
+                else
+                {
+                    var numUsers = matchResult.OddPerson != null ? 1 : 0;
+                    replyText = string.Format(Resources.NewPairingsNotEnoughUsers, numUsers);
+                }
+
+                await proactiveMessage.Send(connectorClient, replyText, attachments);
+            }
+        }
+
         private async Task HandleAdminMakePairs(string msgId, ConnectorClient connectorClient, Activity activity, string senderAadId)
         {
-            var teamContext = ActivityHelper.ParseCardActionData<TeamContext>(activity);
-
             this.telemetryClient.TrackTrace($"User {senderAadId} triggered make pairs");
-
-            var team = await this.bot.GetInstalledTeam(teamContext.TeamId);
-            var matchResult = await this.bot.MakePairsForTeam(team);
-
-            Activity reply = activity.CreateReply();
-
-            if (matchResult.Pairs.Any())
-            {
-                reply.Attachments = new List<Attachment>
-            {
-                this.bot.CreateMatchAttachment(matchResult, team.Id, teamContext.TeamName)
-            };
-            }
-            else
-            {
-                var numUsers = matchResult.OddPerson != null ? 1 : 0;
-                reply.Text = string.Format(Resources.NewPairingsNotEnoughUsers, numUsers);
-            }
-
-            await connectorClient.Conversations.ReplyToActivityAsync(reply);
+            var teamContext = ActivityHelper.ParseCardActionData<TeamContext>(activity);
+            var proactiveMessage = new ProactiveMessage(activity);
+            await connectorClient.Conversations.ReplyToActivityAsync(activity.CreateReply("Creating pairs..."));
+            HostingEnvironment.QueueBackgroundWorkItem(ct => this.AdminMakePairs(proactiveMessage, teamContext.TeamId, teamContext.TeamName));
         }
 
         private async Task AdminNotifyPairs(ProactiveMessage proactiveMessage, MakePairsResult makePairsResult)

@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------------------------
 namespace Icebreaker.Controllers
 {
-    using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Microsoft.Bot.Connector;
 
@@ -51,8 +51,9 @@ namespace Icebreaker.Controllers
         /// </summary>
         /// <param name="connectorClient">connector client</param>
         /// <param name="messageText">text to send</param>
+        /// <param name="attachments">message attachments</param>
         /// <returns>Task</returns>
-        public async Task Send(ConnectorClient connectorClient, string messageText)
+        public async Task Send(ConnectorClient connectorClient, string messageText, List<Attachment> attachments = null)
         {
             // https://docs.microsoft.com/en-us/previous-versions/azure/bot-service/dotnet/bot-builder-dotnet-proactive-messages?view=azure-bot-service-3.0
             // Use the data stored previously to create the required objects.
@@ -66,6 +67,10 @@ namespace Icebreaker.Controllers
             message.Recipient = userAccount;
             message.Conversation = new ConversationAccount(id: this.ConversationId);
             message.Text = messageText;
+            if (attachments != null)
+            {
+                message.Attachments = attachments;
+            }
 
             await connectorClient.Conversations.SendToConversationAsync((Activity)message);
         }
